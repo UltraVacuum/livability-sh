@@ -1,0 +1,61 @@
+---
+import { SITE } from '../consts';
+import { CITIES } from '../data/cities';
+
+const path = Astro.url.pathname;
+const activeCity = CITIES.find((c) => path.startsWith(`/${c.key}/`) || path === `/${c.key}`);
+const cityBase = activeCity ? `/${activeCity.key}` : null;
+
+const links = cityBase
+  ? [
+      { href: `${cityBase}/`, label: '排行榜' },
+      { href: `${cityBase}/compare`, label: '对比' },
+      { href: '/methodology', label: '评分方法' },
+    ]
+  : [{ href: '/methodology', label: '评分方法' }];
+---
+
+<header class="sticky top-0 z-[1000] border-b border-line bg-surface/85 backdrop-blur">
+  <div class="container-page flex h-16 items-center justify-between">
+    <a href="/" class="flex items-center gap-2 font-semibold tracking-tight">
+      <span class="text-lg">🏙️</span>
+      <span>{SITE.name}</span>
+    </a>
+
+    <div class="flex items-center gap-3 text-sm">
+      {/* city switcher */}
+      <div class="flex items-center gap-1 rounded-full bg-surface-muted p-1">
+        {
+          CITIES.map((c) => {
+            const on = activeCity?.key === c.key;
+            return (
+              <a
+                href={`/${c.key}/`}
+                class={`rounded-full px-3 py-1 text-xs font-medium transition ${
+                  on ? 'bg-accent text-white' : 'text-ink-soft hover:text-ink'
+                }`}
+              >
+                {c.name}
+              </a>
+            );
+          })
+        }
+      </div>
+      {
+        links.map((l) => {
+          const active = path === l.href || (l.href !== '/' && path.startsWith(l.href) && l.href !== cityBase + '/');
+          return (
+            <a
+              href={l.href}
+              class={`hidden rounded-lg px-3 py-2 font-medium transition hover:bg-surface-muted sm:block ${
+                active && l.label !== '排行榜' ? 'text-accent' : 'text-ink-soft hover:text-ink'
+              }`}
+            >
+              {l.label}
+            </a>
+          );
+        })
+      }
+    </div>
+  </div>
+</header>

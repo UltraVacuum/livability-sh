@@ -1,0 +1,77 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { CITIES } from '../data/cities';
+import { getDistricts } from '../data/districts';
+import { computeCity, rankWithWeights } from '../lib/scoring';
+import { SITE } from '../consts';
+
+const cards = CITIES.map((c) => {
+  const d = computeCity(getDistricts(c.key));
+  const top = rankWithWeights(d)[0];
+  return { city: c, count: d.length, top };
+});
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: SITE.name,
+  url: SITE.url,
+  description: SITE.description,
+  inLanguage: SITE.locale,
+};
+---
+
+<BaseLayout jsonLd={jsonLd}>
+  <section class="container-page py-12 sm:py-20">
+    <div class="mx-auto max-w-3xl text-center">
+      <h1 class="text-3xl font-bold tracking-tight sm:text-5xl">
+        城市<span class="text-accent">宜居度</span>对比
+      </h1>
+      <p class="mt-4 text-base text-ink-soft sm:text-lg">
+        选择城市 → 看各区县六维评分（经济、人口、教育、医疗、交通、生活），拖动权重实时重排，找到最适合你的区。
+        人口与配套为真实公开数据，算法可解释。
+      </p>
+    </div>
+
+    <h2 class="mt-12 text-sm font-semibold uppercase tracking-wide text-ink-soft">选择城市</h2>
+    <div class="mt-4 grid gap-5 sm:grid-cols-2">
+      {
+        cards.map(({ city, count, top }) => (
+          <a href={`/${city.key}/`} class="card group block p-6 transition hover:-translate-y-0.5 hover:shadow-lg">
+            <div class="flex items-center justify-between">
+              <h3 class="text-2xl font-bold">{city.name}</h3>
+              <span class="text-3xl opacity-40 transition group-hover:opacity-70">→</span>
+            </div>
+            <p class="mt-1 text-sm text-ink-soft">{city.blurb}</p>
+            <div class="mt-4 flex items-center gap-4 text-sm">
+              <span class="rounded-full bg-accent-soft px-3 py-1 text-xs font-medium text-accent">{count} 区县</span>
+              {top && (
+                <span class="text-ink-soft">
+                  综合第一 <span class="font-semibold text-ink">{top.district.name}</span>（{top.grade}）
+                </span>
+              )}
+            </div>
+          </a>
+        ))
+      }
+    </div>
+
+    <div class="mt-10 grid gap-4 sm:grid-cols-3">
+      <div class="card p-5">
+        <div class="text-2xl">📊</div>
+        <h3 class="mt-2 font-semibold">六维评分</h3>
+        <p class="mt-1 text-sm text-ink-soft">z-score 归一 + 加权综合，城市内百分位分级。</p>
+      </div>
+      <div class="card p-5">
+        <div class="text-2xl">🎛️</div>
+        <h3 class="mt-2 font-semibold">自定义权重</h3>
+        <p class="mt-1 text-sm text-ink-soft">拖动滑块，地图与排行榜实时重排 —— 对你最宜居。</p>
+      </div>
+      <div class="card p-5">
+        <div class="text-2xl">🔍</div>
+        <h3 class="mt-2 font-semibold">来源透明</h3>
+        <p class="mt-1 text-sm text-ink-soft">每项可溯源，算法公开。详见<a href="/methodology" class="text-accent hover:underline">评分方法</a>。</p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

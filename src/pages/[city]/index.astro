@@ -1,0 +1,116 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Explorer from '../../components/Explorer.tsx';
+import { computeCity, rankWithWeights } from '../../lib/scoring';
+import { getDistricts, METRICS } from '../../data/districts';
+import { CITIES, getCity } from '../../data/cities';
+import { SITE } from '../../consts';
+
+export function getStaticPaths() {
+  return CITIES.map((c) => ({ params: { city: c.key } }));
+}
+
+const city = getCity(Astro.params.city!)!;
+const districts = computeCity(getDistricts(city.key));
+const ranked = rankWithWeights(districts);
+const top = ranked[0];
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: `${city.name}区县宜居度`,
+  url: new URL(`/${city.key}/`, Astro.site).href,
+  description: SITE.description,
+  inLanguage: SITE.locale,
+  mainEntity: {
+    '@type': 'ItemList',
+    numberOfItems: ranked.length,
+    itemListElement: ranked.slice(0, 5).map((r, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: `${r.district.name}（${r.grade} 级）`,
+      url: new URL(`/${city.key}/district/${r.district.adcode}`, Astro.site).href,
+    })),
+  },
+};
+---
+
+<BaseLayout
+  title={`${city.name}区县宜居度对比`}
+  description={`${city.name}${districts.length} 个区县六维宜居度对比：经济、人口、教育、医疗、交通、生活。人口与配套为真实公开数据，可自定义权重实时重排。`}
+  path={`/${city.key}/`}
+  jsonLd={jsonLd}
+>
+  <section class="container-page py-10 sm:py-14">
+    <div class="mx-auto max-w-3xl text-center">
+      <span class="rounded-full bg-accent-soft px-3 py-1 text-xs font-medium text-accent">
+        🏙️ {city.name} · {districts.length} 区县 · 六维评分
+      </span>
+      <h1 class="mt-4 text-3xl font-bold tracking-tight sm:text-5xl">
+        {city.name} {districts.length} 区，<span class="text-accent">哪个最适合你</span>？
+      </h1>
+      <p class="mt-4 text-base text-ink-soft sm:text-lg">
+        经济、人口、教育、医疗、交通、生活 六维横向对比。拖动权重，地图与排行榜实时重排。
+      </p>
+    </div>
+
+    <div class="mx-auto mt-8 grid max-w-2xl grid-cols-3 gap-3 text-center">
+      <div class="card p-4">
+        <div class="text-2xl font-bold text-accent">{districts.length}</div>
+        <div class="text-xs text-ink-soft">区县全覆盖</div>
+      </div>
+      <div class="card p-4">
+        <div class="text-2xl font-bold text-accent">{METRICS.length}</div>
+        <div class="text-xs text-ink-soft">评分维度</div>
+      </div>
+      <div class="card p-4">
+        <div class="text-2xl font-bold text-accent">自定义</div>
+        <div class="text-xs text-ink-soft">权重实时重排</div>
+      </div>
+    </div>
+
+    <div class="mt-10">
+      <Explorer client:load districts={districts} citySlug={city.key} />
+    </div>
+
+    {
+      top && (
+        <p class="mt-6 text-center text-sm text-ink-soft">
+          默认均权下，综合宜居度第一：
+          <a href={`/${city.key}/district/${top.district.adcode}`} class="font-semibold text-accent hover:underline">
+            {top.district.name}
+          </a>
+          （{top.grade} 级，{top.composite.toFixed(0)} 分）
+        </p>
+      )
+    }
+  </section>
+
+  <section class="container-page pb-16">
+    <h2 class="text-xl font-bold">六大评分维度</h2>
+    <p class="mt-1 text-sm text-ink-soft">
+      每个维度独立打分，可点开看原始数据与来源 —— 详见
+      <a href="/methodology" class="text-accent hover:underline">评分方法</a>。
+    </p>
+    <div class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        METRICS.map((m) => (
+          <a
+            href={`/${city.key}/rankings/${m.key}`}
+            class="card group block p-5 transition hover:-translate-y-0.5 hover:shadow-lg"
+          >
+            <div class="flex items-center justify-between">
+              <h3 class="font-semibold">
+                {m.label}
+                {!m.real && <span class="ml-1 text-[10px] text-ink-soft">示例</span>}
+              </h3>
+              <span class="text-xs text-ink-soft transition group-hover:text-accent">排行 →</span>
+            </div>
+            <p class="mt-2 text-sm text-ink-soft">{m.description}</p>
+            <p class="mt-2 text-xs text-ink-soft">单位：{m.unit} · 来源：{m.source}</p>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+</BaseLayout>

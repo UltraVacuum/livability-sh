@@ -1,0 +1,126 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import GradeBadge from '../../../components/GradeBadge.astro';
+import RadarChart from '../../../components/RadarChart.tsx';
+import { computeCity, rankWithWeights, type ScoredDistrict } from '../../../lib/scoring';
+import { getDistricts, METRICS, economySource } from '../../../data/districts';
+import { CITIES, getCity } from '../../../data/cities';
+
+export function getStaticPaths() {
+  const paths = [];
+  for (const c of CITIES) {
+    for (const d of getDistricts(c.key)) {
+      paths.push({ params: { city: c.key, code: d.adcode } });
+    }
+  }
+  return paths;
+}
+
+const city = getCity(Astro.params.city!)!;
+const code = Astro.params.code!;
+const all = computeCity(getDistricts(city.key));
+const district = all.find((d) => d.adcode === code);
+if (!district) return Astro.redirect('/404');
+
+const ranked = rankWithWeights(all);
+const myRank = ranked.findIndex((r) => r.district.adcode === code);
+const mine = ranked[myRank];
+const prev = ranked[myRank - 1];
+const next = ranked[myRank + 1];
+
+const radarSeries = [
+  { name: district.name, color: '#0d9488', values: METRICS.map((m) => district.metrics[m.key].score) },
+];
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Place',
+  name: `${city.name}${district.name}宜居度`,
+  description: `${district.name} 的六维宜居度评分（综合 ${mine.composite.toFixed(0)} 分，${mine.grade} 级）。`,
+  url: new URL(`/${city.key}/district/${code}`, Astro.site).href,
+  containedInPlace: { '@type': 'AdministrativeArea', name: city.name },
+};
+---
+
+<BaseLayout
+  title={`${city.name}${district.name}宜居度评分`}
+  description={`${district.name} 六维宜居度：综合 ${mine.composite.toFixed(0)} 分（${mine.grade} 级，${city.name}第 ${mine.rank} 名）。经济、人口、教育、医疗、交通等原始数据与来源。`}
+  path={`/${city.key}/district/${code}`}
+  jsonLd={jsonLd}
+>
+  <section class="container-page py-10 sm:py-14">
+    <a href={`/${city.key}/`} class="text-sm text-ink-soft hover:text-accent">← 返回{city.name}排行榜</a>
+
+    <div class="mt-4 grid gap-6 lg:grid-cols-[auto_1fr]">
+      <div class="card flex flex-col items-center justify-center p-6">
+        <GradeBadge grade={mine.grade} rank={mine.rank} size="lg" />
+        <div class="mt-3 text-center">
+          <div class="text-3xl font-bold text-accent">{mine.composite.toFixed(0)}</div>
+          <div class="text-xs text-ink-soft">综合宜居度 /100</div>
+        </div>
+      </div>
+
+      <div class="card p-6">
+        <h1 class="text-3xl font-bold tracking-tight">{district.name}</h1>
+        <p class="mt-2 text-sm text-ink-soft">{city.name} · 行政区代码 {district.adcode}</p>
+        <div class="mt-4">
+          <RadarChart client:visible axes={METRICS.map((m) => ({ label: m.shortLabel }))} series={radarSeries} size={220} />
+        </div>
+      </div>
+    </div>
+
+    <h2 class="mt-10 text-xl font-bold">六维明细</h2>
+    <div class="card mt-4 overflow-x-auto p-0">
+      <table class="w-full text-left text-sm">
+        <thead class="border-b border-line text-xs text-ink-soft">
+          <tr>
+            <th class="px-4 py-3 font-medium">维度</th>
+            <th class="px-4 py-3 font-medium">原始值</th>
+            <th class="px-4 py-3 font-medium">评分</th>
+            <th class="px-4 py-3 font-medium">排名</th>
+            <th class="px-4 py-3 font-medium">数据来源</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-line">
+          {
+            METRICS.map((m) => {
+              const ms = (district as ScoredDistrict).metrics[m.key];
+              return (
+                <tr>
+                  <td class="px-4 py-3">
+                    <div class="font-medium text-ink">
+                      {m.label}
+                      {!m.real && <span class="ml-1 text-[10px] text-ink-soft">示例</span>}
+                    </div>
+                    <div class="text-xs text-ink-soft">{m.description}</div>
+                  </td>
+                  <td class="px-4 py-3 text-ink-soft">
+                    {ms.rawValue.toLocaleString()} <span class="text-xs">{m.unit}</span>
+                  </td>
+                  <td class="px-4 py-3">
+                    <div class="flex items-center gap-2">
+                      <span class="w-9 text-sm font-semibold text-ink">{ms.score.toFixed(0)}</span>
+                      <span class="h-1.5 w-20 overflow-hidden rounded-full bg-surface-muted">
+                        <span class="block h-full rounded-full bg-accent" style={`width:${ms.score}%`} />
+                      </span>
+                    </div>
+                  </td>
+                  <td class="px-4 py-3 text-ink-soft">第 {ms.rank} / {all.length}</td>
+                  <td class="px-4 py-3 text-xs text-ink-soft">{m.key === 'economy' ? economySource(district.adcode) : m.source}</td>
+                </tr>
+              );
+            })
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex gap-2 text-sm">
+        {prev && <a href={`/${city.key}/district/${prev.district.adcode}`} class="rounded-lg border border-line px-3 py-2 text-ink-soft transition hover:text-accent">← {prev.district.name}</a>}
+        {next && <a href={`/${city.key}/district/${next.district.adcode}`} class="rounded-lg border border-line px-3 py-2 text-ink-soft transition hover:text-accent">{next.district.name} →</a>}
+      </div>
+      <a href={`/${city.key}/compare`} class="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition hover:bg-accent-strong">加入对比 →</a>
+    </div>
+  </section>
+</BaseLayout>

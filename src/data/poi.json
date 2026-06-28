@@ -1,0 +1,410 @@
+{
+  "shanghai": {
+    "collectedAt": "2026-06-28",
+    "source": "高德 POI（/place/text 分页去重，密度=计数/行政区面积）",
+    "districts": [
+      {
+        "adcode": "310113",
+        "name": "宝山区",
+        "area_km2": 317.2,
+        "counts": {
+          "education": 226,
+          "healthcare": 292,
+          "transit": 169,
+          "amenity": 227
+        },
+        "capped": {},
+        "density": {
+          "education": 0.71,
+          "healthcare": 0.92,
+          "transit": 0.53,
+          "amenity": 0.72
+        }
+      },
+      {
+        "adcode": "310151",
+        "name": "崇明区",
+        "area_km2": 2108.9,
+        "counts": {
+          "education": 94,
+          "healthcare": 89,
+          "transit": 4,
+          "amenity": 83
+        },
+        "capped": {},
+        "density": {
+          "education": 0.04,
+          "healthcare": 0.04,
+          "transit": 0,
+          "amenity": 0.04
+        }
+      },
+      {
+        "adcode": "310120",
+        "name": "奉贤区",
+        "area_km2": 808,
+        "counts": {
+          "education": 151,
+          "healthcare": 167,
+          "transit": 43,
+          "amenity": 162
+        },
+        "capped": {},
+        "density": {
+          "education": 0.19,
+          "healthcare": 0.21,
+          "transit": 0.05,
+          "amenity": 0.2
+        }
+      },
+      {
+        "adcode": "310109",
+        "name": "虹口区",
+        "area_km2": 23.5,
+        "counts": {
+          "education": 114,
+          "healthcare": 202,
+          "transit": 95,
+          "amenity": 95
+        },
+        "capped": {},
+        "density": {
+          "education": 4.85,
+          "healthcare": 8.6,
+          "transit": 4.04,
+          "amenity": 4.04
+        }
+      },
+      {
+        "adcode": "310101",
+        "name": "黄浦区",
+        "area_km2": 20.4,
+        "counts": {
+          "education": 104,
+          "healthcare": 366,
+          "transit": 144,
+          "amenity": 159
+        },
+        "capped": {},
+        "density": {
+          "education": 5.1,
+          "healthcare": 17.94,
+          "transit": 7.06,
+          "amenity": 7.79
+        }
+      },
+      {
+        "adcode": "310114",
+        "name": "嘉定区",
+        "area_km2": 463.9,
+        "counts": {
+          "education": 192,
+          "healthcare": 357,
+          "transit": 115,
+          "amenity": 224
+        },
+        "capped": {},
+        "density": {
+          "education": 0.41,
+          "healthcare": 0.77,
+          "transit": 0.25,
+          "amenity": 0.48
+        }
+      },
+      {
+        "adcode": "310116",
+        "name": "金山区",
+        "area_km2": 670,
+        "counts": {
+          "education": 94,
+          "healthcare": 127,
+          "transit": 5,
+          "amenity": 90
+        },
+        "capped": {},
+        "density": {
+          "education": 0.14,
+          "healthcare": 0.19,
+          "transit": 0.01,
+          "amenity": 0.13
+        }
+      },
+      {
+        "adcode": "310106",
+        "name": "静安区",
+        "area_km2": 36.9,
+        "counts": {
+          "education": 171,
+          "healthcare": 399,
+          "transit": 130,
+          "amenity": 138
+        },
+        "capped": {},
+        "density": {
+          "education": 4.63,
+          "healthcare": 10.81,
+          "transit": 3.52,
+          "amenity": 3.74
+        }
+      },
+      {
+        "adcode": "310112",
+        "name": "闵行区",
+        "area_km2": 373.8,
+        "counts": {
+          "education": 380,
+          "healthcare": 400,
+          "transit": 225,
+          "amenity": 341
+        },
+        "capped": {},
+        "density": {
+          "education": 1.02,
+          "healthcare": 1.07,
+          "transit": 0.6,
+          "amenity": 0.91
+        }
+      },
+      {
+        "adcode": "310115",
+        "name": "浦东新区",
+        "area_km2": 1702.8,
+        "counts": {
+          "education": 675,
+          "healthcare": 847,
+          "transit": 509,
+          "amenity": 450
+        },
+        "capped": {},
+        "density": {
+          "education": 0.4,
+          "healthcare": 0.5,
+          "transit": 0.3,
+          "amenity": 0.26
+        }
+      },
+      {
+        "adcode": "310107",
+        "name": "普陀区",
+        "area_km2": 55.7,
+        "counts": {
+          "education": 163,
+          "healthcare": 239,
+          "transit": 171,
+          "amenity": 167
+        },
+        "capped": {},
+        "density": {
+          "education": 2.93,
+          "healthcare": 4.29,
+          "transit": 3.07,
+          "amenity": 3
+        }
+      },
+      {
+        "adcode": "310118",
+        "name": "青浦区",
+        "area_km2": 670.2,
+        "counts": {
+          "education": 104,
+          "healthcare": 236,
+          "transit": 91,
+          "amenity": 133
+        },
+        "capped": {},
+        "density": {
+          "education": 0.16,
+          "healthcare": 0.35,
+          "transit": 0.14,
+          "amenity": 0.2
+        }
+      },
+      {
+        "adcode": "310117",
+        "name": "松江区",
+        "area_km2": 608.8,
+        "counts": {
+          "education": 258,
+          "healthcare": 222,
+          "transit": 48,
+          "amenity": 203
+        },
+        "capped": {},
+        "density": {
+          "education": 0.42,
+          "healthcare": 0.36,
+          "transit": 0.08,
+          "amenity": 0.33
+        }
+      },
+      {
+        "adcode": "310104",
+        "name": "徐汇区",
+        "area_km2": 55.3,
+        "counts": {
+          "education": 344,
+          "healthcare": 422,
+          "transit": 225,
+          "amenity": 154
+        },
+        "capped": {},
+        "density": {
+          "education": 6.22,
+          "healthcare": 7.63,
+          "transit": 4.07,
+          "amenity": 2.78
+        }
+      },
+      {
+        "adcode": "310110",
+        "name": "杨浦区",
+        "area_km2": 60.7,
+        "counts": {
+          "education": 358,
+          "healthcare": 299,
+          "transit": 154,
+          "amenity": 115
+        },
+        "capped": {},
+        "density": {
+          "education": 5.9,
+          "healthcare": 4.93,
+          "transit": 2.54,
+          "amenity": 1.89
+        }
+      },
+      {
+        "adcode": "310105",
+        "name": "长宁区",
+        "area_km2": 37.4,
+        "counts": {
+          "education": 123,
+          "healthcare": 322,
+          "transit": 102,
+          "amenity": 128
+        },
+        "capped": {},
+        "density": {
+          "education": 3.29,
+          "healthcare": 8.61,
+          "transit": 2.73,
+          "amenity": 3.42
+        }
+      }
+    ]
+  },
+  "yinchuan": {
+    "collectedAt": "2026-06-28",
+    "source": "高德 POI（/place/text 分页去重，密度=计数/行政区面积）",
+    "districts": [
+      {
+        "adcode": "640122",
+        "name": "贺兰县",
+        "area_km2": 1199.5,
+        "counts": {
+          "education": 44,
+          "healthcare": 83,
+          "transit": 0,
+          "amenity": 26
+        },
+        "capped": {},
+        "density": {
+          "education": 0.04,
+          "healthcare": 0.07,
+          "transit": 0,
+          "amenity": 0.02
+        }
+      },
+      {
+        "adcode": "640106",
+        "name": "金凤区",
+        "area_km2": 280.6,
+        "counts": {
+          "education": 80,
+          "healthcare": 222,
+          "transit": 16,
+          "amenity": 79
+        },
+        "capped": {},
+        "density": {
+          "education": 0.29,
+          "healthcare": 0.79,
+          "transit": 0.06,
+          "amenity": 0.28
+        }
+      },
+      {
+        "adcode": "640181",
+        "name": "灵武市",
+        "area_km2": 2961.4,
+        "counts": {
+          "education": 43,
+          "healthcare": 57,
+          "transit": 0,
+          "amenity": 37
+        },
+        "capped": {},
+        "density": {
+          "education": 0.01,
+          "healthcare": 0.02,
+          "transit": 0,
+          "amenity": 0.01
+        }
+      },
+      {
+        "adcode": "640105",
+        "name": "西夏区",
+        "area_km2": 887.5,
+        "counts": {
+          "education": 153,
+          "healthcare": 118,
+          "transit": 0,
+          "amenity": 36
+        },
+        "capped": {},
+        "density": {
+          "education": 0.17,
+          "healthcare": 0.13,
+          "transit": 0,
+          "amenity": 0.04
+        }
+      },
+      {
+        "adcode": "640104",
+        "name": "兴庆区",
+        "area_km2": 645.9,
+        "counts": {
+          "education": 123,
+          "healthcare": 387,
+          "transit": 0,
+          "amenity": 117
+        },
+        "capped": {},
+        "density": {
+          "education": 0.19,
+          "healthcare": 0.6,
+          "transit": 0,
+          "amenity": 0.18
+        }
+      },
+      {
+        "adcode": "640121",
+        "name": "永宁县",
+        "area_km2": 925.5,
+        "counts": {
+          "education": 52,
+          "healthcare": 61,
+          "transit": 0,
+          "amenity": 25
+        },
+        "capped": {},
+        "density": {
+          "education": 0.06,
+          "healthcare": 0.07,
+          "transit": 0,
+          "amenity": 0.03
+        }
+      }
+    ]
+  }
+}

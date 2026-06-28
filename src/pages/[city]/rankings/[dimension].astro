@@ -1,0 +1,99 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { computeCity } from '../../../lib/scoring';
+import { getDistricts, METRICS, type MetricKey } from '../../../data/districts';
+import { CITIES, getCity } from '../../../data/cities';
+
+export function getStaticPaths() {
+  const paths = [];
+  for (const c of CITIES)
+    for (const m of METRICS) paths.push({ params: { city: c.key, dimension: m.key } });
+  return paths;
+}
+
+const city = getCity(Astro.params.city!)!;
+const dimension = Astro.params.dimension as MetricKey;
+const metric = METRICS.find((m) => m.key === dimension)!;
+const city_ = computeCity(getDistricts(city.key));
+
+const rows = [...city_]
+  .sort((a, b) => b.metrics[dimension].score - a.metrics[dimension].score)
+  .map((d, i) => ({ district: d, score: d.metrics[dimension].score, rank: i + 1 }));
+const top = rows[0];
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: `${city.name}${metric.label}排行榜`,
+  numberOfItems: rows.length,
+  itemListElement: rows.slice(0, 5).map((r, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name: r.district.name,
+    url: new URL(`/${city.key}/district/${r.district.adcode}`, Astro.site).href,
+  })),
+};
+---
+
+<BaseLayout
+  title={`${city.name}${metric.label}排行榜`}
+  description={`${city.name}${city_.length} 个区县「${metric.label}」维度排行，按 ${metric.unit} 标准化评分排序。${metric.description}`}
+  path={`/${city.key}/rankings/${dimension}`}
+  jsonLd={jsonLd}
+>
+  <section class="container-page py-10 sm:py-14">
+    <a href={`/${city.key}/`} class="text-sm text-ink-soft hover:text-accent">← 返回{city.name}排行榜</a>
+    <h1 class="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">{city.name} · {metric.label}排行榜</h1>
+    <p class="mt-3 max-w-2xl text-ink-soft">{metric.description}</p>
+    <p class="mt-1 text-xs text-ink-soft">
+      单位：{metric.unit} · 来源：{metric.source}
+      {!metric.real && <span class="ml-1">（示例数据）</span>}
+    </p>
+
+    <div class="card mt-8 overflow-hidden p-0">
+      <ol>
+        {
+          rows.map((r) => (
+            <li class="border-b border-line last:border-b-0">
+              <a href={`/${city.key}/district/${r.district.adcode}`} class="flex items-center gap-4 px-4 py-3 transition hover:bg-surface-muted">
+                <span class="w-8 shrink-0 text-center text-lg font-bold text-ink-soft">{r.rank}</span>
+                <span class="min-w-0 flex-1">
+                  <span class="block font-medium text-ink">{r.district.name}</span>
+                  <span class="block text-xs text-ink-soft">
+                    原始值 {r.district.metrics[dimension].rawValue.toLocaleString()} {metric.unit}
+                  </span>
+                </span>
+                <span class="hidden w-40 sm:block">
+                  <span class="block h-2 overflow-hidden rounded-full bg-surface-muted">
+                    <span class="block h-full rounded-full bg-accent" style={`width:${r.score}%`} />
+                  </span>
+                </span>
+                <span class="w-12 shrink-0 text-right font-semibold text-ink">{r.score.toFixed(0)}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+
+    {
+      top && (
+        <p class="mt-6 text-sm text-ink-soft">
+          「{metric.label}」维度第一：
+          <a href={`/${city.key}/district/${top.district.adcode}`} class="font-semibold text-accent hover:underline">{top.district.name}</a>（{top.score.toFixed(0)} 分）。
+          想看综合排名或自定义权重？<a href={`/${city.key}/`} class="text-accent hover:underline">回{city.name}排行榜</a>。
+        </p>
+      )
+    }
+
+    <div class="mt-8 flex flex-wrap gap-2">
+      {
+        METRICS.filter((m) => m.key !== dimension).map((m) => (
+          <a href={`/${city.key}/rankings/${m.key}`} class="rounded-full border border-line bg-surface px-3 py-1.5 text-xs text-ink-soft transition hover:border-accent hover:text-accent">
+            {m.label}排行
+          </a>
+        ))
+      }
+    </div>
+  </section>
+</BaseLayout>

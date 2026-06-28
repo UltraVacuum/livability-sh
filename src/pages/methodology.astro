@@ -1,0 +1,101 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { METRICS, POI_COLLECTED_AT } from '../data/districts';
+import { CITIES } from '../data/cities';
+
+const collectedNote = CITIES.map((c) => `${c.name} ${POI_COLLECTED_AT[c.key] ?? '—'}`).join('、');
+---
+
+<BaseLayout
+  title="评分方法与数据来源"
+  description="城市区县宜居度的评分算法、权重规则、等级划分与数据来源说明。算法可解释、数据来源透明。"
+  path="/methodology"
+>
+  <article class="container-page py-10 sm:py-14">
+    <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">评分方法与数据来源</h1>
+    <p class="mt-3 max-w-2xl text-ink-soft">
+      透明与可解释是本站的核心。下面说明评分如何计算、数据从哪里来，以及当前数据的局限性。
+    </p>
+
+    <div class="card mt-8 border-l-4 border-accent p-5">
+      <p class="text-sm leading-relaxed">
+        ℹ️ <strong>数据来源声明：</strong>六维均为<strong>真实数据</strong> ——
+        <strong>教育 / 医疗 / 交通 / 生活</strong>（<a href="https://lbs.amap.com/" class="text-accent hover:underline">高德 POI</a> 按行政区聚合密度，采集于 {collectedNote}）；
+        <strong>人口</strong>（上海：统计年鉴 2024 表2.2 官方人口密度；银川：宁夏年鉴 2022 ÷ 面积）；
+        <strong>经济</strong>（人均可支配收入，21/22 区县为真实数据）：上海=<strong>全体居民</strong>口径（中心城区来自「全国区县人均收入50强」，郊区来自各区 2023 公报）；银川=<strong>城镇居民</strong>口径（2023 公报 + 宁夏统计年鉴 2022）。各城市内部口径一致、独立评分。仅嘉定 1 区公报未公布且未入榜单，按郊区梯度估算（明细标注「估算」）。
+      </p>
+    </div>
+
+    <h2 class="mt-10 text-xl font-bold">一、评分算法</h2>
+    <p class="mt-3 text-sm leading-relaxed text-ink-soft">
+      每个维度在<strong>同一城市的区县之间</strong>做横向比较（各城市独立评分），分四步得出 0–100 分：
+    </p>
+    <ol class="card mt-4 space-y-3 p-6 text-sm">
+      <li><strong>1. 标准化（z-score）：</strong>对某维度的原始值计算均值 μ 与标准差 σ，每个区的 z = (值 − μ) / σ，消除量纲差异。</li>
+      <li><strong>2. 方向统一：</strong>「越小越好」的指标（如 AQI）取反，使所有维度都变为「越大越好」。</li>
+      <li><strong>3. 映射到 0–100：</strong>用标准正态分布的累积分布函数（CDF）把 z-score 映射为 0–100 的百分位分，比纯 z-score 更抗离群点、更直观。</li>
+      <li><strong>4. 加权综合：</strong>综合分 = 各维度分按权重加权平均；等级按城市内百分位排名划分。</li>
+    </ol>
+    <pre class="card mt-3 overflow-x-auto bg-surface-muted p-4 text-xs text-ink-soft"><code>z = (value - μ) / σ · direction
+score = 100 × Φ(z)              // Φ = 标准正态 CDF
+composite = Σ(weight × score) / Σ(weight)</code></pre>
+
+    <h2 class="mt-10 text-xl font-bold">二、等级划分</h2>
+    <p class="mt-3 text-sm text-ink-soft">
+      按<strong>城市内排名百分位</strong>划分（对小样本更公平，而非绝对分数）：
+    </p>
+    <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
+      <div class="card p-4 text-center"><div class="text-2xl font-bold text-emerald-700">S</div><div class="text-xs text-ink-soft">前 10%</div></div>
+      <div class="card p-4 text-center"><div class="text-2xl font-bold text-emerald-600">A</div><div class="text-xs text-ink-soft">11–30%</div></div>
+      <div class="card p-4 text-center"><div class="text-2xl font-bold text-yellow-600">B</div><div class="text-xs text-ink-soft">31–60%</div></div>
+      <div class="card p-4 text-center"><div class="text-2xl font-bold text-orange-600">C</div><div class="text-xs text-ink-soft">61–85%</div></div>
+      <div class="card p-4 text-center"><div class="text-2xl font-bold text-red-600">D</div><div class="text-xs text-ink-soft">后 15%</div></div>
+    </div>
+
+    <h2 class="mt-10 text-xl font-bold">三、自定义权重</h2>
+    <p class="mt-3 text-sm leading-relaxed text-ink-soft">
+      默认六维<strong>均权</strong>（最中立）。你可以拖动首页滑块调整权重 ——
+      排行榜与地图会<strong>实时重排</strong>。这把「权威排名」转化为「个性化推荐」：
+      不存在唯一正确的宜居度，只有「对你」最宜居。
+    </p>
+
+    <h2 id="sources" class="mt-10 scroll-mt-20 text-xl font-bold">四、数据来源（规划）</h2>
+    <div class="card mt-4 overflow-x-auto p-0">
+      <table class="w-full text-left text-sm">
+        <thead class="border-b border-line text-xs text-ink-soft">
+          <tr>
+            <th class="px-4 py-3 font-medium">维度</th>
+            <th class="px-4 py-3 font-medium">规划数据来源</th>
+            <th class="px-4 py-3 font-medium">获取方式</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-line">
+          {
+            METRICS.map((m) => (
+              <tr>
+                <td class="px-4 py-3 font-medium text-ink">{m.label}</td>
+                <td class="px-4 py-3 text-ink-soft">{m.source}</td>
+                <td class="px-4 py-3 text-ink-soft">
+                  {m.key === 'transit' || m.key === 'amenity' || m.key === 'healthcare' || m.key === 'education'
+                    ? 'POI API / 开放数据'
+                    : '年鉴 / 普查下载'}
+                </td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="mt-3 text-xs text-ink-soft">
+      全部为<strong>政府公开数据 + 高德 POI 免费额度</strong>，不抓取第三方商业平台，规避数据合规风险。
+      边界数据来自 <a href="https://datav.aliyun.com/portal/school/atlas/area_selector" class="text-accent hover:underline">DataV.GeoAtlas</a>。
+    </p>
+
+    <h2 class="mt-10 text-xl font-bold">五、局限与改进</h2>
+    <ul class="card mt-4 space-y-2 p-6 text-sm text-ink-soft">
+      <li>• 当前为示例数据，正式版需接入实时权威来源并标注更新时间。</li>
+      <li>• 暂未纳入「房价负担」（需采购）与「治安」（国内无公开统计）维度。</li>
+      <li>• 评分仅供参考，不构成任何决策建议；如发现数据有误，欢迎反馈纠错。</li>
+    </ul>
+  </article>
+</BaseLayout>

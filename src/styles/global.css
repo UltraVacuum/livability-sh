@@ -1,0 +1,69 @@
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+
+@theme {
+  --font-sans: -apple-system, BlinkMacSystemFont, "PingFang SC",
+    "Microsoft YaHei", "Noto Sans SC", "Helvetica Neue", system-ui, sans-serif;
+
+  --color-accent: #0d9488; /* teal-600 — distinct from the utools clone */
+  --color-accent-strong: #0f766e;
+  --color-accent-soft: #f0fdfa;
+  --color-accent-ring: #99f6e4;
+
+  --color-ink: #0f172a;
+  --color-ink-soft: #475569;
+  --color-line: #e2e8f0;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f8fafc;
+
+  /* grade colors */
+  --color-grade-s: #15803d;
+  --color-grade-a: #16a34a;
+  --color-grade-b: #ca8a04;
+  --color-grade-c: #ea580c;
+  --color-grade-d: #dc2626;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  background-color: var(--color-surface-muted);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+input[type="range"] {
+  accent-color: var(--color-accent);
+}
+
+@utility card {
+  border-radius: 1rem;
+  border: 1px solid var(--color-line);
+  background-color: var(--color-surface);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.04), 0 8px 24px -16px rgb(15 23 42 / 0.12);
+}
+
+@utility container-page {
+  width: 100%;
+  max-width: 72rem;
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+
+@media (min-width: 640px) {
+  .container-page {
+    padding-inline: 1.5rem;
+  }
+}
+
+/* Leaflet container needs explicit height */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  border-radius: 1rem;
+  font: inherit;
+}

@@ -1,0 +1,30 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CompareTool from '../../components/CompareTool.tsx';
+import { computeCity } from '../../lib/scoring';
+import { getDistricts } from '../../data/districts';
+import { CITIES, getCity } from '../../data/cities';
+
+export function getStaticPaths() {
+  return CITIES.map((c) => ({ params: { city: c.key } }));
+}
+
+const city = getCity(Astro.params.city!)!;
+const districts = computeCity(getDistricts(city.key));
+---
+
+<BaseLayout
+  title={`${city.name}区县对比`}
+  description={`并排对比${city.name} 2–3 个区县的六维评分、原始数据与雷达图，选出最适合你的区。`}
+  path={`/${city.key}/compare`}
+>
+  <section class="container-page py-10 sm:py-14">
+    <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">{city.name}区县对比</h1>
+    <p class="mt-3 max-w-2xl text-ink-soft">
+      选择 2–3 个区，并排对比六维评分、原始指标，叠加雷达图一目了然。
+    </p>
+    <div class="mt-8">
+      <CompareTool client:load districts={districts} citySlug={city.key} />
+    </div>
+  </section>
+</BaseLayout>

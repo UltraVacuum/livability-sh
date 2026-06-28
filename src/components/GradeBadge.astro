@@ -1,0 +1,23 @@
+---
+import { GRADE_COLOR, type Grade } from '../lib/scoring';
+
+interface Props {
+  grade: Grade;
+  rank?: number;
+  size?: 'sm' | 'md' | 'lg';
+}
+const { grade, rank, size = 'md' } = Astro.props;
+const color = GRADE_COLOR[grade];
+const dim =
+  size === 'lg' ? 'h-16 w-16 text-3xl' : size === 'sm' ? 'h-8 w-8 text-sm' : 'h-11 w-11 text-xl';
+---
+
+<div class="flex flex-col items-center gap-1">
+  <div
+    class={`flex ${dim} items-center justify-center rounded-xl font-bold text-white shadow-sm`}
+    style={`background-color:${color}`}
+  >
+    {grade}
+  </div>
+  {rank !== undefined && <span class="text-xs text-ink-soft">第 {rank} 名</span>}
+</div>
