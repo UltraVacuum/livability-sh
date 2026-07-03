@@ -22,7 +22,11 @@ const collectedNote = CITIES.map((c) => `${c.name} ${POI_COLLECTED_AT[c.key] ?? 
         ℹ️ <strong>数据来源声明：</strong>六维均为<strong>真实数据</strong> ——
         <strong>教育 / 医疗 / 交通 / 生活</strong>（<a href="https://lbs.amap.com/" class="text-accent hover:underline">高德 POI</a> 按行政区聚合密度，采集于 {collectedNote}）；
         <strong>人口</strong>（上海：统计年鉴 2024 表2.2 官方人口密度；银川：宁夏年鉴 2022 ÷ 面积）；
-        <strong>经济</strong>（人均可支配收入，21/22 区县为真实数据）：上海=<strong>全体居民</strong>口径（中心城区来自「全国区县人均收入50强」，郊区来自各区 2023 公报）；银川=<strong>城镇居民</strong>口径（2023 公报 + 宁夏统计年鉴 2022）。各城市内部口径一致、独立评分。仅嘉定 1 区公报未公布且未入榜单，按郊区梯度估算（明细标注「估算」）。
+        <strong>经济</strong>（人均可支配收入，2024年值）：上海=<strong>全体居民</strong>口径（2023区级基数×市级+4.2%增速，校准至全市均值88,366元）；银川=<strong>城镇居民</strong>口径（2023区级基数×市级+4.7%增速，校准至市级≈49,154元）。
+        各城市内部口径一致、独立评分。仅嘉定 1 区原公报未公布且未入榜单，按郊区梯度估算（明细标注「估算」）。
+        <br/><strong>官方来源：</strong>
+        <a href="https://tjj.sh.gov.cn/tjgb/20250324/a7fe18c6d5c24d66bfca89c5bb4cdcfb.html" class="text-accent hover:underline">2024年上海市统计公报</a>、
+        <a href="https://www.yinchuan.gov.cn/xxgk/bmxxgkml/stjj/xxgkml_2517/tjxx_7670/tjgb_7671/202604/t20260427_5226142.html" class="text-accent hover:underline">2025年银川市统计公报</a>。
       </p>
     </div>
 
@@ -93,7 +97,7 @@ composite = Σ(weight × score) / Σ(weight)</code></pre>
 
     <h2 class="mt-10 text-xl font-bold">五、局限与改进</h2>
     <ul class="card mt-4 space-y-2 p-6 text-sm text-ink-soft">
-      <li>• 当前为示例数据，正式版需接入实时权威来源并标注更新时间。</li>
+      <li>• 经济数据为2024年估算值（区级2023基数×市级增速），待各区2024公报发布后更新为实际值。</li>
       <li>• 暂未纳入「房价负担」（需采购）与「治安」（国内无公开统计）维度。</li>
       <li>• 评分仅供参考，不构成任何决策建议；如发现数据有误，欢迎反馈纠错。</li>
     </ul>
