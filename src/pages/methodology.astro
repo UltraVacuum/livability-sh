@@ -2,6 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { METRICS, POI_COLLECTED_AT } from '../data/districts';
 import { CITIES } from '../data/cities';
+import { ENVIRONMENT } from '../data/environment';
 
 const collectedNote = CITIES.map((c) => `${c.name} ${POI_COLLECTED_AT[c.key] ?? '—'}`).join('、');
 ---
@@ -21,12 +22,32 @@ const collectedNote = CITIES.map((c) => `${c.name} ${POI_COLLECTED_AT[c.key] ?? 
       <p class="text-sm leading-relaxed">
         ℹ️ <strong>数据来源声明：</strong>六维均为<strong>真实数据</strong> ——
         <strong>教育 / 医疗 / 交通 / 生活</strong>（<a href="https://lbs.amap.com/" class="text-accent hover:underline">高德 POI</a> 按行政区聚合密度，采集于 {collectedNote}）；
-        <strong>人口</strong>（上海：统计年鉴 2024 表2.2 官方人口密度；银川：宁夏年鉴 2022 ÷ 面积）；
-        <strong>经济</strong>（人均可支配收入，2024年值）：上海=<strong>全体居民</strong>口径（2023区级基数×市级+4.2%增速，校准至全市均值88,366元）；银川=<strong>城镇居民</strong>口径（2023区级基数×市级+4.7%增速，校准至市级≈49,154元）。
+        <strong>人口</strong>（上海：统计年鉴 2024 表2.2 官方人口密度；银川：宁夏年鉴 2022 ÷ 面积，市级已更新至2025年294.26万人）；
+        <strong>经济</strong>（人均可支配收入，2024年值）：上海=<strong>全体居民</strong>口径（2023区级基数×市级+4.2%增速，校准至全市均值88,366元）；银川=<strong>城镇居民</strong>口径（2023区级基数×市级+4.7%增速，校准至市级≈49,154元，已由2025公报51,469元回验）。
         各城市内部口径一致、独立评分。仅嘉定 1 区原公报未公布且未入榜单，按郊区梯度估算（明细标注「估算」）。
         <br/><strong>官方来源：</strong>
         <a href="https://tjj.sh.gov.cn/tjgb/20250324/a7fe18c6d5c24d66bfca89c5bb4cdcfb.html" class="text-accent hover:underline">2024年上海市统计公报</a>、
         <a href="https://www.yinchuan.gov.cn/xxgk/bmxxgkml/stjj/xxgkml_2517/tjxx_7670/tjgb_7671/202604/t20260427_5226142.html" class="text-accent hover:underline">2025年银川市统计公报</a>。
+      </p>
+    </div>
+
+    <div class="card mt-4 border-l-4 border-emerald-500 p-5">
+      <p class="text-sm leading-relaxed">
+        🌿 <strong>城市环境数据（市级参考）：</strong>
+        {CITIES.map((c) => {
+          const env = ENVIRONMENT[c.key];
+          if (!env) return null;
+          return (
+            <span>
+              <strong>{c.name}</strong>（{env.year}年）：PM2.5 年均 {env.pm25} μg/m³，AQI 优良率 {env.aqiGoodRate}%
+              {env.pm10 && `，PM10 ${env.pm10} μg/m³`}
+              {env.no2 && `，NO₂ ${env.no2} μg/m³`}
+              。来源：<a href={env.sourceUrl} class="text-accent hover:underline">{env.source}</a>
+              。<br/>
+            </span>
+          );
+        })}
+        <span class="text-xs text-ink-soft">注：区级环境数据暂无公开来源，仅提供市级数据作为参考。未来若获取区级数据将纳入评分体系。</span>
       </p>
     </div>
 
@@ -98,6 +119,8 @@ composite = Σ(weight × score) / Σ(weight)</code></pre>
     <h2 class="mt-10 text-xl font-bold">五、局限与改进</h2>
     <ul class="card mt-4 space-y-2 p-6 text-sm text-ink-soft">
       <li>• 经济数据为2024年估算值（区级2023基数×市级增速），待各区2024公报发布后更新为实际值。</li>
+      <li>• 银川区级人口为2022年末数据（2025公报仅发布市级总量294.26万人，未分区）。</li>
+      <li>• 环境数据仅有市级（上海PM2.5=28、银川PM2.5=30.4），区级环境数据暂无公开来源。</li>
       <li>• 暂未纳入「房价负担」（需采购）与「治安」（国内无公开统计）维度。</li>
       <li>• 评分仅供参考，不构成任何决策建议；如发现数据有误，欢迎反馈纠错。</li>
     </ul>

@@ -4,6 +4,7 @@ import Explorer from '../../components/Explorer.tsx';
 import { computeCity, rankWithWeights } from '../../lib/scoring';
 import { getDistricts, METRICS } from '../../data/districts';
 import { CITIES, getCity } from '../../data/cities';
+import { getEnvironment } from '../../data/environment';
 import { SITE } from '../../consts';
 
 export function getStaticPaths() {
@@ -14,6 +15,7 @@ const city = getCity(Astro.params.city!)!;
 const districts = computeCity(getDistricts(city.key));
 const ranked = rankWithWeights(districts);
 const top = ranked[0];
+const env = getEnvironment(city.key);
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -68,6 +70,14 @@ const jsonLd = {
         <div class="text-xs text-ink-soft">权重实时重排</div>
       </div>
     </div>
+
+    {env && (
+      <div class="mx-auto mt-4 max-w-2xl rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+        🌿 {city.name}{env.year}年环境：PM2.5 年均 <strong>{env.pm25} μg/m³</strong>，AQI 优良率 <strong>{env.aqiGoodRate}%</strong>
+        {env.pm10 && `，PM10 ${env.pm10} μg/m³`}
+        <span class="text-xs text-emerald-600">（市级数据，来源：<a href={env.sourceUrl} class="underline">{env.source}</a>）</span>
+      </div>
+    )}
 
     <div class="mt-10">
       <Explorer client:load districts={districts} citySlug={city.key} />

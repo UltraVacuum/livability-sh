@@ -5,6 +5,7 @@ import RadarChart from '../../../components/RadarChart.tsx';
 import { computeCity, rankWithWeights, type ScoredDistrict } from '../../../lib/scoring';
 import { getDistricts, METRICS, economySource } from '../../../data/districts';
 import { CITIES, getCity } from '../../../data/cities';
+import { getEnvironment } from '../../../data/environment';
 
 export function getStaticPaths() {
   const paths = [];
@@ -27,6 +28,7 @@ const myRank = ranked.findIndex((r) => r.district.adcode === code);
 const mine = ranked[myRank];
 const prev = ranked[myRank - 1];
 const next = ranked[myRank + 1];
+const env = getEnvironment(city.key);
 
 const radarSeries = [
   { name: district.name, color: '#0d9488', values: METRICS.map((m) => district.metrics[m.key].score) },
@@ -68,6 +70,13 @@ const jsonLd = {
         </div>
       </div>
     </div>
+
+    {env && (
+      <div class="mt-6 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+        🌿 {city.name}{env.year}年环境参考：PM2.5 年均 <strong>{env.pm25} μg/m³</strong>，AQI 优良率 <strong>{env.aqiGoodRate}%</strong>
+        <span class="text-xs text-emerald-600">（市级数据，非区级评分维度）</span>
+      </div>
+    )}
 
     <h2 class="mt-10 text-xl font-bold">六维明细</h2>
     <div class="card mt-4 overflow-x-auto p-0">

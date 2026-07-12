@@ -35,7 +35,9 @@ export const SH_OFFICIAL_2024: Record<string, OfficialDistrict> = {
 };
 
 /** 银川 — 宁夏统计年鉴2023（4-6 各市县人口总数，2022年末），用于 ÷ 面积得密度。
- * 全市2025年末常住人口294.26万人（来源：银川2025年统计公报）。
+ * 全市2025年末常住人口294.26万人，城镇247.70万人（来源：银川市2025年统计公报）。
+ * 区级人口分布仍采用2022年鉴值（2025公报未分区）。
+ * 来源：https://www.yinchuan.gov.cn/xxgk/bmxxgkml/stjj/xxgkml_2517/tjxx_7670/tjgb_7671/202604/t20260427_5226142.html
  */
 export interface CityCensus {
   year: number;
