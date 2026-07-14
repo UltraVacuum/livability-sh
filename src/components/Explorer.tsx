@@ -21,6 +21,7 @@ const boundaryUrl = (citySlug: string) => `/boundaries/${citySlug}.json`;
 
 export default function Explorer({ districts, citySlug }: Props) {
   const [weights, setWeights] = useState<Weights>(DEFAULT_WEIGHTS);
+  const [searchQuery, setSearchQuery] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafType.Map | null>(null);
   const layerRef = useRef<LeafType.GeoJSON | null>(null);
@@ -189,8 +190,19 @@ export default function Explorer({ districts, citySlug }: Props) {
         <h3 className="px-2 py-2 text-sm font-semibold">
           宜居度排行榜 <span className="text-ink-soft">（{ranked.length} 区）</span>
         </h3>
+        <div className="px-2 pb-2">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="搜索区名…"
+            className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm outline-none transition focus:border-accent"
+          />
+        </div>
         <ol className="space-y-1">
-          {ranked.map((r) => (
+          {ranked
+            .filter((r) => !searchQuery || r.district.name.includes(searchQuery.trim()))
+            .map((r) => (
             <li key={r.district.adcode}>
               <a
                 href={`/${citySlug}/district/${r.district.adcode}`}

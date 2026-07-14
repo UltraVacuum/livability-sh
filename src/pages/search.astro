@@ -1,0 +1,121 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { CITIES, getCity } from '../data/cities';
+import { computeCity, rankWithWeights } from '../lib/scoring';
+import { getDistricts, METRICS } from '../data/districts';
+import SearchBox from '../components/SearchBox.tsx';
+import { SITE } from '../consts';
+
+// Pre-compute all districts across all cities for search
+interface SearchEntry {
+  cityKey: string;
+  cityName: string;
+  adcode: string;
+  name: string;
+  composite: number;
+  rank: number;
+  grade: string;
+  topMetric: string;
+  topMetricLabel: string;
+}
+
+const allEntries: SearchEntry[] = [];
+for (const c of CITIES) {
+  const scored = computeCity(getDistricts(c.key));
+  const ranked = rankWithWeights(scored);
+  for (const r of ranked) {
+    // find best metric
+    let bestKey = METRICS[0].key;
+    let bestScore = 0;
+    for (const [k, v] of Object.entries(r.district.metrics)) {
+      if (v.score > bestScore) {
+        bestScore = v.score;
+        bestKey = k as typeof bestKey;
+      }
+    }
+    const metricDef = METRICS.find((m) => m.key === bestKey)!;
+    allEntries.push({
+      cityKey: c.key,
+      cityName: c.name,
+      adcode: r.district.adcode,
+      name: r.district.name,
+      composite: r.composite,
+      rank: r.rank,
+      grade: r.grade,
+      topMetric: bestKey,
+      topMetricLabel: metricDef.shortLabel,
+    });
+  }
+}
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: '搜索区县 - 城市宜居度对比',
+  url: new URL('/search', Astro.site).href,
+  description: '搜索上海、银川所有区县的宜居度评分。',
+  inLanguage: SITE.locale,
+};
+---
+
+<BaseLayout
+  title="搜索区县 | 城市宜居度对比"
+  description="搜索上海、银川所有区县的宜居度评分，快速找到你关心的区。"
+  path="/search"
+  jsonLd={jsonLd}
+>
+  <section class="container-page py-10 sm:py-14">
+    <div class="mx-auto max-w-3xl text-center">
+      <h1 class="text-3xl font-bold tracking-tight sm:text-5xl">
+        🔍 搜索<span class="text-accent">区县</span>
+      </h1>
+      <p class="mt-4 text-base text-ink-soft sm:text-lg">
+        输入区名关键词，跨城市搜索所有区县的宜居度评分。
+      </p>
+    </div>
+
+    <div class="mx-auto mt-8 max-w-2xl">
+      <SearchBox entries={allEntries} client:load />
+    </div>
+
+    <div class="mx-auto mt-10 max-w-4xl">
+      <h2 class="mb-4 text-sm font-semibold uppercase tracking-wide text-ink-soft">
+        全部区县（{allEntries.length} 个）
+      </h2>
+      <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {
+          allEntries
+            .sort((a, b) => b.composite - a.composite)
+            .map((entry) => (
+              <a
+                href={`/${entry.cityKey}/district/${entry.adcode}`}
+                class="card group block p-4 transition hover:-translate-y-0.5 hover:shadow-lg"
+              >
+                <div class="flex items-center justify-between">
+                  <div>
+                    <span class="text-sm text-ink-soft">{entry.cityName} · </span>
+                    <span class="font-semibold">{entry.name}</span>
+                  </div>
+                  <span
+                    class="flex h-7 w-7 items-center justify-center rounded-md text-xs font-bold text-white"
+                    style={{ backgroundColor: 'var(--color-grade-' + entry.grade.toLowerCase() + ')' }}
+                  >
+                    {entry.grade}
+                  </span>
+                </div>
+                <div class="mt-2 flex items-center gap-3 text-xs text-ink-soft">
+                  <span>综合 {entry.composite.toFixed(0)}</span>
+                  <span>第 {entry.rank} 名</span>
+                  <span>强项: {entry.topMetricLabel}</span>
+                </div>
+              </a>
+            ))
+        }
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  // This is just for SEO/static rendering. Interactive search is in SearchBox.tsx
+</script>

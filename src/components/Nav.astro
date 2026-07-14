@@ -10,9 +10,10 @@ const links = cityBase
   ? [
       { href: `${cityBase}/`, label: '排行榜' },
       { href: `${cityBase}/compare`, label: '对比' },
+      { href: '/search', label: '搜索' },
       { href: '/methodology', label: '评分方法' },
     ]
-  : [{ href: '/methodology', label: '评分方法' }];
+  : [{ href: '/search', label: '搜索' }, { href: '/methodology', label: '评分方法' }];
 ---
 
 <header class="sticky top-0 z-[1000] border-b border-line bg-surface/85 backdrop-blur">
