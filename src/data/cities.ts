@@ -13,7 +13,7 @@ export const CITIES: City[] = [
     name: '上海',
     adcode: '310100',
     boundaryAdcode: '310000', // 直辖市：DataV 用省级 adcode
-    blurb: '16 区 · 超大都市，中心高密、郊区广阔。2024年GDP 5.39万亿，人均可支配收入88,366元。',
+    blurb: '16 区 · 超大都市，中心高密、郊区广阔。2024年GDP 5.39万亿，全市居民人均收入88,366元（城镇93,095元）。',
   },
   {
     key: 'yinchuan',
