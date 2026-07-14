@@ -3,6 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { METRICS, POI_COLLECTED_AT } from '../data/districts';
 import { CITIES } from '../data/cities';
 import { ENVIRONMENT, EMPLOYMENT, GREENERY } from '../data/environment';
+import { CITY_STATS } from '../data/cityStats';
 
 const collectedNote = CITIES.map((c) => `${c.name} ${POI_COLLECTED_AT[c.key] ?? '—'}`).join('、');
 ---
