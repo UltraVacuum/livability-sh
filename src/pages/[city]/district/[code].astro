@@ -5,7 +5,7 @@ import RadarChart from '../../../components/RadarChart.tsx';
 import { computeCity, rankWithWeights, type ScoredDistrict } from '../../../lib/scoring';
 import { getDistricts, METRICS, economySource } from '../../../data/districts';
 import { CITIES, getCity } from '../../../data/cities';
-import { getEnvironment } from '../../../data/environment';
+import { getEnvironment, getEmployment, getGreenery } from '../../../data/environment';
 
 export function getStaticPaths() {
   const paths = [];
@@ -29,6 +29,8 @@ const mine = ranked[myRank];
 const prev = ranked[myRank - 1];
 const next = ranked[myRank + 1];
 const env = getEnvironment(city.key);
+const emp = getEmployment(city.key);
+const green = getGreenery(city.key);
 
 const radarSeries = [
   { name: district.name, color: '#0d9488', values: METRICS.map((m) => district.metrics[m.key].score) },
@@ -75,6 +77,25 @@ const jsonLd = {
       <div class="mt-6 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
         🌿 {city.name}{env.year}年环境参考：PM2.5 年均 <strong>{env.pm25} μg/m³</strong>，AQI 优良率 <strong>{env.aqiGoodRate}%</strong>
         <span class="text-xs text-emerald-600">（市级数据，非区级评分维度）</span>
+      </div>
+    )}
+
+    {(emp || green) && (
+      <div class="mt-2 flex flex-wrap gap-2">
+        {emp && (
+          <div class="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-800">
+            💼 {city.name}{emp.year}年：城镇新增就业 <strong>{emp.newJobs}万人</strong>
+            {emp.surveyUnemploymentRate && `，调查失业率 ${emp.surveyUnemploymentRate}%`}
+          </div>
+        )}
+        {green && (
+          <div class="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-xs text-green-800">
+            🌳 {city.name}{green.year}年：
+            {green.perCapitaParkArea && `人均公园绿地 ${green.perCapitaParkArea}㎡`}
+            {green.parkCount && `，公园 ${green.parkCount}座`}
+            {green.perCapitaSportsArea && `，人均体育场地 ${green.perCapitaSportsArea}㎡`}
+          </div>
+        )}
       </div>
     )}
 

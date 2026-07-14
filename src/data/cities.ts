@@ -13,14 +13,14 @@ export const CITIES: City[] = [
     name: '上海',
     adcode: '310100',
     boundaryAdcode: '310000', // 直辖市：DataV 用省级 adcode
-    blurb: '16 区 · 超大都市，中心高密、郊区广阔。',
+    blurb: '16 区 · 超大都市，中心高密、郊区广阔。2024年GDP 5.39万亿，人均可支配收入88,366元。',
   },
   {
     key: 'yinchuan',
     name: '银川',
     adcode: '640100',
     boundaryAdcode: '640100',
-    blurb: '6 区县 · 宁夏首府，塞上江南。',
+    blurb: '6 区县 · 宁夏首府，塞上江南。2025年GDP 3033亿，人均GDP 10.36万，城镇居民收入51,469元。',
   },
 ];
 
