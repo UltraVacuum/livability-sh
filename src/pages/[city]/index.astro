@@ -4,7 +4,7 @@ import Explorer from '../../components/Explorer.tsx';
 import { computeCity, rankWithWeights } from '../../lib/scoring';
 import { getDistricts, METRICS } from '../../data/districts';
 import { CITIES, getCity } from '../../data/cities';
-import { getEnvironment } from '../../data/environment';
+import { getEnvironment, getEmployment, getGreenery } from '../../data/environment';
 import { SITE } from '../../consts';
 
 export function getStaticPaths() {
@@ -16,6 +16,8 @@ const districts = computeCity(getDistricts(city.key));
 const ranked = rankWithWeights(districts);
 const top = ranked[0];
 const env = getEnvironment(city.key);
+const emp = getEmployment(city.key);
+const green = getGreenery(city.key);
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -76,6 +78,24 @@ const jsonLd = {
         🌿 {city.name}{env.year}年环境：PM2.5 年均 <strong>{env.pm25} μg/m³</strong>，AQI 优良率 <strong>{env.aqiGoodRate}%</strong>
         {env.pm10 && `，PM10 ${env.pm10} μg/m³`}
         <span class="text-xs text-emerald-600">（市级数据，来源：<a href={env.sourceUrl} class="underline">{env.source}</a>）</span>
+      </div>
+    )}
+
+    {emp && (
+      <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+        💼 {city.name}{emp.year}年就业：城镇新增 <strong>{emp.newJobs} 万人</strong>
+        {emp.surveyUnemploymentRate && `，调查失业率 <strong>${emp.surveyUnemploymentRate}%</strong>`}
+        <span class="text-xs text-blue-600">（市级数据，来源：<a href={emp.sourceUrl} class="underline">{emp.source}</a>）</span>
+      </div>
+    )}
+
+    {green && (
+      <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+        🌳 {city.name}{green.year}年绿化：
+        {green.perCapitaParkArea && `人均公园绿地 <strong>${green.perCapitaParkArea} ㎡</strong>`}
+        {green.parkCount && `，公园 <strong>${green.parkCount} 座</strong>`}
+        {green.perCapitaSportsArea && `，人均体育场地 ${green.perCapitaSportsArea} ㎡`}
+        <span class="text-xs text-green-600">（市级数据，来源：<a href={green.sourceUrl} class="underline">{green.source}</a>）</span>
       </div>
     )}
 

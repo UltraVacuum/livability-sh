@@ -2,7 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { METRICS, POI_COLLECTED_AT } from '../data/districts';
 import { CITIES } from '../data/cities';
-import { ENVIRONMENT } from '../data/environment';
+import { ENVIRONMENT, EMPLOYMENT, GREENERY } from '../data/environment';
 
 const collectedNote = CITIES.map((c) => `${c.name} ${POI_COLLECTED_AT[c.key] ?? '—'}`).join('、');
 ---
@@ -116,11 +116,53 @@ composite = Σ(weight × score) / Σ(weight)</code></pre>
       边界数据来自 <a href="https://datav.aliyun.com/portal/school/atlas/area_selector" class="text-accent hover:underline">DataV.GeoAtlas</a>。
     </p>
 
+    <div class="card mt-4 border-l-4 border-blue-500 p-5">
+      <p class="text-sm leading-relaxed">
+        💼 <strong>城市就业数据（市级参考）：</strong>
+        {CITIES.map((c) => {
+          const emp = EMPLOYMENT[c.key];
+          if (!emp) return null;
+          return (
+            <span>
+              <strong>{c.name}</strong>（{emp.year}年）：城镇新增就业 {emp.newJobs} 万人
+              {emp.surveyUnemploymentRate && `，城镇调查失业率 ${emp.surveyUnemploymentRate}%`}
+              {emp.registeredUnemployment && `，户籍登记失业 ${emp.registeredUnemployment} 万人`}
+              。来源：<a href={emp.sourceUrl} class="text-accent hover:underline">{emp.source}</a>。<br/>
+            </span>
+          );
+        })}
+        <span class="text-xs text-ink-soft">注：区级就业数据暂无公开来源，仅提供市级数据作为参考。</span>
+      </p>
+    </div>
+
+    <div class="card mt-4 border-l-4 border-green-500 p-5">
+      <p class="text-sm leading-relaxed">
+        🌳 <strong>城市绿化数据（市级参考）：</strong>
+        {CITIES.map((c) => {
+          const green = GREENERY[c.key];
+          if (!green) return null;
+          return (
+            <span>
+              <strong>{c.name}</strong>（{green.year}年）：
+              {green.perCapitaParkArea && `人均公园绿地 ${green.perCapitaParkArea} ㎡`}
+              {green.parkCount && `，公园 ${green.parkCount} 座`}
+              {green.greenCoverageArea && `，建成区绿化覆盖 ${green.greenCoverageArea} 公顷`}
+              {green.perCapitaSportsArea && `，人均体育场地 ${green.perCapitaSportsArea} ㎡`}
+              。来源：<a href={green.sourceUrl} class="text-accent hover:underline">{green.source}</a>。<br/>
+            </span>
+          );
+        })}
+        <span class="text-xs text-ink-soft">注：区级绿化数据暂无公开来源，仅提供市级数据作为参考。</span>
+      </p>
+    </div>
+
     <h2 class="mt-10 text-xl font-bold">五、局限与改进</h2>
     <ul class="card mt-4 space-y-2 p-6 text-sm text-ink-soft">
       <li>• 经济数据为2024年估算值（区级2023基数×市级增速），待各区2024公报发布后更新为实际值。</li>
       <li>• 银川区级人口为2022年末数据（2025公报仅发布市级总量294.26万人，未分区）。</li>
       <li>• 环境数据仅有市级（上海PM2.5=28、银川PM2.5=30.4），区级环境数据暂无公开来源。</li>
+      <li>• 就业数据仅有市级（上海新增62.17万人/调查失业率4.2%，银川新增4.53万人），区级就业数据暂无公开来源。</li>
+      <li>• 绿化数据仅有市级（上海973座公园/人均体育场地2.65㎡，银川人均公园绿地16.97㎡），区级绿化数据暂无公开来源。</li>
       <li>• 暂未纳入「房价负担」（需采购）与「治安」（国内无公开统计）维度。</li>
       <li>• 评分仅供参考，不构成任何决策建议；如发现数据有误，欢迎反馈纠错。</li>
     </ul>
