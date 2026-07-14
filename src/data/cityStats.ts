@@ -78,6 +78,8 @@ export const CITY_STATS: Record<string, CityStats> = {
     ruralDisposableIncome: 23503,
     builtArea: 199.45,
     sewageTreatmentRate: 98.5,
+    busRoutes: 199,
+    busVehicles: 0.22,
     year: 2025,
     source: '银川市2025年国民经济和社会发展统计公报',
     sourceUrl:
