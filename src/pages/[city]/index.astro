@@ -128,6 +128,12 @@ const jsonLd = {
               <div class="text-[10px] text-ink-soft">农村人均收入 (元)</div>
             </div>
           )}
+          {stats.perCapitaConsumption && (
+            <div class="card p-3 text-center">
+              <div class="text-lg font-bold text-accent">{stats.perCapitaConsumption.toLocaleString()}</div>
+              <div class="text-[10px] text-ink-soft">人均消费 (元)</div>
+            </div>
+          )}
         </div>
         <div class="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
           {stats.metroLines && (

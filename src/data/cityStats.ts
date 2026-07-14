@@ -16,6 +16,7 @@ export interface CityStats {
   metroKm?: number; // 轨道交通运营里程 (公里)
   busRoutes?: number; // 地面公交运营线路
   busVehicles?: number; // 地面公交车辆 (万辆)
+  busRouteKm?: number; // 地面公交运营线路长度 (公里)
   // 教育
   universities?: number; // 普通高等学校
   highSchools?: number; // 普通中学
@@ -29,12 +30,13 @@ export interface CityStats {
   perCapitaGdp?: number; // 人均GDP (元)
   urbanDisposableIncome?: number; // 城镇居民人均可支配收入 (元)
   ruralDisposableIncome?: number; // 农村居民人均可支配收入 (元)
+  perCapitaConsumption?: number; // 居民人均消费支出 (元)
   // 房价
   newHousePriceIndex?: number; // 新建商品住宅销售价格指数 (上年=100)
   secondHandPriceIndex?: number; // 二手住宅销售价格指数 (上年=100)
   // 城市建设
   builtArea?: number; // 城市建成区面积 (平方公里)
-  greenRate?: number; // 污水处理率 (%)
+  greenRate?: number; // 公园数量 (座)
   sewageTreatmentRate?: number; // 污水处理率 (%)
   // 年份与来源
   year: number;
@@ -49,17 +51,21 @@ export const CITY_STATS: Record<string, CityStats> = {
     metroKm: 896,
     busRoutes: 1589,
     busVehicles: 1.70,
+    busRouteKm: 24531,
     universities: 69,
     highSchools: 923,
     primarySchools: 660,
     healthInstitutions: 6431,
     healthWorkers: 26.96,
+    hospitals: 693,
     gdp: 53926.71,
     perCapitaGdp: undefined, // 公报未直接公布人均GDP
     urbanDisposableIncome: 93095,
     ruralDisposableIncome: 45644,
+    perCapitaConsumption: 52722,
     newHousePriceIndex: 104.6,
     secondHandPriceIndex: 93.9,
+    greenRate: 973, // parkCount
     year: 2024,
     source: '2024年上海市国民经济和社会发展统计公报',
     sourceUrl:
