@@ -39,7 +39,7 @@ grade = 按城市内百分位排名分 S/A/B/C/D
 ## 运行
 
 ```bash
-cd /Users/vicvinc/Desktop/codespace/livability-sh
+cd /Users/vicvinc/Desktop/codespace/yijudu
 npm install
 cp .env.example .env   # 填入高德 Web服务 key（AMAP_KEY=...）
 npm run dev            # http://localhost:4321

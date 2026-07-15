@@ -1,4 +1,4 @@
-# PROGRESS.md — livability-sh
+# PROGRESS.md — yijudu
 
 > Loop 迭代进度记录。目标方向：丰富数据。
 
@@ -8,7 +8,7 @@
 
 
 ## 项目概况
-- **路径**: ~/Desktop/codespace/livability-sh
+- **路径**: ~/Desktop/codespace/yijudu
 - **技术栈**: Astro + TypeScript
 - **当前城市**: 上海（16区）、银川（6区县）
 - **数据维度**: 教育/医疗/交通/生活/人口（真实）+ 经济（示例）
