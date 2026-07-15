@@ -43,6 +43,15 @@ const blocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
     {blocks.map((b) => (
       <script is:inline type="application/ld+json" set:html={JSON.stringify(b)} />
     ))}
+
+    <!-- Google tag (gtag.js) -->
+    <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-JHTYJN672J"></script>
+    <script is:inline define:vars={{ GA_ID: 'G-JHTYJN672J' }}>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', GA_ID);
+    </script>
   </head>
   <body class="min-h-screen">
     <Nav />
