@@ -53,7 +53,7 @@ export const METRICS: MetricDef[] = [
     shortLabel: '教育',
     unit: '所/km²',
     direction: 1,
-    description: '高校 + 中学 + 小学 密度（POI 计数 ÷ 行政区面积）。',
+    description: '幼儿园 + 小学 + 中学（K12）密度（POI 计数 ÷ 行政区面积）。',
     source: '高德 POI',
     real: true,
   },

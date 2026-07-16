@@ -6,6 +6,7 @@ import { computeCity, rankWithWeights, type ScoredDistrict } from '../../../lib/
 import { getDistricts, METRICS, economySource } from '../../../data/districts';
 import { CITIES, getCity } from '../../../data/cities';
 import { getEnvironment, getEmployment, getGreenery } from '../../../data/environment';
+import { getK12, K12_SOURCE, K12_YEAR } from '../../../data/education';
 
 export function getStaticPaths() {
   const paths = [];
@@ -31,6 +32,17 @@ const next = ranked[myRank + 1];
 const env = getEnvironment(city.key);
 const emp = getEmployment(city.key);
 const green = getGreenery(city.key);
+
+// K12 教育学段构成（仅部分城市接入；未接入时 k12=undefined，模板不渲染该区块）
+const k12 = getK12(city.key, district.adcode);
+const k12Total = k12 ? k12.kindergarten + k12.primary + k12.secondary : 0;
+const k12Segments = k12
+  ? [
+      { label: '幼儿园', icon: '🧒', count: k12.kindergarten, color: '#0d9488' },
+      { label: '小学', icon: '📚', count: k12.primary, color: '#6366f1' },
+      { label: '中学（初中 + 高中）', icon: '🎓', count: k12.secondary, color: '#f59e0b' },
+    ]
+  : [];
 
 const radarSeries = [
   { name: district.name, color: '#0d9488', values: METRICS.map((m) => district.metrics[m.key].score) },
@@ -154,6 +166,41 @@ const jsonLd = {
         </tbody>
       </table>
     </div>
+
+    {
+      k12 && (
+        <div class="mt-6 card p-6">
+          <div class="flex flex-wrap items-baseline justify-between gap-2">
+            <h3 class="text-lg font-bold">🎓 K12 教育学段构成</h3>
+            <span class="text-xs text-ink-soft">{K12_YEAR} · {K12_SOURCE}</span>
+          </div>
+          <p class="mt-1 text-xs text-ink-soft">
+            {district.name}共 <strong class="text-ink">{k12Total}</strong> 所 K12 学校（幼儿园 + 小学 + 中学）。展示用补充数据，不参与上方评分。
+          </p>
+          <div class="mt-4 space-y-3">
+            {k12Segments.map((s) => {
+              const pct = k12Total ? Math.round((s.count / k12Total) * 100) : 0;
+              return (
+                <div>
+                  <div class="flex items-center justify-between text-sm">
+                    <span class="text-ink-soft">
+                      {s.icon} {s.label}
+                    </span>
+                    <span>
+                      <strong class="text-ink">{s.count}</strong> 所
+                      <span class="ml-1 text-xs text-ink-soft">{pct}%</span>
+                    </span>
+                  </div>
+                  <div class="mt-1 h-2 w-full overflow-hidden rounded-full bg-surface-muted">
+                    <span class="block h-full rounded-full" style={`width:${pct}%;background:${s.color}`} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )
+    }
 
     <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
       <div class="flex gap-2 text-sm">
