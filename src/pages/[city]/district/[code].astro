@@ -8,6 +8,7 @@ import { CITIES, getCity } from '../../../data/cities';
 import { getEnvironment, getEmployment, getGreenery } from '../../../data/environment';
 import { getK12, k12Source, k12Year } from '../../../data/education';
 import { getHousingPrice } from '../../../data/housing';
+import { getCulture } from '../../../data/culture';
 
 export function getStaticPaths() {
   const paths = [];
@@ -47,6 +48,9 @@ const k12Segments = k12
 
 // 房价参考（展示用，非评分维度）
 const housing = getHousingPrice(city.key, district.adcode);
+
+// 文化设施（市级参考）
+const culture = getCulture(city.key);
 
 const radarSeries = [
   { name: district.name, color: '#0d9488', values: METRICS.map((m) => district.metrics[m.key].score) },
@@ -129,6 +133,17 @@ const jsonLd = {
       <div class="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
         🏠 {district.name}居住成本参考：二手房均价约 <strong>{housing.price.toLocaleString()} 元/㎡</strong>
         <span class="text-xs text-amber-600">（{housing.year}年 · {housing.source}，非评分维度）</span>
+      </div>
+    )}
+
+    {culture && (
+      <div class="mt-2 rounded-lg border border-purple-200 bg-purple-50 px-4 py-3 text-sm text-purple-800">
+        🎭 {city.name}{culture.year}年文化设施：
+        {culture.museums && `博物馆/纪念馆 ${culture.museums}家`}
+        {culture.libraries && `，公共图书馆 ${culture.libraries}个`}
+        {culture.cultureCenters && `，文化馆 ${culture.cultureCenters}个`}
+        {culture.newCultureSpaces && `，新型文化空间 ${culture.newCultureSpaces}个`}
+        <span class="text-xs text-purple-600">（市级数据，非区级评分维度）</span>
       </div>
     )}
 
