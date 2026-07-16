@@ -51,7 +51,7 @@ for (const c of CITIES) {
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
-  name: '搜索区县 - 城市宜居度对比',
+  name: '搜索区县 - 宜居度',
   url: new URL('/search', Astro.site).href,
   description: '搜索上海、银川所有区县的宜居度评分。',
   inLanguage: SITE.locale,
@@ -59,7 +59,7 @@ const jsonLd = {
 ---
 
 <BaseLayout
-  title="搜索区县 | 城市宜居度对比"
+  title="搜索区县"
   description="搜索上海、银川所有区县的宜居度评分，快速找到你关心的区。"
   path="/search"
   jsonLd={jsonLd}

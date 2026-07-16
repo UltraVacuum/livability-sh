@@ -1,0 +1,17 @@
+# 宜居度 · 城市宜居度对比 —— robots
+User-agent: *
+Allow: /
+
+# 中文搜索引擎友好
+User-agent: Baiduspider
+Allow: /
+Crawl-delay: 1
+
+User-agent: Sogou web spider
+Allow: /
+
+# 静态资源无需单独索引
+Disallow: /boundaries/
+
+# 站点地图
+Sitemap: https://yijudu.com/sitemap-index.xml

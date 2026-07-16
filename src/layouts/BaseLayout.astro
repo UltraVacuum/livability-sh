@@ -7,13 +7,16 @@ import Footer from '../components/Footer.astro';
 interface Props {
   title?: string;
   description?: string;
+  keywords?: string[];
   path?: string;
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
 }
 
-const { title, description, path = '', jsonLd } = Astro.props;
+const { title, description, keywords, path = '', jsonLd } = Astro.props;
 const pageTitle = title ? `${title} | ${SITE.name}` : SITE.title;
 const pageDesc = description ?? SITE.description;
+// 页面可传入更聚焦的长尾词；缺省用全站关键词
+const pageKeywords = (keywords ?? SITE.keywords).join('，');
 const canonical = new URL(path, SITE.url).href;
 const ogImage = new URL('/og.png', SITE.url).href;
 const blocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
@@ -29,7 +32,14 @@ const blocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
 
     <title>{pageTitle}</title>
     <meta name="description" content={pageDesc} />
+    <meta name="keywords" content={pageKeywords} />
+    <meta name="author" content={SITE.author} />
+    <meta
+      name="robots"
+      content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+    />
     <link rel="canonical" href={canonical} />
+    <meta name="theme-color" content="#0d9488" />
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content={SITE.name} />
@@ -38,6 +48,7 @@ const blocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
     <meta property="og:description" content={pageDesc} />
     <meta property="og:locale" content="zh_CN" />
     <meta property="og:image" content={ogImage} />
+    <meta property="og:image:alt" content={`${SITE.name} — 基于公开数据的城市规划分析`} />
     <meta name="twitter:card" content="summary_large_image" />
 
     {blocks.map((b) => (

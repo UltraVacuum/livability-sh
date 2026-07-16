@@ -48,8 +48,18 @@ const jsonLd = {
 
 <BaseLayout
   title={`${city.name}${district.name}宜居度评分`}
-  description={`${district.name} 六维宜居度：综合 ${mine.composite.toFixed(0)} 分（${mine.grade} 级，${city.name}第 ${mine.rank} 名）。经济、人口、教育、医疗、交通等原始数据与来源。`}
+  description={`${district.name} 六维宜居度：综合 ${mine.composite.toFixed(0)} 分（${mine.grade} 级，${city.name}第 ${mine.rank} 名）。教育、医疗、交通、生活配套密度与人口数据，均为公开数据，来源可追溯。`}
   path={`/${city.key}/district/${code}`}
+  keywords={[
+    `${city.name}${district.name}宜居度`,
+    `${district.name}适合居住吗`,
+    `${city.name}${district.name}教育医疗`,
+    `${city.name}${district.name}交通生活配套`,
+    `${city.name}${district.name}人口密度`,
+    `${city.name}哪个区好`,
+    `${city.name}区县对比`,
+    '宜居度评分',
+  ]}
   jsonLd={jsonLd}
 >
   <section class="container-page py-10 sm:py-14">

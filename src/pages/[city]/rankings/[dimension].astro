@@ -39,6 +39,15 @@ const jsonLd = {
   title={`${city.name}${metric.label}排行榜`}
   description={`${city.name}${city_.length} 个区县「${metric.label}」维度排行，按 ${metric.unit} 标准化评分排序。${metric.description}`}
   path={`/${city.key}/rankings/${dimension}`}
+  keywords={[
+    `${city.name}${metric.label}排行`,
+    `${city.name}${metric.label}排名`,
+    `${city.name}哪个区${metric.label}好`,
+    `${city.name}区县${metric.label}`,
+    `${metric.label}排行榜`,
+    `${city.name}城市规划`,
+    '区县对比',
+  ]}
   jsonLd={jsonLd}
 >
   <section class="container-page py-10 sm:py-14">

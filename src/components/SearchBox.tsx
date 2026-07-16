@@ -25,7 +25,11 @@ const gradeColor: Record<string, string> = {
 };
 
 export default function SearchBox({ entries }: Props) {
-  const [query, setQuery] = useState('');
+  // 支持 /search?q=浦东 形式的深链接（SearchAction / 外部分享直达）
+  const [query, setQuery] = useState(() => {
+    if (typeof window === 'undefined') return '';
+    return new URLSearchParams(window.location.search).get('q') ?? '';
+  });
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
