@@ -6,7 +6,7 @@ import { computeCity, rankWithWeights, type ScoredDistrict } from '../../../lib/
 import { getDistricts, METRICS, economySource } from '../../../data/districts';
 import { CITIES, getCity } from '../../../data/cities';
 import { getEnvironment, getEmployment, getGreenery } from '../../../data/environment';
-import { getK12, K12_SOURCE, K12_YEAR } from '../../../data/education';
+import { getK12, k12Source, k12Year } from '../../../data/education';
 
 export function getStaticPaths() {
   const paths = [];
@@ -172,7 +172,7 @@ const jsonLd = {
         <div class="mt-6 card p-6">
           <div class="flex flex-wrap items-baseline justify-between gap-2">
             <h3 class="text-lg font-bold">🎓 K12 教育学段构成</h3>
-            <span class="text-xs text-ink-soft">{K12_YEAR} · {K12_SOURCE}</span>
+            <span class="text-xs text-ink-soft">{k12Year(city.key)} · {k12Source(city.key)}</span>
           </div>
           <p class="mt-1 text-xs text-ink-soft">
             {district.name}共 <strong class="text-ink">{k12Total}</strong> 所 K12 学校（幼儿园 + 小学 + 中学）。展示用补充数据，不参与上方评分。
