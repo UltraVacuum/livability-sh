@@ -7,6 +7,7 @@ import { getDistricts, METRICS, economySource } from '../../../data/districts';
 import { CITIES, getCity } from '../../../data/cities';
 import { getEnvironment, getEmployment, getGreenery } from '../../../data/environment';
 import { getK12, k12Source, k12Year } from '../../../data/education';
+import { getHousingPrice } from '../../../data/housing';
 
 export function getStaticPaths() {
   const paths = [];
@@ -43,6 +44,9 @@ const k12Segments = k12
       { label: '中学（初中 + 高中）', icon: '🎓', count: k12.secondary, color: '#f59e0b' },
     ]
   : [];
+
+// 房价参考（展示用，非评分维度）
+const housing = getHousingPrice(city.key, district.adcode);
 
 const radarSeries = [
   { name: district.name, color: '#0d9488', values: METRICS.map((m) => district.metrics[m.key].score) },
@@ -118,6 +122,13 @@ const jsonLd = {
             {green.perCapitaSportsArea && `，人均体育场地 ${green.perCapitaSportsArea}㎡`}
           </div>
         )}
+      </div>
+    )}
+
+    {housing && (
+      <div class="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        🏠 {district.name}居住成本参考：二手房均价约 <strong>{housing.price.toLocaleString()} 元/㎡</strong>
+        <span class="text-xs text-amber-600">（{housing.year}年 · {housing.source}，非评分维度）</span>
       </div>
     )}
 
