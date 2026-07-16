@@ -6,6 +6,7 @@ import { getDistricts, METRICS } from '../../data/districts';
 import { CITIES, getCity } from '../../data/cities';
 import { getEnvironment, getEmployment, getGreenery } from '../../data/environment';
 import { getCityStats } from '../../data/cityStats';
+import { getCulture } from '../../data/culture';
 import { SITE } from '../../consts';
 
 export function getStaticPaths() {
@@ -20,6 +21,7 @@ const env = getEnvironment(city.key);
 const emp = getEmployment(city.key);
 const green = getGreenery(city.key);
 const stats = getCityStats(city.key);
+const culture = getCulture(city.key);
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -108,6 +110,17 @@ const jsonLd = {
         {green.parkCount && `，公园 <strong>${green.parkCount} 座</strong>`}
         {green.perCapitaSportsArea && `，人均体育场地 ${green.perCapitaSportsArea} ㎡`}
         <span class="text-xs text-green-600">（市级数据，来源：<a href={green.sourceUrl} class="underline">{green.source}</a>）</span>
+      </div>
+    )}
+
+    {culture && (
+      <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-purple-200 bg-purple-50 px-4 py-3 text-sm text-purple-800">
+        🎭 {city.name}{culture.year}年文化设施：
+        {culture.museums && `博物馆/纪念馆 <strong>${culture.museums}</strong>家`}
+        {culture.libraries && `，公共图书馆 <strong>${culture.libraries}</strong>个`}
+        {culture.cultureCenters && `，文化馆 <strong>${culture.cultureCenters}</strong>个`}
+        {culture.newCultureSpaces && `，新型文化空间 <strong>${culture.newCultureSpaces}</strong>个`}
+        <span class="text-xs text-purple-600">（市级数据，来源：<a href={culture.sourceUrl} class="underline">{culture.source}</a>）</span>
       </div>
     )}
 
