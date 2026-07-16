@@ -86,6 +86,8 @@ export const CITY_STATS: Record<string, CityStats> = {
     sewageTreatmentRate: 98.5,
     busRoutes: 199,
     busVehicles: 0.22,
+    newHousePriceIndex: 96.5, // 2025年12月同比96.5%（下降3.5%）
+    secondHandPriceIndex: 93.5, // 2025年12月同比93.5%（下降6.5%）
     year: 2025,
     source: '银川市2025年国民经济和社会发展统计公报',
     sourceUrl:
