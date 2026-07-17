@@ -2,9 +2,9 @@
  * City-level cultural facilities — real official data from statistical bulletins.
  *
  * 上海:
- *   博物馆/纪念馆: 171家（2024年上海市文物统计年报，市文旅局）
- *   来源: https://whlyj.sh.gov.cn/tjzl/20260130/2e2ff10dde974a389cfb9967601eaf4a.html
- *   公共图书馆: 24家（2024年上海统计年鉴 表22.15，含市级+区级）
+ *   博物馆/纪念馆: 174家（2025年上海市统计公报，市文旅局）
+ *   来源: https://tjj.sh.gov.cn/tjgb/20260330/e0772941e8e041eaaad2df850b44ef98.html
+ *   公共图书馆: 20家（2025年统计公报，含市级+区级）
  *
  * 银川: 银川市2025年国民经济和社会发展统计公报
  *   博物馆29个，公共图书馆7个，文化艺术馆/文化馆7个
@@ -27,12 +27,12 @@ export interface CityCulture {
 
 export const CULTURE: Record<string, CityCulture> = {
   shanghai: {
-    museums: 171,
-    libraries: 24,
-    year: 2024,
-    source: '2024年上海市文物统计年报 + 上海统计年鉴2025表22.15',
+    museums: 174,
+    libraries: 20,
+    year: 2025,
+    source: '2025年上海市国民经济和社会发展统计公报',
     sourceUrl:
-      'https://whlyj.sh.gov.cn/tjzl/20260130/2e2ff10dde974a389cfb9967601eaf4a.html',
+      'https://tjj.sh.gov.cn/tjgb/20260330/e0772941e8e041eaaad2df850b44ef98.html',
   },
   yinchuan: {
     museums: 29,

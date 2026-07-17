@@ -1,8 +1,8 @@
 /**
  * City-level infrastructure statistics — real official data from statistical bulletins.
  *
- * 上海: 2024年上海市国民经济和社会发展统计公报
- *   https://tjj.sh.gov.cn/tjgb/20250324/a7fe18c6d5c24d66bfca89c5bb4cdcfb.html
+ * 上海: 2025年上海市国民经济和社会发展统计公报
+ *   https://tjj.sh.gov.cn/tjgb/20260330/e0772941e8e041eaaad2df850b44ef98.html
  * 银川: 银川市2025年国民经济和社会发展统计公报
  *   https://www.yinchuan.gov.cn/xxgk/bmxxgkml/stjj/xxgkml_2517/tjxx_7670/tjgb_7671/202604/t20260427_5226142.html
  *
@@ -46,30 +46,30 @@ export interface CityStats {
 
 export const CITY_STATS: Record<string, CityStats> = {
   shanghai: {
-    metroLines: 21,
-    metroStations: 517,
-    metroKm: 896,
-    busRoutes: 1589,
-    busVehicles: 1.70,
-    busRouteKm: 24531,
+    metroLines: 22,
+    metroStations: 532,
+    metroKm: 962,
+    busRoutes: 1590,
+    busVehicles: 1.67,
+    busRouteKm: 24556,
     universities: 69,
-    highSchools: 923,
-    primarySchools: 660,
-    healthInstitutions: 6431,
-    healthWorkers: 26.96,
-    hospitals: 693,
-    gdp: 53926.71,
-    perCapitaGdp: undefined, // 公报未直接公布人均GDP
-    urbanDisposableIncome: 93095,
-    ruralDisposableIncome: 45644,
-    perCapitaConsumption: 52722,
-    newHousePriceIndex: 104.6,
-    secondHandPriceIndex: 93.9,
-    greenRate: 973, // parkCount
-    year: 2024,
-    source: '2024年上海市国民经济和社会发展统计公报',
+    highSchools: 932,
+    primarySchools: 654,
+    healthInstitutions: 6566,
+    healthWorkers: 28.21,
+    hospitals: 694,
+    gdp: 56708.71,
+    perCapitaGdp: undefined,
+    urbanDisposableIncome: 96842,
+    ruralDisposableIncome: 48122,
+    perCapitaConsumption: 54765,
+    newHousePriceIndex: 105.7,
+    secondHandPriceIndex: 97.6,
+    greenRate: 1100, // parkCount
+    year: 2025,
+    source: '2025年上海市国民经济和社会发展统计公报',
     sourceUrl:
-      'https://tjj.sh.gov.cn/tjgb/20250324/a7fe18c6d5c24d66bfca89c5bb4cdcfb.html',
+      'https://tjj.sh.gov.cn/tjgb/20260330/e0772941e8e041eaaad2df850b44ef98.html',
   },
   yinchuan: {
     universities: 17,

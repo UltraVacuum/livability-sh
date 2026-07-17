@@ -9,6 +9,8 @@ import { getEnvironment, getEmployment, getGreenery } from '../../../data/enviro
 import { getK12, k12Source, k12Year } from '../../../data/education';
 import { getHousingPrice } from '../../../data/housing';
 import { getCulture } from '../../../data/culture';
+import { getDistrictHealthcare, healthcareSource, healthcareYear } from '../../../data/healthcare';
+import { getDistrictCommerce, commerceSource, commerceYear } from '../../../data/commerce';
 
 export function getStaticPaths() {
   const paths = [];
@@ -51,6 +53,12 @@ const housing = getHousingPrice(city.key, district.adcode);
 
 // 文化设施（市级参考）
 const culture = getCulture(city.key);
+
+// 区级医疗资源（展示用补充数据）
+const dh = getDistrictHealthcare(city.key, district.adcode);
+
+// 区级商业/生活便利度（展示用补充数据）
+const dc = getDistrictCommerce(city.key, district.adcode);
 
 const radarSeries = [
   { name: district.name, color: '#0d9488', values: METRICS.map((m) => district.metrics[m.key].score) },
@@ -223,6 +231,72 @@ const jsonLd = {
                 </div>
               );
             })}
+          </div>
+        </div>
+      )
+    }
+
+    {
+      dh && (
+        <div class="mt-6 card p-6">
+          <div class="flex flex-wrap items-baseline justify-between gap-2">
+            <h3 class="text-lg font-bold">🏥 医疗资源概况</h3>
+            <span class="text-xs text-ink-soft">{healthcareYear(city.key)} · {healthcareSource(city.key)}</span>
+          </div>
+          <p class="mt-1 text-xs text-ink-soft">
+            {district.name}医疗资源估算（市级总量按人口比例分配）。展示用补充数据，不参与上方评分。
+          </p>
+          <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">卫生机构</div>
+              <div class="mt-1 text-xl font-bold text-ink">{dh.institutions}</div>
+              <div class="text-[10px] text-ink-soft">所（估算）</div>
+            </div>
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">医院</div>
+              <div class="mt-1 text-xl font-bold text-ink">{dh.hospitals}</div>
+              <div class="text-[10px] text-ink-soft">家（估算）</div>
+            </div>
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">卫生技术人员</div>
+              <div class="mt-1 text-xl font-bold text-ink">{dh.healthWorkers.toLocaleString()}</div>
+              <div class="text-[10px] text-ink-soft">人（估算）</div>
+            </div>
+            {dh.beds && (
+              <div class="rounded-lg border border-line bg-surface px-4 py-3">
+                <div class="text-xs text-ink-soft">编制床位</div>
+                <div class="mt-1 text-xl font-bold text-ink">{dh.beds.toLocaleString()}</div>
+                <div class="text-[10px] text-ink-soft">张（估算）</div>
+              </div>
+            )}
+          </div>
+        </div>
+      )
+    }
+
+    {
+      dc && (
+        <div class="mt-6 card p-6">
+          <div class="flex flex-wrap items-baseline justify-between gap-2">
+            <h3 class="text-lg font-bold">🛍️ 商业/生活便利度</h3>
+            <span class="text-xs text-ink-soft">{commerceYear(city.key)} · {commerceSource(city.key)}</span>
+          </div>
+          <p class="mt-1 text-xs text-ink-soft">
+            {district.name}商业综合体与市场数量。展示用补充数据，不参与上方评分。
+          </p>
+          <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">购物中心/商业综合体</div>
+              <div class="mt-1 text-xl font-bold text-ink">{dc.malls}</div>
+              <div class="text-[10px] text-ink-soft">个（3万㎡以上）</div>
+            </div>
+            {dc.markets !== undefined && (
+              <div class="rounded-lg border border-line bg-surface px-4 py-3">
+                <div class="text-xs text-ink-soft">农贸市场/商品交易市场</div>
+                <div class="mt-1 text-xl font-bold text-ink">{dc.markets}</div>
+                <div class="text-[10px] text-ink-soft">个</div>
+              </div>
+            )}
           </div>
         </div>
       )

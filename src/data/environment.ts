@@ -1,8 +1,8 @@
 /**
  * City-level environment / air quality data — real official data.
  *
- * 上海: 2024年上海市国民经济和社会发展统计公报（上海市统计局, 2025-03-25）
- *   https://tjj.sh.gov.cn/tjgb/20250324/a7fe18c6d5c24d66bfca89c5bb4cdcfb.html
+ * 上海: 2025年上海市国民经济和社会发展统计公报（上海市统计局, 2026-03-30）
+ *   https://tjj.sh.gov.cn/tjgb/20260330/e0772941e8e041eaaad2df850b44ef98.html
  * 银川: 银川市2025年国民经济和社会发展统计公报（银川市统计局, 2026-04-27）
  *   https://www.yinchuan.gov.cn/xxgk/bmxxgkml/stjj/xxgkml_2517/tjxx_7670/tjgb_7671/202604/t20260427_5226142.html
  *
@@ -22,7 +22,7 @@ export interface CityEnvironment {
 /**
  * City-level employment data — real official data from statistical bulletins.
  *
- * 上海: 2024年统计公报 — 城镇新增就业62.17万人，城镇调查失业率4.2%
+ * 上海: 2025年统计公报 — 城镇新增就业64.1万人，城镇调查失业率4.2%
  * 银川: 2025年统计公报 — 城镇新增就业4.53万人
  */
 export interface CityEmployment {
@@ -36,13 +36,12 @@ export interface CityEmployment {
 
 export const EMPLOYMENT: Record<string, CityEmployment> = {
   shanghai: {
-    newJobs: 62.17,
+    newJobs: 64.1,
     surveyUnemploymentRate: 4.2,
-    registeredUnemployment: 16.39,
-    year: 2024,
-    source: '2024年上海市国民经济和社会发展统计公报',
+    year: 2025,
+    source: '2025年上海市国民经济和社会发展统计公报',
     sourceUrl:
-      'https://tjj.sh.gov.cn/tjgb/20250324/a7fe18c6d5c24d66bfca89c5bb4cdcfb.html',
+      'https://tjj.sh.gov.cn/tjgb/20260330/e0772941e8e041eaaad2df850b44ef98.html',
   },
   yinchuan: {
     newJobs: 4.53,
@@ -60,7 +59,7 @@ export function getEmployment(cityKey: string): CityEmployment | undefined {
 /**
  * City-level greenery / park data — real official data from statistical bulletins.
  *
- * 上海: 2024年统计公报 — 新增绿地1040公顷，各类城乡公园973座，人均体育场地2.65㎡
+ * 上海: 2025年统计公报 — 新增绿地1014.41公顷，各类城乡公园1100座，人均体育场地2.67㎡
  * 银川: 2025年统计公报 — 人均公园绿地16.97㎡，建成区绿化覆盖面积8504.11公顷，公园23个
  */
 export interface CityGreenery {
@@ -76,13 +75,13 @@ export interface CityGreenery {
 
 export const GREENERY: Record<string, CityGreenery> = {
   shanghai: {
-    parkCount: 973,
-    totalGreenArea: 1040,
-    perCapitaSportsArea: 2.65,
-    year: 2024,
-    source: '2024年上海市国民经济和社会发展统计公报',
+    parkCount: 1100,
+    totalGreenArea: 1014.41,
+    perCapitaSportsArea: 2.67,
+    year: 2025,
+    source: '2025年上海市国民经济和社会发展统计公报',
     sourceUrl:
-      'https://tjj.sh.gov.cn/tjgb/20250324/a7fe18c6d5c24d66bfca89c5bb4cdcfb.html',
+      'https://tjj.sh.gov.cn/tjgb/20260330/e0772941e8e041eaaad2df850b44ef98.html',
   },
   yinchuan: {
     parkCount: 23,
@@ -101,15 +100,15 @@ export function getGreenery(cityKey: string): CityGreenery | undefined {
 
 export const ENVIRONMENT: Record<string, CityEnvironment> = {
   shanghai: {
-    pm25: 28,
+    pm25: 26.3,
     pm10: 43,
-    no2: 30,
+    no2: 28,
     so2: 7,
     aqiGoodRate: 88.5,
-    year: 2024,
-    source: '2024年上海市国民经济和社会发展统计公报（上海市生态环境局）',
+    year: 2025,
+    source: '2025年上海市国民经济和社会发展统计公报（上海市生态环境局）',
     sourceUrl:
-      'https://tjj.sh.gov.cn/tjgb/20250324/a7fe18c6d5c24d66bfca89c5bb4cdcfb.html',
+      'https://tjj.sh.gov.cn/tjgb/20260330/e0772941e8e041eaaad2df850b44ef98.html',
   },
   yinchuan: {
     pm25: 30.4,
