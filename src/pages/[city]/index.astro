@@ -7,6 +7,7 @@ import { CITIES, getCity } from '../../data/cities';
 import { getEnvironment, getEmployment, getGreenery } from '../../data/environment';
 import { getCityStats } from '../../data/cityStats';
 import { getCulture } from '../../data/culture';
+import { getCitySafety } from '../../data/safety';
 import { SITE } from '../../consts';
 
 export function getStaticPaths() {
@@ -22,6 +23,7 @@ const emp = getEmployment(city.key);
 const green = getGreenery(city.key);
 const stats = getCityStats(city.key);
 const culture = getCulture(city.key);
+const safety = getCitySafety(city.key);
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -121,6 +123,16 @@ const jsonLd = {
         {culture.cultureCenters && `，文化馆 <strong>${culture.cultureCenters}</strong>个`}
         {culture.newCultureSpaces && `，新型文化空间 <strong>${culture.newCultureSpaces}</strong>个`}
         <span class="text-xs text-purple-600">（市级数据，来源：<a href={culture.sourceUrl} class="underline">{culture.source}</a>）</span>
+      </div>
+    )}
+
+    {safety && (
+      <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+        🛡️ {city.name}{safety.year}年公共安全：
+        生产安全事故 <strong>${safety.workSafetyAccidents}</strong>起/死亡<strong>${safety.workSafetyDeaths}</strong>人
+        {safety.foodSafetyRate && `，食品安全合格率 <strong>${safety.foodSafetyRate}%</strong>`}
+        {safety.elderlyCareBeds && `，养老床位 <strong>${safety.elderlyCareBeds.toLocaleString()}</strong>张`}
+        <span class="text-xs text-rose-600">（市级数据，来源：<a href={safety.sourceUrl} class="underline">{safety.source}</a>）</span>
       </div>
     )}
 

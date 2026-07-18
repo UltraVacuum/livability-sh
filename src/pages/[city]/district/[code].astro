@@ -11,6 +11,8 @@ import { getHousingPrice } from '../../../data/housing';
 import { getCulture } from '../../../data/culture';
 import { getDistrictHealthcare, healthcareSource, healthcareYear } from '../../../data/healthcare';
 import { getDistrictCommerce, commerceSource, commerceYear } from '../../../data/commerce';
+import { getCitySafety } from '../../../data/safety';
+import { getDistrictCommute, commuteSource, commuteYear } from '../../../data/commute';
 
 export function getStaticPaths() {
   const paths = [];
@@ -59,6 +61,12 @@ const dh = getDistrictHealthcare(city.key, district.adcode);
 
 // 区级商业/生活便利度（展示用补充数据）
 const dc = getDistrictCommerce(city.key, district.adcode);
+
+// 市级公共安全与社会保障（展示用补充数据）
+const safety = getCitySafety(city.key);
+
+// 区级通勤交通（展示用补充数据）
+const commute = getDistrictCommute(city.key, district.adcode);
 
 const radarSeries = [
   { name: district.name, color: '#0d9488', values: METRICS.map((m) => district.metrics[m.key].score) },
@@ -295,6 +303,118 @@ const jsonLd = {
                 <div class="text-xs text-ink-soft">农贸市场/商品交易市场</div>
                 <div class="mt-1 text-xl font-bold text-ink">{dc.markets}</div>
                 <div class="text-[10px] text-ink-soft">个</div>
+              </div>
+            )}
+          </div>
+        </div>
+      )
+    }
+
+    {
+      commute && (
+        <div class="mt-6 card p-6">
+          <div class="flex flex-wrap items-baseline justify-between gap-2">
+            <h3 class="text-lg font-bold">🚇 通勤交通画像</h3>
+            <span class="text-xs text-ink-soft">{commuteYear(city.key)} · {commuteSource(city.key)}</span>
+          </div>
+          <p class="mt-1 text-xs text-ink-soft">
+            {district.name}通勤交通数据。展示用补充数据，不参与上方评分。
+          </p>
+          <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">平均单程通勤时间</div>
+              <div class="mt-1 text-xl font-bold text-ink">{commute.avgCommuteMinutes}</div>
+              <div class="text-[10px] text-ink-soft">分钟</div>
+            </div>
+            {commute.metroDensity !== undefined && (
+              <div class="rounded-lg border border-line bg-surface px-4 py-3">
+                <div class="text-xs text-ink-soft">地铁站密度</div>
+                <div class="mt-1 text-xl font-bold text-ink">{commute.metroDensity.toFixed(2)}</div>
+                <div class="text-[10px] text-ink-soft">站/km²</div>
+              </div>
+            )}
+            {commute.metroStations > 0 && (
+              <div class="rounded-lg border border-line bg-surface px-4 py-3">
+                <div class="text-xs text-ink-soft">地铁站数量</div>
+                <div class="mt-1 text-xl font-bold text-ink">{commute.metroStations}</div>
+                <div class="text-[10px] text-ink-soft">个（高德POI）</div>
+              </div>
+            )}
+            {commute.busDensity !== undefined && (
+              <div class="rounded-lg border border-line bg-surface px-4 py-3">
+                <div class="text-xs text-ink-soft">公交线网密度</div>
+                <div class="mt-1 text-xl font-bold text-ink">{commute.busDensity}</div>
+                <div class="text-[10px] text-ink-soft">公里/万人</div>
+              </div>
+            )}
+          </div>
+        </div>
+      )
+    }
+
+    {
+      safety && (
+        <div class="mt-6 card p-6">
+          <div class="flex flex-wrap items-baseline justify-between gap-2">
+            <h3 class="text-lg font-bold">🛡️ 公共安全与社会保障</h3>
+            <span class="text-xs text-ink-soft">{safety.year}年 · {safety.source}</span>
+          </div>
+          <p class="mt-1 text-xs text-ink-soft">
+            {city.name}{safety.year}年公共安全与社会保障概况。市级数据，非区级评分维度。
+          </p>
+          <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div class="rounded-lg border border-red-100 bg-red-50 px-4 py-3">
+              <div class="text-xs text-red-700">生产安全事故</div>
+              <div class="mt-1 text-xl font-bold text-red-900">{safety.workSafetyAccidents}</div>
+              <div class="text-[10px] text-red-600">起 / 死亡{safety.workSafetyDeaths}人</div>
+            </div>
+            {safety.foodSafetyRate !== undefined && (
+              <div class="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+                <div class="text-xs text-emerald-700">食品安全合格率</div>
+                <div class="mt-1 text-xl font-bold text-emerald-900">{safety.foodSafetyRate}%</div>
+                <div class="text-[10px] text-emerald-600">监测总体合格</div>
+              </div>
+            )}
+            {safety.elderlyCareBeds !== undefined && (
+              <div class="rounded-lg border border-line bg-surface px-4 py-3">
+                <div class="text-xs text-ink-soft">养老床位</div>
+                <div class="mt-1 text-xl font-bold text-ink">{safety.elderlyCareBeds.toLocaleString()}</div>
+                <div class="text-[10px] text-ink-soft">张（市级）</div>
+              </div>
+            )}
+            {safety.elderlyCareCenters !== undefined && (
+              <div class="rounded-lg border border-line bg-surface px-4 py-3">
+                <div class="text-xs text-ink-soft">为老服务中心</div>
+                <div class="mt-1 text-xl font-bold text-ink">{safety.elderlyCareCenters}</div>
+                <div class="text-[10px] text-ink-soft">个（市级）</div>
+              </div>
+            )}
+            {safety.pensionParticipants !== undefined && (
+              <div class="rounded-lg border border-line bg-surface px-4 py-3">
+                <div class="text-xs text-ink-soft">养老保险参保</div>
+                <div class="mt-1 text-xl font-bold text-ink">{safety.pensionParticipants.toLocaleString()}</div>
+                <div class="text-[10px] text-ink-soft">万人（市级）</div>
+              </div>
+            )}
+            {safety.medicalInsuranceParticipants !== undefined && (
+              <div class="rounded-lg border border-line bg-surface px-4 py-3">
+                <div class="text-xs text-ink-soft">医疗保险参保</div>
+                <div class="mt-1 text-xl font-bold text-ink">{safety.medicalInsuranceParticipants.toLocaleString()}</div>
+                <div class="text-[10px] text-ink-soft">万人（市级）</div>
+              </div>
+            )}
+            {safety.minLivingStandard !== undefined && (
+              <div class="rounded-lg border border-line bg-surface px-4 py-3">
+                <div class="text-xs text-ink-soft">低保标准</div>
+                <div class="mt-1 text-xl font-bold text-ink">{safety.minLivingStandard}</div>
+                <div class="text-[10px] text-ink-soft">元/月</div>
+              </div>
+            )}
+            {safety.gdpAccidentDeathRate !== undefined && (
+              <div class="rounded-lg border border-red-100 bg-red-50 px-4 py-3">
+                <div class="text-xs text-red-700">亿元GDP事故死亡率</div>
+                <div class="mt-1 text-xl font-bold text-red-900">{safety.gdpAccidentDeathRate}</div>
+                <div class="text-[10px] text-red-600">（越低越好）</div>
               </div>
             )}
           </div>
