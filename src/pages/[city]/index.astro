@@ -8,6 +8,8 @@ import { getEnvironment, getEmployment, getGreenery } from '../../data/environme
 import { getCityStats } from '../../data/cityStats';
 import { getCulture } from '../../data/culture';
 import { getCitySafety } from '../../data/safety';
+import { CITY_SPORTS_TOTALS } from '../../data/sports';
+import { CITY_ELDERLY_TOTALS } from '../../data/elderly-care';
 import { SITE } from '../../consts';
 
 export function getStaticPaths() {
@@ -24,6 +26,8 @@ const green = getGreenery(city.key);
 const stats = getCityStats(city.key);
 const culture = getCulture(city.key);
 const safety = getCitySafety(city.key);
+const sportsTotal = CITY_SPORTS_TOTALS[city.key];
+const elderlyTotal = CITY_ELDERLY_TOTALS[city.key];
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -133,6 +137,26 @@ const jsonLd = {
         {safety.foodSafetyRate && `，食品安全合格率 <strong>${safety.foodSafetyRate}%</strong>`}
         {safety.elderlyCareBeds && `，养老床位 <strong>${safety.elderlyCareBeds.toLocaleString()}</strong>张`}
         <span class="text-xs text-rose-600">（市级数据，来源：<a href={safety.sourceUrl} class="underline">{safety.source}</a>）</span>
+      </div>
+    )}
+
+    {sportsTotal && (
+      <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-800">
+        🏟️ {city.name}{sportsTotal.year}年体育设施：
+        体育场地 <strong>{sportsTotal.totalVenues.toLocaleString()}</strong>个
+        ，人均 <strong>{sportsTotal.perCapitaArea}㎡</strong>
+        {sportsTotal.fitnessProjects && `，年度新建健身设施 ${sportsTotal.fitnessProjects}个`}
+        <span class="text-xs text-orange-600">（市级数据，来源：<a href={sportsTotal.sourceUrl} class="underline">{sportsTotal.source}</a>）</span>
+      </div>
+    )}
+
+    {elderlyTotal && (
+      <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-800">
+        👴 {city.name}{elderlyTotal.year}年养老服务：
+        养老机构 <strong>{elderlyTotal.institutions}</strong>家，床位 <strong>{elderlyTotal.beds.toLocaleString()}</strong>张
+        {elderlyTotal.communityCenters && `，社区养老中心 ${elderlyTotal.communityCenters}个`}
+        {elderlyTotal.nursingBeds && `，护理型床位 ${(elderlyTotal.nursingBeds / 10000).toFixed(1)}万张`}
+        <span class="text-xs text-indigo-600">（市级数据，来源：<a href={elderlyTotal.sourceUrl} class="underline">{elderlyTotal.source}</a>）</span>
       </div>
     )}
 
