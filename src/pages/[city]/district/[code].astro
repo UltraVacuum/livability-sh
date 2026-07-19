@@ -13,6 +13,8 @@ import { getDistrictHealthcare, healthcareSource, healthcareYear } from '../../.
 import { getDistrictCommerce, commerceSource, commerceYear } from '../../../data/commerce';
 import { getCitySafety } from '../../../data/safety';
 import { getDistrictCommute, commuteSource, commuteYear } from '../../../data/commute';
+import { getDistrictSports, sportsSource, sportsYear } from '../../../data/sports';
+import { getDistrictElderly, elderlySource, elderlyYear } from '../../../data/elderly-care';
 
 export function getStaticPaths() {
   const paths = [];
@@ -67,6 +69,12 @@ const safety = getCitySafety(city.key);
 
 // 区级通勤交通（展示用补充数据）
 const commute = getDistrictCommute(city.key, district.adcode);
+
+// 区级体育设施（展示用补充数据）
+const sports = getDistrictSports(city.key, district.adcode);
+
+// 区级养老数据（展示用补充数据）
+const elderly = getDistrictElderly(city.key, district.adcode);
 
 const radarSeries = [
   { name: district.name, color: '#0d9488', values: METRICS.map((m) => district.metrics[m.key].score) },
@@ -415,6 +423,102 @@ const jsonLd = {
                 <div class="text-xs text-red-700">亿元GDP事故死亡率</div>
                 <div class="mt-1 text-xl font-bold text-red-900">{safety.gdpAccidentDeathRate}</div>
                 <div class="text-[10px] text-red-600">（越低越好）</div>
+              </div>
+            )}
+          </div>
+        </div>
+      )
+    }
+
+    {
+      sports && (
+        <div class="mt-6 card p-6">
+          <div class="flex flex-wrap items-baseline justify-between gap-2">
+            <h3 class="text-lg font-bold">🏟️ 体育设施</h3>
+            <span class="text-xs text-ink-soft">{sportsYear(city.key)} · {sportsSource(city.key)}</span>
+          </div>
+          <p class="mt-1 text-xs text-ink-soft">
+            {district.name}体育场地数据。展示用补充数据，不参与上方评分。
+          </p>
+          <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">人均体育场地面积</div>
+              <div class="mt-1 text-xl font-bold text-ink">{sports.perCapitaArea}</div>
+              <div class="text-[10px] text-ink-soft">㎡{city.key === 'shanghai' ? '（官方调查）' : '（市级值）'}</div>
+            </div>
+            {sports.venues !== undefined && (
+              <div class="rounded-lg border border-line bg-surface px-4 py-3">
+                <div class="text-xs text-ink-soft">体育场地总数</div>
+                <div class="mt-1 text-xl font-bold text-ink">{sports.venues.toLocaleString()}</div>
+                <div class="text-[10px] text-ink-soft">个（估算）</div>
+              </div>
+            )}
+            {sports.fitnessTrails !== undefined && (
+              <div class="rounded-lg border border-line bg-surface px-4 py-3">
+                <div class="text-xs text-ink-soft">健身步道</div>
+                <div class="mt-1 text-xl font-bold text-ink">{sports.fitnessTrails}</div>
+                <div class="text-[10px] text-ink-soft">条（官方公报）</div>
+              </div>
+            )}
+            {sports.gyms !== undefined && (
+              <div class="rounded-lg border border-line bg-surface px-4 py-3">
+                <div class="text-xs text-ink-soft">健身房</div>
+                <div class="mt-1 text-xl font-bold text-ink">{sports.gyms}</div>
+                <div class="text-[10px] text-ink-soft">个（官方公报）</div>
+              </div>
+            )}
+            {sports.communityFitnessCenters !== undefined && (
+              <div class="rounded-lg border border-line bg-surface px-4 py-3">
+                <div class="text-xs text-ink-soft">社区运动健康中心</div>
+                <div class="mt-1 text-xl font-bold text-ink">{sports.communityFitnessCenters}</div>
+                <div class="text-[10px] text-ink-soft">个</div>
+              </div>
+            )}
+          </div>
+        </div>
+      )
+    }
+
+    {
+      elderly && (
+        <div class="mt-6 card p-6">
+          <div class="flex flex-wrap items-baseline justify-between gap-2">
+            <h3 class="text-lg font-bold">👴 养老服务设施</h3>
+            <span class="text-xs text-ink-soft">{elderlyYear(city.key)} · {elderlySource(city.key)}</span>
+          </div>
+          <p class="mt-1 text-xs text-ink-soft">
+            {district.name}养老机构与社区养老服务设施。展示用补充数据，不参与上方评分。
+          </p>
+          <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div class="rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-3">
+              <div class="text-xs text-indigo-700">养老机构</div>
+              <div class="mt-1 text-xl font-bold text-indigo-900">{elderly.elderlyInstitutions}</div>
+              <div class="text-[10px] text-indigo-600">家{city.key === 'yinchuan' ? '（官方明细）' : '（估算）'}</div>
+            </div>
+            <div class="rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-3">
+              <div class="text-xs text-indigo-700">养老床位</div>
+              <div class="mt-1 text-xl font-bold text-indigo-900">{elderly.elderlyBeds.toLocaleString()}</div>
+              <div class="text-[10px] text-indigo-600">张{city.key === 'yinchuan' ? '（官方明细）' : '（估算）'}</div>
+            </div>
+            {elderly.communityElderlyCenters !== undefined && (
+              <div class="rounded-lg border border-line bg-surface px-4 py-3">
+                <div class="text-xs text-ink-soft">社区养老服务设施</div>
+                <div class="mt-1 text-xl font-bold text-ink">{elderly.communityElderlyCenters.toLocaleString()}</div>
+                <div class="text-[10px] text-ink-soft">个（估算）</div>
+              </div>
+            )}
+            {elderly.dayCareCenters !== undefined && (
+              <div class="rounded-lg border border-line bg-surface px-4 py-3">
+                <div class="text-xs text-ink-soft">日间照护机构</div>
+                <div class="mt-1 text-xl font-bold text-ink">{elderly.dayCareCenters}</div>
+                <div class="text-[10px] text-ink-soft">家（估算）</div>
+              </div>
+            )}
+            {elderly.mealServicePoints !== undefined && (
+              <div class="rounded-lg border border-line bg-surface px-4 py-3">
+                <div class="text-xs text-ink-soft">助餐服务场所</div>
+                <div class="mt-1 text-xl font-bold text-ink">{elderly.mealServicePoints}</div>
+                <div class="text-[10px] text-ink-soft">个（估算）</div>
               </div>
             )}
           </div>
