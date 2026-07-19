@@ -15,6 +15,9 @@ import { getCitySafety } from '../../../data/safety';
 import { getDistrictCommute, commuteSource, commuteYear } from '../../../data/commute';
 import { getDistrictSports, sportsSource, sportsYear } from '../../../data/sports';
 import { getDistrictElderly, elderlySource, elderlyYear } from '../../../data/elderly-care';
+import { getDistrictInnovation, innovationSource, innovationYear, getCityInnovation } from '../../../data/innovation';
+import { getCityTourism, tourismSource, tourismYear } from '../../../data/tourism';
+import { getCityClimate } from '../../../data/climate';
 
 export function getStaticPaths() {
   const paths = [];
@@ -75,6 +78,16 @@ const sports = getDistrictSports(city.key, district.adcode);
 
 // 区级养老数据（展示用补充数据）
 const elderly = getDistrictElderly(city.key, district.adcode);
+
+// 区级科技创新（展示用补充数据）
+const innovation = getDistrictInnovation(city.key, district.adcode);
+const cityInnovation = getCityInnovation(city.key);
+
+// 市级旅游数据（展示用补充数据）
+const tourism = getCityTourism(city.key);
+
+// 市级气候特征（展示用补充数据）
+const climate = getCityClimate(city.key);
 
 const radarSeries = [
   { name: district.name, color: '#0d9488', values: METRICS.map((m) => district.metrics[m.key].score) },
@@ -525,6 +538,217 @@ const jsonLd = {
         </div>
       )
     }
+
+    {climate && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">🌡️ 气候特征</h3>
+          <span class="text-xs text-ink-soft">{climate.year}年 · {climate.source}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {city.name}{climate.year}年气象概况（市级数据）。展示用补充数据，非区级评分维度。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-orange-100 bg-orange-50 px-4 py-3">
+            <div class="text-xs text-orange-700">年平均气温</div>
+            <div class="mt-1 text-xl font-bold text-orange-900">{climate.avgTemp}℃</div>
+            <div class="text-[10px] text-orange-600">{climate.recordTempYear ? '历史新高' : climate.climateType}</div>
+          </div>
+          <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+            <div class="text-xs text-blue-700">年降水量</div>
+            <div class="mt-1 text-xl font-bold text-blue-900">{climate.precipitation}</div>
+            <div class="text-[10px] text-blue-600">毫米{climate.precipitationDesc ? `（${climate.precipitationDesc}）` : ''}</div>
+          </div>
+          <div class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+            <div class="text-xs text-amber-700">年日照时数</div>
+            <div class="mt-1 text-xl font-bold text-amber-900">{climate.sunshineHours}</div>
+            <div class="text-[10px] text-amber-600">小时{climate.sunshineDesc ? `（${climate.sunshineDesc}）` : ''}</div>
+          </div>
+          {climate.highTempDays !== undefined && (
+            <div class="rounded-lg border border-red-100 bg-red-50 px-4 py-3">
+              <div class="text-xs text-red-700">高温日数</div>
+              <div class="mt-1 text-xl font-bold text-red-900">{climate.highTempDays}</div>
+              <div class="text-[10px] text-red-600">天（≥35℃）</div>
+            </div>
+          )}
+          {climate.maxTemp !== undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">极端最高气温</div>
+              <div class="mt-1 text-xl font-bold text-ink">{climate.maxTemp}℃</div>
+              <div class="text-[10px] text-ink-soft">{climate.year}年</div>
+            </div>
+          )}
+          {climate.minTemp !== undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">极端最低气温</div>
+              <div class="mt-1 text-xl font-bold text-ink">{climate.minTemp}℃</div>
+              <div class="text-[10px] text-ink-soft">{climate.year}年</div>
+            </div>
+          )}
+          {climate.dustDays !== undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">沙尘天气</div>
+              <div class="mt-1 text-xl font-bold text-ink">{climate.dustDays}</div>
+              <div class="text-[10px] text-ink-soft">天（平均）</div>
+            </div>
+          )}
+          {climate.fogDays !== undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">秋季雾日</div>
+              <div class="mt-1 text-xl font-bold text-ink">{climate.fogDays}</div>
+              <div class="text-[10px] text-ink-soft">天</div>
+            </div>
+          )}
+        </div>
+      </div>
+    )}
+
+    {tourism && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">✈️ 旅游资源</h3>
+          <span class="text-xs text-ink-soft">{tourismYear(city.key)} · {tourismSource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {city.name}{tourismYear(city.key)}年旅游概况（市级数据）。展示用补充数据，非区级评分维度。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {tourism.inboundTourists !== undefined && (
+            <div class="rounded-lg border border-cyan-100 bg-cyan-50 px-4 py-3">
+              <div class="text-xs text-cyan-700">入境游客</div>
+              <div class="mt-1 text-xl font-bold text-cyan-900">{tourism.inboundTourists.toLocaleString()}</div>
+              <div class="text-[10px] text-cyan-600">万人次</div>
+            </div>
+          )}
+          {tourism.domesticTourists !== undefined && (
+            <div class="rounded-lg border border-cyan-100 bg-cyan-50 px-4 py-3">
+              <div class="text-xs text-cyan-700">国内游客</div>
+              <div class="mt-1 text-xl font-bold text-cyan-900">{tourism.domesticTourists.toLocaleString()}</div>
+              <div class="text-[10px] text-cyan-600">万人次</div>
+            </div>
+          )}
+          {tourism.internationalRevenue !== undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">国际旅游收入</div>
+              <div class="mt-1 text-xl font-bold text-ink">{tourism.internationalRevenue}</div>
+              <div class="text-[10px] text-ink-soft">亿美元</div>
+            </div>
+          )}
+          {tourism.domesticRevenue !== undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">国内旅游收入</div>
+              <div class="mt-1 text-xl font-bold text-ink">{tourism.domesticRevenue.toLocaleString()}</div>
+              <div class="text-[10px] text-ink-soft">亿元</div>
+            </div>
+          )}
+          {tourism.aLevelAttractions !== undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">A级旅游景区</div>
+              <div class="mt-1 text-xl font-bold text-ink">{tourism.aLevelAttractions}</div>
+              <div class="text-[10px] text-ink-soft">个{tourism.fiveALevel ? `（5A ${tourism.fiveALevel}个）` : ''}</div>
+            </div>
+          )}
+          {tourism.starHotels !== undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">星级饭店</div>
+              <div class="mt-1 text-xl font-bold text-ink">{tourism.starHotels}</div>
+              <div class="text-[10px] text-ink-soft">家</div>
+            </div>
+          )}
+          {tourism.railwayPassengers !== undefined && (
+            <div class="rounded-lg border border-cyan-100 bg-cyan-50 px-4 py-3">
+              <div class="text-xs text-cyan-700">铁路客运量</div>
+              <div class="mt-1 text-xl font-bold text-cyan-900">{tourism.railwayPassengers}</div>
+              <div class="text-[10px] text-cyan-600">万人</div>
+            </div>
+          )}
+          {tourism.civilAviationPassengers !== undefined && (
+            <div class="rounded-lg border border-cyan-100 bg-cyan-50 px-4 py-3">
+              <div class="text-xs text-cyan-700">民航客运量</div>
+              <div class="mt-1 text-xl font-bold text-cyan-900">{tourism.civilAviationPassengers}</div>
+              <div class="text-[10px] text-cyan-600">万人</div>
+            </div>
+          )}
+          {tourism.travelAgencies !== undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">旅行社</div>
+              <div class="mt-1 text-xl font-bold text-ink">{tourism.travelAgencies.toLocaleString()}</div>
+              <div class="text-[10px] text-ink-soft">家</div>
+            </div>
+          )}
+          {tourism.redTourismBases !== undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">红色旅游基地</div>
+              <div class="mt-1 text-xl font-bold text-ink">{tourism.redTourismBases}</div>
+              <div class="text-[10px] text-ink-soft">个</div>
+            </div>
+          )}
+        </div>
+      </div>
+    )}
+
+    {(innovation || cityInnovation) && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">🔬 科技创新</h3>
+          <span class="text-xs text-ink-soft">{innovationYear(city.key)} · {innovationSource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}科技创新数据。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {cityInnovation?.highTechEnterprises !== undefined && (
+            <div class="rounded-lg border border-purple-100 bg-purple-50 px-4 py-3">
+              <div class="text-xs text-purple-700">高新技术企业（市级）</div>
+              <div class="mt-1 text-xl font-bold text-purple-900">{(cityInnovation.highTechEnterprises / 10000).toFixed(1)}万</div>
+              <div class="text-[10px] text-purple-600">家</div>
+            </div>
+          )}
+          {cityInnovation?.patentsGranted !== undefined && (
+            <div class="rounded-lg border border-purple-100 bg-purple-50 px-4 py-3">
+              <div class="text-xs text-purple-700">专利授权（市级）</div>
+              <div class="mt-1 text-xl font-bold text-purple-900">{cityInnovation.patentsGranted}</div>
+              <div class="text-[10px] text-purple-600">万件</div>
+            </div>
+          )}
+          {cityInnovation?.highValuePatentsPer10k !== undefined && (
+            <div class="rounded-lg border border-purple-100 bg-purple-50 px-4 py-3">
+              <div class="text-xs text-purple-700">每万人高价值发明专利</div>
+              <div class="mt-1 text-xl font-bold text-purple-900">{cityInnovation.highValuePatentsPer10k}</div>
+              <div class="text-[10px] text-purple-600">件（全国第二）</div>
+            </div>
+          )}
+          {innovation?.rdExpenditure !== undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">R&D经费</div>
+              <div class="mt-1 text-xl font-bold text-ink">{innovation.rdExpenditure}</div>
+              <div class="text-[10px] text-ink-soft">亿元{innovation.rdIntensity ? `（强度${innovation.rdIntensity}%）` : ''}</div>
+            </div>
+          )}
+          {innovation?.rdIntensity !== undefined && innovation.rdExpenditure === undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">R&D投入强度</div>
+              <div class="mt-1 text-xl font-bold text-ink">{innovation.rdIntensity}%</div>
+              <div class="text-[10px] text-ink-soft">（与GDP之比）</div>
+            </div>
+          )}
+          {innovation?.highTechManufacturing !== undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">高技术企业（估算）</div>
+              <div class="mt-1 text-xl font-bold text-ink">{innovation.highTechManufacturing.toLocaleString()}</div>
+              <div class="text-[10px] text-ink-soft">家（制造业+服务业）</div>
+            </div>
+          )}
+          {cityInnovation?.digitalEconomyEntities !== undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">数字经济核心产业</div>
+              <div class="mt-1 text-xl font-bold text-ink">{cityInnovation.digitalEconomyEntities.toLocaleString()}</div>
+              <div class="text-[10px] text-ink-soft">家（市级）</div>
+            </div>
+          )}
+        </div>
+      </div>
+    )}
 
     <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
       <div class="flex gap-2 text-sm">

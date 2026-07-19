@@ -10,6 +10,9 @@ import { getCulture } from '../../data/culture';
 import { getCitySafety } from '../../data/safety';
 import { CITY_SPORTS_TOTALS } from '../../data/sports';
 import { CITY_ELDERLY_TOTALS } from '../../data/elderly-care';
+import { getCityInnovation } from '../../data/innovation';
+import { getCityTourism } from '../../data/tourism';
+import { getCityClimate } from '../../data/climate';
 import { SITE } from '../../consts';
 
 export function getStaticPaths() {
@@ -28,6 +31,9 @@ const culture = getCulture(city.key);
 const safety = getCitySafety(city.key);
 const sportsTotal = CITY_SPORTS_TOTALS[city.key];
 const elderlyTotal = CITY_ELDERLY_TOTALS[city.key];
+const innovation = getCityInnovation(city.key);
+const tourism = getCityTourism(city.key);
+const climate = getCityClimate(city.key);
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -157,6 +163,43 @@ const jsonLd = {
         {elderlyTotal.communityCenters && `，社区养老中心 ${elderlyTotal.communityCenters}个`}
         {elderlyTotal.nursingBeds && `，护理型床位 ${(elderlyTotal.nursingBeds / 10000).toFixed(1)}万张`}
         <span class="text-xs text-indigo-600">（市级数据，来源：<a href={elderlyTotal.sourceUrl} class="underline">{elderlyTotal.source}</a>）</span>
+      </div>
+    )}
+
+    {climate && (
+      <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-800">
+        🌡️ {city.name}{climate.year}年气候：年平均气温 <strong>{climate.avgTemp}℃</strong>
+        {climate.recordTempYear && '（历史新高）'}
+        ，年降水量 <strong>{climate.precipitation}mm</strong>
+        ，年日照 <strong>{climate.sunshineHours}小时</strong>
+        ，{climate.climateType}
+        <span class="text-xs text-orange-600">（市级数据，来源：<a href={climate.sourceUrl} class="underline">{climate.source}</a>）</span>
+      </div>
+    )}
+
+    {innovation && (
+      <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-purple-200 bg-purple-50 px-4 py-3 text-sm text-purple-800">
+        🔬 {city.name}{innovation.year}年科技创新：
+        {innovation.highTechEnterprises && `高新技术企业 <strong>${(innovation.highTechEnterprises / 10000).toFixed(1)}万</strong>家`}
+        {innovation.patentsGranted && `，专利授权 <strong>${innovation.patentsGranted}万</strong>件`}
+        {innovation.highValuePatentsPer10k && `，每万人高价值发明专利 <strong>${innovation.highValuePatentsPer10k}件</strong>`}
+        {innovation.rdExpenditure && `，R&D经费 <strong>${innovation.rdExpenditure}亿</strong>元（强度${innovation.rdIntensity}%）`}
+        {innovation.digitalEconomyEntities && `，数字经济核心产业 <strong>${innovation.digitalEconomyEntities}</strong>家`}
+        <span class="text-xs text-purple-600">（市级数据，来源：<a href={innovation.sourceUrl} class="underline">{innovation.source}</a>）</span>
+      </div>
+    )}
+
+    {tourism && (
+      <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-cyan-200 bg-cyan-50 px-4 py-3 text-sm text-cyan-800">
+        ✈️ {city.name}{tourism.year}年旅游：
+        {tourism.inboundTourists && `入境游客 <strong>${tourism.inboundTourists}万</strong>人次`}
+        {tourism.domesticTourists && `，国内游客 <strong>${tourism.domesticTourists.toLocaleString()}万</strong>人次`}
+        {tourism.internationalRevenue && `，国际旅游收入 <strong>${tourism.internationalRevenue}亿</strong>美元`}
+        {tourism.domesticRevenue && `，国内旅游收入 <strong>${tourism.domesticRevenue.toLocaleString()}亿</strong>元`}
+        {tourism.railwayPassengers && `，铁路客运 <strong>${tourism.railwayPassengers}万</strong>人`}
+        {tourism.civilAviationPassengers && `，民航客运 <strong>${tourism.civilAviationPassengers}万</strong>人`}
+        {tourism.aLevelAttractions && `，A级景区 <strong>${tourism.aLevelAttractions}</strong>个`}
+        <span class="text-xs text-cyan-600">（市级数据，来源：<a href={tourism.sourceUrl} class="underline">{tourism.source}</a>）</span>
       </div>
     )}
 
