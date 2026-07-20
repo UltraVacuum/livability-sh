@@ -13,6 +13,7 @@ import { CITY_ELDERLY_TOTALS } from '../../data/elderly-care';
 import { getCityInnovation } from '../../data/innovation';
 import { getCityTourism } from '../../data/tourism';
 import { getCityClimate } from '../../data/climate';
+import { getCityDigital } from '../../data/digitalInfra';
 import { SITE } from '../../consts';
 
 export function getStaticPaths() {
@@ -34,6 +35,7 @@ const elderlyTotal = CITY_ELDERLY_TOTALS[city.key];
 const innovation = getCityInnovation(city.key);
 const tourism = getCityTourism(city.key);
 const climate = getCityClimate(city.key);
+const cityDigital = getCityDigital(city.key);
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -200,6 +202,17 @@ const jsonLd = {
         {tourism.civilAviationPassengers && `，民航客运 <strong>${tourism.civilAviationPassengers}万</strong>人`}
         {tourism.aLevelAttractions && `，A级景区 <strong>${tourism.aLevelAttractions}</strong>个`}
         <span class="text-xs text-cyan-600">（市级数据，来源：<a href={tourism.sourceUrl} class="underline">{tourism.source}</a>）</span>
+      </div>
+    )}
+
+    {cityDigital && (
+      <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-purple-200 bg-purple-50 px-4 py-3 text-sm text-purple-800">
+        📶 {city.name}{cityDigital.year}年数字化基建：
+        {cityDigital.total5GStations && `5G基站 <strong>${(cityDigital.total5GStations / 10000).toFixed(1)}万</strong>个`}
+        {cityDigital.broadbandHighSpeedRatio && `，500Mbps+占比 <strong>${cityDigital.broadbandHighSpeedRatio}%</strong>`}
+        {cityDigital.digitalGdpRatio && `，数字经济占GDP <strong>${cityDigital.digitalGdpRatio}%</strong>`}
+        {cityDigital.infoServiceRevenue && `，信息服务业营收 <strong>${cityDigital.infoServiceRevenue.toLocaleString()}亿</strong>元`}
+        <span class="text-xs text-purple-600">（市级数据，来源：<a href={cityDigital.sourceUrl} class="underline">{cityDigital.source}</a>）</span>
       </div>
     )}
 

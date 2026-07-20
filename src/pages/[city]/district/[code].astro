@@ -18,6 +18,10 @@ import { getDistrictElderly, elderlySource, elderlyYear } from '../../../data/el
 import { getDistrictInnovation, innovationSource, innovationYear, getCityInnovation } from '../../../data/innovation';
 import { getCityTourism, tourismSource, tourismYear } from '../../../data/tourism';
 import { getCityClimate } from '../../../data/climate';
+import { getDistrictHigherEd, higherEdSource, higherEdYear } from '../../../data/higherEducation';
+import { getDistrictConsumption, consumptionSource, consumptionYear } from '../../../data/consumption';
+import { getDistrictPopFlow, popFlowSource, popFlowYear } from '../../../data/populationFlow';
+import { getCityDigital, getDistrictDigital, digitalSource, digitalYear } from '../../../data/digitalInfra';
 
 export function getStaticPaths() {
   const paths = [];
@@ -88,6 +92,19 @@ const tourism = getCityTourism(city.key);
 
 // 市级气候特征（展示用补充数据）
 const climate = getCityClimate(city.key);
+
+// 高等教育数据（区级）
+const higherEd = getDistrictHigherEd(city.key, district.adcode);
+
+// 居民消费数据（区级）
+const consumption = getDistrictConsumption(city.key, district.adcode);
+
+// 人口密度与流动（区级）
+const popFlow = getDistrictPopFlow(city.key, district.adcode);
+
+// 数字化基建（市级+区级）
+const cityDigital = getCityDigital(city.key);
+const digital = getDistrictDigital(city.key, district.adcode);
 
 const radarSeries = [
   { name: district.name, color: '#0d9488', values: METRICS.map((m) => district.metrics[m.key].score) },
@@ -744,6 +761,215 @@ const jsonLd = {
               <div class="text-xs text-ink-soft">数字经济核心产业</div>
               <div class="mt-1 text-xl font-bold text-ink">{cityInnovation.digitalEconomyEntities.toLocaleString()}</div>
               <div class="text-[10px] text-ink-soft">家（市级）</div>
+            </div>
+          )}
+        </div>
+      </div>
+    )}
+
+    {higherEd && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">🎓 高等教育</h3>
+          <span class="text-xs text-ink-soft">{higherEdYear(city.key)} · {higherEdSource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}高等教育资源分布。展示用补充数据，不参与上方评分。
+          {higherEd.clusterType && ` · ${higherEd.clusterType}`}
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-3">
+            <div class="text-xs text-indigo-700">普通高校</div>
+            <div class="mt-1 text-xl font-bold text-indigo-900">{higherEd.universities}</div>
+            <div class="text-[10px] text-indigo-600">所</div>
+          </div>
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">本科院校</div>
+            <div class="mt-1 text-xl font-bold text-ink">{higherEd.undergraduate}</div>
+            <div class="text-[10px] text-ink-soft">所</div>
+          </div>
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">高职/专科</div>
+            <div class="mt-1 text-xl font-bold text-ink">{higherEd.vocational}</div>
+            <div class="text-[10px] text-ink-soft">所</div>
+          </div>
+          {higherEd.doubleFirstClass > 0 && (
+            <div class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+              <div class="text-xs text-amber-700">双一流高校</div>
+              <div class="mt-1 text-xl font-bold text-amber-900">{higherEd.doubleFirstClass}</div>
+              <div class="text-[10px] text-amber-600">所（教育部第二轮）</div>
+            </div>
+          )}
+        </div>
+      </div>
+    )}
+
+    {consumption && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">🛒 居民消费</h3>
+          <span class="text-xs text-ink-soft">{consumptionYear(city.key)} · {consumptionSource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}消费市场概况。展示用补充数据，不参与上方评分。
+          {consumption.retailType && ` · ${consumption.retailType}`}
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {consumption.totalRetail !== undefined && (
+            <div class="rounded-lg border border-cyan-100 bg-cyan-50 px-4 py-3">
+              <div class="text-xs text-cyan-700">社零总额</div>
+              <div class="mt-1 text-xl font-bold text-cyan-900">{consumption.totalRetail.toLocaleString()}</div>
+              <div class="text-[10px] text-cyan-600">亿元</div>
+            </div>
+          )}
+          {consumption.goodsRetail !== undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">商品零售</div>
+              <div class="mt-1 text-xl font-bold text-ink">{consumption.goodsRetail.toLocaleString()}</div>
+              <div class="text-[10px] text-ink-soft">亿元</div>
+            </div>
+          )}
+          {consumption.cateringRetail !== undefined && (
+            <div class="rounded-lg border border-orange-100 bg-orange-50 px-4 py-3">
+              <div class="text-xs text-orange-700">餐饮收入</div>
+              <div class="mt-1 text-xl font-bold text-orange-900">{consumption.cateringRetail.toLocaleString()}</div>
+              <div class="text-[10px] text-orange-600">亿元</div>
+            </div>
+          )}
+          {consumption.perCapitaRetail !== undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">人均社零</div>
+              <div class="mt-1 text-xl font-bold text-ink">{consumption.perCapitaRetail}</div>
+              <div class="text-[10px] text-ink-soft">万元/人·年</div>
+            </div>
+          )}
+        </div>
+      </div>
+    )}
+
+    {popFlow && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">👥 人口密度与流动</h3>
+          <span class="text-xs text-ink-soft">{popFlowYear(city.key)} · {popFlowSource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}人口分布与变动趋势。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+            <div class="text-xs text-blue-700">人口密度</div>
+            <div class="mt-1 text-xl font-bold text-blue-900">{popFlow.density.toLocaleString()}</div>
+            <div class="text-[10px] text-blue-600">人/km²</div>
+          </div>
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">常住人口</div>
+            <div class="mt-1 text-xl font-bold text-ink">{popFlow.population}</div>
+            <div class="text-[10px] text-ink-soft">万人</div>
+          </div>
+          {popFlow.urbanizationRate !== undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">城镇化率</div>
+              <div class="mt-1 text-xl font-bold text-ink">{popFlow.urbanizationRate}%</div>
+              <div class="text-[10px] text-ink-soft">城镇人口占比</div>
+            </div>
+          )}
+          {popFlow.flowRatio !== undefined && (
+            <div class="rounded-lg border border-purple-100 bg-purple-50 px-4 py-3">
+              <div class="text-xs text-purple-700">流动人口占比</div>
+              <div class="mt-1 text-xl font-bold text-purple-900">{popFlow.flowRatio}%</div>
+              <div class="text-[10px] text-purple-600">外来{popFlow.flowPopulation}万 / 户籍{popFlow.householdPop}万</div>
+            </div>
+          )}
+          {popFlow.growthSinceCensus !== undefined && (
+            <div class={`rounded-lg border px-4 py-3 ${
+              popFlow.trend === 'growing'
+                ? 'border-emerald-100 bg-emerald-50'
+                : popFlow.trend === 'declining'
+                  ? 'border-red-100 bg-red-50'
+                  : 'border-line bg-surface'
+            }`}>
+              <div class={`text-xs ${
+                popFlow.trend === 'growing'
+                  ? 'text-emerald-700'
+                  : popFlow.trend === 'declining'
+                    ? 'text-red-700'
+                    : 'text-ink-soft'
+              }`}>七普以来变化</div>
+              <div class={`mt-1 text-xl font-bold ${
+                popFlow.trend === 'growing'
+                  ? 'text-emerald-900'
+                  : popFlow.trend === 'declining'
+                    ? 'text-red-900'
+                    : 'text-ink'
+              }`}>
+                {popFlow.growthSinceCensus > 0 ? '+' : ''}{popFlow.growthSinceCensus}%
+              </div>
+              <div class={`text-[10px] ${
+                popFlow.trend === 'growing'
+                  ? 'text-emerald-600'
+                  : popFlow.trend === 'declining'
+                    ? 'text-red-600'
+                    : 'text-ink-soft'
+              }`}>
+                {popFlow.trend === 'growing' ? '人口净流入' : popFlow.trend === 'declining' ? '人口净流出' : '基本稳定'}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    )}
+
+    {(digital || cityDigital) && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">📶 数字化基建</h3>
+          <span class="text-xs text-ink-soft">{digitalYear(city.key)} · {digitalSource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}数字化基础设施概况。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {cityDigital?.total5GStations !== undefined && (
+            <div class="rounded-lg border border-purple-100 bg-purple-50 px-4 py-3">
+              <div class="text-xs text-purple-700">全市5G基站</div>
+              <div class="mt-1 text-xl font-bold text-purple-900">{(cityDigital.total5GStations / 10000).toFixed(1)}万</div>
+              <div class="text-[10px] text-purple-600">个（市级）</div>
+            </div>
+          )}
+          {cityDigital?.digitalGdpRatio !== undefined && (
+            <div class="rounded-lg border border-purple-100 bg-purple-50 px-4 py-3">
+              <div class="text-xs text-purple-700">数字经济占GDP</div>
+              <div class="mt-1 text-xl font-bold text-purple-900">{cityDigital.digitalGdpRatio}%</div>
+              <div class="text-[10px] text-purple-600">核心产业增加值</div>
+            </div>
+          )}
+          {digital?.baseStations5G !== undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">区级5G基站</div>
+              <div class="mt-1 text-xl font-bold text-ink">{digital.baseStations5G.toLocaleString()}</div>
+              <div class="text-[10px] text-ink-soft">个（估算）</div>
+            </div>
+          )}
+          {digital?.fiberCoverageRate !== undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">光纤覆盖率</div>
+              <div class="mt-1 text-xl font-bold text-ink">{digital.fiberCoverageRate}%</div>
+              <div class="text-[10px] text-ink-soft">千兆宽带</div>
+            </div>
+          )}
+          {digital?.broadbandSpeed !== undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">平均宽带速率</div>
+              <div class="mt-1 text-xl font-bold text-ink">{digital.broadbandSpeed}</div>
+              <div class="text-[10px] text-ink-soft">Mbps</div>
+            </div>
+          )}
+          {digital?.digitalCompanies !== undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">数字经济企业</div>
+              <div class="mt-1 text-xl font-bold text-ink">{digital.digitalCompanies.toLocaleString()}</div>
+              <div class="text-[10px] text-ink-soft">家（估算）</div>
             </div>
           )}
         </div>
