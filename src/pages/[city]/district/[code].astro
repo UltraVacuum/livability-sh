@@ -22,6 +22,10 @@ import { getDistrictHigherEd, higherEdSource, higherEdYear } from '../../../data
 import { getDistrictConsumption, consumptionSource, consumptionYear } from '../../../data/consumption';
 import { getDistrictPopFlow, popFlowSource, popFlowYear } from '../../../data/populationFlow';
 import { getCityDigital, getDistrictDigital, digitalSource, digitalYear } from '../../../data/digitalInfra';
+import { getDistrictCultureVenues, getCityCultureTotal } from '../../../data/culturalIndustry';
+import { getCityLivingCost } from '../../../data/livingCost';
+import { getCityAirQualityTrend } from '../../../data/airQualityTrend';
+import { getDistrictEducationQuality, getCityEduRatio } from '../../../data/educationQuality';
 
 export function getStaticPaths() {
   const paths = [];
@@ -105,6 +109,20 @@ const popFlow = getDistrictPopFlow(city.key, district.adcode);
 // 数字化基建（市级+区级）
 const cityDigital = getCityDigital(city.key);
 const digital = getDistrictDigital(city.key, district.adcode);
+
+// 文化产业（区级场馆+市级总量）
+const cultureVenue = getDistrictCultureVenues(city.key, district.adcode);
+const cityCultureTotal = getCityCultureTotal(city.key);
+
+// 生活成本对比（市级）
+const livingCost = getCityLivingCost(city.key);
+
+// 空气质量趋势（市级）
+const aqTrend = getCityAirQualityTrend(city.key);
+
+// 教育质量（区级师生比+名校+市级参考）
+const eduQuality = getDistrictEducationQuality(city.key, district.adcode);
+const cityEduRatio = getCityEduRatio(city.key);
 
 const radarSeries = [
   { name: district.name, color: '#0d9488', values: METRICS.map((m) => district.metrics[m.key].score) },
@@ -972,6 +990,227 @@ const jsonLd = {
               <div class="text-[10px] text-ink-soft">家（估算）</div>
             </div>
           )}
+        </div>
+      </div>
+    )}
+
+    {cultureVenue && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">🎭 文化场馆分布</h3>
+          <span class="text-xs text-ink-soft">{cultureVenue.year}年 · {cultureVenue.source}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}文化场馆估算（市级总量按人口+文化中心加权分配）。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-purple-100 bg-purple-50 px-4 py-3">
+            <div class="text-xs text-purple-700">博物馆/纪念馆</div>
+            <div class="mt-1 text-xl font-bold text-purple-900">{cultureVenue.museums}</div>
+            <div class="text-[10px] text-purple-600">个（估算）</div>
+          </div>
+          <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+            <div class="text-xs text-blue-700">公共图书馆</div>
+            <div class="mt-1 text-xl font-bold text-blue-900">{cultureVenue.libraries}</div>
+            <div class="text-[10px] text-blue-600">个（含分馆）</div>
+          </div>
+          <div class="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+            <div class="text-xs text-emerald-700">文化馆/活动中心</div>
+            <div class="mt-1 text-xl font-bold text-emerald-900">{cultureVenue.culturalCenters}</div>
+            <div class="text-[10px] text-emerald-600">个</div>
+          </div>
+          {cultureVenue.theaters > 0 && (
+            <div class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+              <div class="text-xs text-amber-700">剧院/演艺场馆</div>
+              <div class="mt-1 text-xl font-bold text-amber-900">{cultureVenue.theaters}</div>
+              <div class="text-[10px] text-amber-600">个</div>
+            </div>
+          )}
+        </div>
+        {cityCultureTotal && (
+          <p class="mt-3 text-xs text-ink-soft">
+            📊 {city.name}市级总量：博物馆{cityCultureTotal.totalMuseums}个 · 图书馆{cityCultureTotal.totalLibraries}个 · 文化馆{cityCultureTotal.totalCulturalCenters}个
+            {cityCultureTotal.performingGroups && ` · 艺术表演团体${cityCultureTotal.performingGroups}个`}
+          </p>
+        )}
+      </div>
+    )}
+
+    {eduQuality && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">📚 教育质量与师生比</h3>
+          <span class="text-xs text-ink-soft">{eduQuality.year}年 · {eduQuality.source}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}教育资源分布。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-3">
+            <div class="text-xs text-indigo-700">小学</div>
+            <div class="mt-1 text-xl font-bold text-indigo-900">{eduQuality.primarySchools}</div>
+            <div class="text-[10px] text-indigo-600">所 · 在校{eduQuality.primaryStudents.toLocaleString()}人</div>
+          </div>
+          <div class="rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-3">
+            <div class="text-xs text-indigo-700">中学</div>
+            <div class="mt-1 text-xl font-bold text-indigo-900">{eduQuality.middleSchools}</div>
+            <div class="text-[10px] text-indigo-600">所 · 在校{eduQuality.middleStudents.toLocaleString()}人</div>
+          </div>
+          <div class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+            <div class="text-xs text-amber-700">小学师生比</div>
+            <div class="mt-1 text-xl font-bold text-amber-900">{eduQuality.primaryStudentTeacherRatio}</div>
+            <div class="text-[10px] text-amber-600">教师/学生</div>
+          </div>
+          <div class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+            <div class="text-xs text-amber-700">中学师生比</div>
+            <div class="mt-1 text-xl font-bold text-amber-900">{eduQuality.middleStudentTeacherRatio}</div>
+            <div class="text-[10px] text-amber-600">教师/学生</div>
+          </div>
+        </div>
+        {eduQuality.notableSchools && eduQuality.notableSchools.length > 0 && (
+          <div class="mt-4">
+            <div class="text-xs text-ink-soft">名校/重点中学：</div>
+            <div class="mt-1 flex flex-wrap gap-2">
+              {eduQuality.notableSchools.map((s) => (
+                <span class="rounded-full bg-accent-soft px-3 py-1 text-xs text-accent">{s}</span>
+              ))}
+            </div>
+          </div>
+        )}
+        {cityEduRatio && (
+          <p class="mt-3 text-xs text-ink-soft">
+            📊 {city.name}市级参考：小学师生比{cityEduRatio.primaryRatio} · 初中{cityEduRatio.middleRatio} · 高中{cityEduRatio.highRatio} · 中小学共{cityEduRatio.totalSchools}所/{(cityEduRatio.totalStudents / 10000).toFixed(1)}万人
+          </p>
+        )}
+      </div>
+    )}
+
+    {livingCost && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">💰 生活成本参考</h3>
+          <span class="text-xs text-ink-soft">{livingCost.year}年 · {livingCost.source}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {city.name}{livingCost.year}年生活成本关键指标（市级数据）。展示用补充数据，非区级评分维度。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+            <div class="text-xs text-emerald-700">城镇人均收入</div>
+            <div class="mt-1 text-xl font-bold text-emerald-900">{livingCost.urbanDisposableIncome.toLocaleString()}</div>
+            <div class="text-[10px] text-emerald-600">元/年</div>
+          </div>
+          <div class="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+            <div class="text-xs text-emerald-700">农村人均收入</div>
+            <div class="mt-1 text-xl font-bold text-emerald-900">{livingCost.ruralDisposableIncome.toLocaleString()}</div>
+            <div class="text-[10px] text-emerald-600">元/年</div>
+          </div>
+          <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+            <div class="text-xs text-blue-700">人均消费支出</div>
+            <div class="mt-1 text-xl font-bold text-blue-900">{livingCost.perCapitaConsumption.toLocaleString()}</div>
+            <div class="text-[10px] text-blue-600">元/年</div>
+          </div>
+          <div class="rounded-lg border border-red-100 bg-red-50 px-4 py-3">
+            <div class="text-xs text-red-700">房价收入比</div>
+            <div class="mt-1 text-xl font-bold text-red-900">{livingCost.housePriceIncomeRatio}</div>
+            <div class="text-[10px] text-red-600">年（100㎡房屋）</div>
+          </div>
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">最低工资</div>
+            <div class="mt-1 text-xl font-bold text-ink">{livingCost.minWage.toLocaleString()}</div>
+            <div class="text-[10px] text-ink-soft">元/月</div>
+          </div>
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">低保标准</div>
+            <div class="mt-1 text-xl font-bold text-ink">{livingCost.minLivingStandard.toLocaleString()}</div>
+            <div class="text-[10px] text-ink-soft">元/月</div>
+          </div>
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">CPI</div>
+            <div class="mt-1 text-xl font-bold text-ink">{livingCost.cpi}</div>
+            <div class="text-[10px] text-ink-soft">上年=100</div>
+          </div>
+          <div class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+            <div class="text-xs text-amber-700">生活成本指数</div>
+            <div class="mt-1 text-xl font-bold text-amber-900">{livingCost.livingCostIndex}</div>
+            <div class="text-[10px] text-amber-600">上海=100基准</div>
+          </div>
+        </div>
+        {livingCost.newHousePriceIndex && (
+          <p class="mt-3 text-xs text-ink-soft">
+            📈 房价指数：新建住宅 <strong>{livingCost.newHousePriceIndex}</strong> · 二手住宅 <strong>{livingCost.secondHandPriceIndex}</strong>（上年=100）
+            {livingCost.engelCoefficient && ` · 恩格尔系数 ${livingCost.engelCoefficient}%`}
+            {livingCost.perCapitaHousingArea && ` · 人均住房 ${livingCost.perCapitaHousingArea}㎡`}
+          </p>
+        )}
+      </div>
+    )}
+
+    {aqTrend && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">🌬️ 空气质量趋势</h3>
+          <span class="text-xs text-ink-soft">{aqTrend.year}年 · {aqTrend.source}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {city.name}2024-2025年月度空气质量变化趋势（市级数据）。展示用补充数据，非区级评分维度。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+            <div class="text-xs text-emerald-700">年均PM2.5</div>
+            <div class="mt-1 text-xl font-bold text-emerald-900">{aqTrend.annualPM25}</div>
+            <div class="text-[10px] text-emerald-600">μg/m³</div>
+          </div>
+          <div class="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+            <div class="text-xs text-emerald-700">AQI优良率</div>
+            <div class="mt-1 text-xl font-bold text-emerald-900">{aqTrend.annualAQIGoodRate}%</div>
+            <div class="text-[10px] text-emerald-600">{city.key === 'yinchuan' ? '322天' : '全年'}</div>
+          </div>
+          <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+            <div class="text-xs text-blue-700">2024年PM2.5</div>
+            <div class="mt-1 text-xl font-bold text-blue-900">{aqTrend.monthly[0].pm25}</div>
+            <div class="text-[10px] text-blue-600">μg/m³（1月）</div>
+          </div>
+          <div class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+            <div class="text-xs text-amber-700">趋势</div>
+            <div class="mt-1 text-xl font-bold text-amber-900">
+              {aqTrend.trendDirection === 'improving' ? '↗ 改善' : aqTrend.trendDirection === 'worsening' ? '↘ 恶化' : '→ 稳定'}
+            </div>
+            <div class="text-[10px] text-amber-600">PM2.5同比下降
+              {city.key === 'shanghai' ? '7.4%' : '7.9%'}
+            </div>
+          </div>
+        </div>
+        {/* 月度趋势条形图 */}
+        <div class="mt-6">
+          <div class="text-xs text-ink-soft mb-2">月度PM2.5趋势（μg/m³）</div>
+          <div class="flex items-end gap-1 h-32 border-b border-line">
+            {aqTrend.monthly.map((m) => {
+              const maxPm = 55;
+              const h = Math.max(4, Math.min(100, (m.pm25 / maxPm) * 100));
+              const is2025 = m.month.startsWith('2025');
+              return (
+                <div class="flex-1 flex flex-col items-center gap-0.5" title={`${m.month}: PM2.5 ${m.pm25}μg/m³, 优良率${m.aqiGoodRate}%`}>
+                  <div
+                    class="w-full rounded-t"
+                    style={`height:${h}%;background:${m.pm25 > 35 ? '#ef4444' : m.pm25 > 25 ? '#f59e0b' : '#10b981'};opacity:${is2025 ? 1 : 0.5}`}
+                  />
+                </div>
+              );
+            })}
+          </div>
+          <div class="flex justify-between mt-1 text-[10px] text-ink-soft">
+            <span>2024-01</span>
+            <span>2025-06</span>
+            <span>2025-12</span>
+          </div>
+          <div class="flex gap-3 mt-2 text-[10px]">
+            <span class="flex items-center gap-1"><span class="inline-block w-3 h-2 rounded bg-emerald-500" /> ≤25（达标）</span>
+            <span class="flex items-center gap-1"><span class="inline-block w-3 h-2 rounded bg-amber-500" /> 25-35</span>
+            <span class="flex items-center gap-1"><span class="inline-block w-3 h-2 rounded bg-red-500" /> &gt;35（超标）</span>
+            <span class="flex items-center gap-1"><span class="inline-block w-3 h-2 rounded bg-gray-400 opacity-50" /> 2024 </span>
+            <span class="flex items-center gap-1"><span class="inline-block w-3 h-2 rounded bg-gray-700" /> 2025</span>
+          </div>
         </div>
       </div>
     )}

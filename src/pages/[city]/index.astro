@@ -14,6 +14,10 @@ import { getCityInnovation } from '../../data/innovation';
 import { getCityTourism } from '../../data/tourism';
 import { getCityClimate } from '../../data/climate';
 import { getCityDigital } from '../../data/digitalInfra';
+import { getCityCultureTotal } from '../../data/culturalIndustry';
+import { getCityLivingCost } from '../../data/livingCost';
+import { getCityAirQualityTrend } from '../../data/airQualityTrend';
+import { getCityEduRatio } from '../../data/educationQuality';
 import { SITE } from '../../consts';
 
 export function getStaticPaths() {
@@ -36,6 +40,10 @@ const innovation = getCityInnovation(city.key);
 const tourism = getCityTourism(city.key);
 const climate = getCityClimate(city.key);
 const cityDigital = getCityDigital(city.key);
+const cityCultureTotal = getCityCultureTotal(city.key);
+const livingCost = getCityLivingCost(city.key);
+const aqTrend = getCityAirQualityTrend(city.key);
+const cityEduRatio = getCityEduRatio(city.key);
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -104,7 +112,7 @@ const jsonLd = {
     {env && (
       <div class="mx-auto mt-4 max-w-2xl rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
         🌿 {city.name}{env.year}年环境：PM2.5 年均 <strong>{env.pm25} μg/m³</strong>，AQI 优良率 <strong>{env.aqiGoodRate}%</strong>
-        {env.pm10 && `，PM10 ${env.pm10} μg/m³`}
+        {env.pm10 && <>，PM10 {env.pm10} μg/m³</>}
         <span class="text-xs text-emerald-600">（市级数据，来源：<a href={env.sourceUrl} class="underline">{env.source}</a>）</span>
       </div>
     )}
@@ -112,7 +120,7 @@ const jsonLd = {
     {emp && (
       <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
         💼 {city.name}{emp.year}年就业：城镇新增 <strong>{emp.newJobs} 万人</strong>
-        {emp.surveyUnemploymentRate && `，调查失业率 <strong>${emp.surveyUnemploymentRate}%</strong>`}
+        {emp.surveyUnemploymentRate && <>，调查失业率 <strong>{emp.surveyUnemploymentRate}%</strong></>}
         <span class="text-xs text-blue-600">（市级数据，来源：<a href={emp.sourceUrl} class="underline">{emp.source}</a>）</span>
       </div>
     )}
@@ -120,9 +128,9 @@ const jsonLd = {
     {green && (
       <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
         🌳 {city.name}{green.year}年绿化：
-        {green.perCapitaParkArea && `人均公园绿地 <strong>${green.perCapitaParkArea} ㎡</strong>`}
-        {green.parkCount && `，公园 <strong>${green.parkCount} 座</strong>`}
-        {green.perCapitaSportsArea && `，人均体育场地 ${green.perCapitaSportsArea} ㎡`}
+        {green.perCapitaParkArea && <>人均公园绿地 <strong>{green.perCapitaParkArea} ㎡</strong></>}
+        {green.parkCount && <>，公园 <strong>{green.parkCount} 座</strong></>}
+        {green.perCapitaSportsArea && <>，人均体育场地 {green.perCapitaSportsArea} ㎡</>}
         <span class="text-xs text-green-600">（市级数据，来源：<a href={green.sourceUrl} class="underline">{green.source}</a>）</span>
       </div>
     )}
@@ -130,10 +138,10 @@ const jsonLd = {
     {culture && (
       <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-purple-200 bg-purple-50 px-4 py-3 text-sm text-purple-800">
         🎭 {city.name}{culture.year}年文化设施：
-        {culture.museums && `博物馆/纪念馆 <strong>${culture.museums}</strong>家`}
-        {culture.libraries && `，公共图书馆 <strong>${culture.libraries}</strong>个`}
-        {culture.cultureCenters && `，文化馆 <strong>${culture.cultureCenters}</strong>个`}
-        {culture.newCultureSpaces && `，新型文化空间 <strong>${culture.newCultureSpaces}</strong>个`}
+        {culture.museums && <>博物馆/纪念馆 <strong>{culture.museums}</strong>家</>}
+        {culture.libraries && <>，公共图书馆 <strong>{culture.libraries}</strong>个</>}
+        {culture.cultureCenters && <>，文化馆 <strong>{culture.cultureCenters}</strong>个</>}
+        {culture.newCultureSpaces && <>，新型文化空间 <strong>{culture.newCultureSpaces}</strong>个</>}
         <span class="text-xs text-purple-600">（市级数据，来源：<a href={culture.sourceUrl} class="underline">{culture.source}</a>）</span>
       </div>
     )}
@@ -141,9 +149,9 @@ const jsonLd = {
     {safety && (
       <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
         🛡️ {city.name}{safety.year}年公共安全：
-        生产安全事故 <strong>${safety.workSafetyAccidents}</strong>起/死亡<strong>${safety.workSafetyDeaths}</strong>人
-        {safety.foodSafetyRate && `，食品安全合格率 <strong>${safety.foodSafetyRate}%</strong>`}
-        {safety.elderlyCareBeds && `，养老床位 <strong>${safety.elderlyCareBeds.toLocaleString()}</strong>张`}
+        生产安全事故 <strong>{safety.workSafetyAccidents}</strong>起/死亡<strong>{safety.workSafetyDeaths}</strong>人
+        {safety.foodSafetyRate && <>，食品安全合格率 <strong>{safety.foodSafetyRate}%</strong></>}
+        {safety.elderlyCareBeds && <>，养老床位 <strong>{safety.elderlyCareBeds.toLocaleString()}</strong>张</>}
         <span class="text-xs text-rose-600">（市级数据，来源：<a href={safety.sourceUrl} class="underline">{safety.source}</a>）</span>
       </div>
     )}
@@ -153,7 +161,7 @@ const jsonLd = {
         🏟️ {city.name}{sportsTotal.year}年体育设施：
         体育场地 <strong>{sportsTotal.totalVenues.toLocaleString()}</strong>个
         ，人均 <strong>{sportsTotal.perCapitaArea}㎡</strong>
-        {sportsTotal.fitnessProjects && `，年度新建健身设施 ${sportsTotal.fitnessProjects}个`}
+        {sportsTotal.fitnessProjects && <>，年度新建健身设施 {sportsTotal.fitnessProjects}个</>}
         <span class="text-xs text-orange-600">（市级数据，来源：<a href={sportsTotal.sourceUrl} class="underline">{sportsTotal.source}</a>）</span>
       </div>
     )}
@@ -162,8 +170,8 @@ const jsonLd = {
       <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-800">
         👴 {city.name}{elderlyTotal.year}年养老服务：
         养老机构 <strong>{elderlyTotal.institutions}</strong>家，床位 <strong>{elderlyTotal.beds.toLocaleString()}</strong>张
-        {elderlyTotal.communityCenters && `，社区养老中心 ${elderlyTotal.communityCenters}个`}
-        {elderlyTotal.nursingBeds && `，护理型床位 ${(elderlyTotal.nursingBeds / 10000).toFixed(1)}万张`}
+        {elderlyTotal.communityCenters && <>，社区养老中心 {elderlyTotal.communityCenters}个</>}
+        {elderlyTotal.nursingBeds && <>，护理型床位 {(elderlyTotal.nursingBeds / 10000).toFixed(1)}万张</>}
         <span class="text-xs text-indigo-600">（市级数据，来源：<a href={elderlyTotal.sourceUrl} class="underline">{elderlyTotal.source}</a>）</span>
       </div>
     )}
@@ -182,11 +190,11 @@ const jsonLd = {
     {innovation && (
       <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-purple-200 bg-purple-50 px-4 py-3 text-sm text-purple-800">
         🔬 {city.name}{innovation.year}年科技创新：
-        {innovation.highTechEnterprises && `高新技术企业 <strong>${(innovation.highTechEnterprises / 10000).toFixed(1)}万</strong>家`}
-        {innovation.patentsGranted && `，专利授权 <strong>${innovation.patentsGranted}万</strong>件`}
-        {innovation.highValuePatentsPer10k && `，每万人高价值发明专利 <strong>${innovation.highValuePatentsPer10k}件</strong>`}
-        {innovation.rdExpenditure && `，R&D经费 <strong>${innovation.rdExpenditure}亿</strong>元（强度${innovation.rdIntensity}%）`}
-        {innovation.digitalEconomyEntities && `，数字经济核心产业 <strong>${innovation.digitalEconomyEntities}</strong>家`}
+        {innovation.highTechEnterprises && <>高新技术企业 <strong>{(innovation.highTechEnterprises / 10000).toFixed(1)}万</strong>家</>}
+        {innovation.patentsGranted && <>，专利授权 <strong>{innovation.patentsGranted}万</strong>件</>}
+        {innovation.highValuePatentsPer10k && <>，每万人高价值发明专利 <strong>{innovation.highValuePatentsPer10k}件</strong></>}
+        {innovation.rdExpenditure && <>，R&D经费 <strong>{innovation.rdExpenditure}亿</strong>元（强度{innovation.rdIntensity}%）</>}
+        {innovation.digitalEconomyEntities && <>，数字经济核心产业 <strong>{innovation.digitalEconomyEntities}</strong>家</>}
         <span class="text-xs text-purple-600">（市级数据，来源：<a href={innovation.sourceUrl} class="underline">{innovation.source}</a>）</span>
       </div>
     )}
@@ -194,13 +202,13 @@ const jsonLd = {
     {tourism && (
       <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-cyan-200 bg-cyan-50 px-4 py-3 text-sm text-cyan-800">
         ✈️ {city.name}{tourism.year}年旅游：
-        {tourism.inboundTourists && `入境游客 <strong>${tourism.inboundTourists}万</strong>人次`}
-        {tourism.domesticTourists && `，国内游客 <strong>${tourism.domesticTourists.toLocaleString()}万</strong>人次`}
-        {tourism.internationalRevenue && `，国际旅游收入 <strong>${tourism.internationalRevenue}亿</strong>美元`}
-        {tourism.domesticRevenue && `，国内旅游收入 <strong>${tourism.domesticRevenue.toLocaleString()}亿</strong>元`}
-        {tourism.railwayPassengers && `，铁路客运 <strong>${tourism.railwayPassengers}万</strong>人`}
-        {tourism.civilAviationPassengers && `，民航客运 <strong>${tourism.civilAviationPassengers}万</strong>人`}
-        {tourism.aLevelAttractions && `，A级景区 <strong>${tourism.aLevelAttractions}</strong>个`}
+        {tourism.inboundTourists && <>入境游客 <strong>{tourism.inboundTourists}万</strong>人次</>}
+        {tourism.domesticTourists && <>，国内游客 <strong>{tourism.domesticTourists.toLocaleString()}万</strong>人次</>}
+        {tourism.internationalRevenue && <>，国际旅游收入 <strong>{tourism.internationalRevenue}亿</strong>美元</>}
+        {tourism.domesticRevenue && <>，国内旅游收入 <strong>{tourism.domesticRevenue.toLocaleString()}亿</strong>元</>}
+        {tourism.railwayPassengers && <>，铁路客运 <strong>{tourism.railwayPassengers}万</strong>人</>}
+        {tourism.civilAviationPassengers && <>，民航客运 <strong>{tourism.civilAviationPassengers}万</strong>人</>}
+        {tourism.aLevelAttractions && <>，A级景区 <strong>{tourism.aLevelAttractions}</strong>个</>}
         <span class="text-xs text-cyan-600">（市级数据，来源：<a href={tourism.sourceUrl} class="underline">{tourism.source}</a>）</span>
       </div>
     )}
@@ -208,11 +216,52 @@ const jsonLd = {
     {cityDigital && (
       <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-purple-200 bg-purple-50 px-4 py-3 text-sm text-purple-800">
         📶 {city.name}{cityDigital.year}年数字化基建：
-        {cityDigital.total5GStations && `5G基站 <strong>${(cityDigital.total5GStations / 10000).toFixed(1)}万</strong>个`}
-        {cityDigital.broadbandHighSpeedRatio && `，500Mbps+占比 <strong>${cityDigital.broadbandHighSpeedRatio}%</strong>`}
-        {cityDigital.digitalGdpRatio && `，数字经济占GDP <strong>${cityDigital.digitalGdpRatio}%</strong>`}
-        {cityDigital.infoServiceRevenue && `，信息服务业营收 <strong>${cityDigital.infoServiceRevenue.toLocaleString()}亿</strong>元`}
+        {cityDigital.total5GStations && <>5G基站 <strong>{(cityDigital.total5GStations / 10000).toFixed(1)}万</strong>个</>}
+        {cityDigital.broadbandHighSpeedRatio && <>，500Mbps+占比 <strong>{cityDigital.broadbandHighSpeedRatio}%</strong></>}
+        {cityDigital.digitalGdpRatio && <>，数字经济占GDP <strong>{cityDigital.digitalGdpRatio}%</strong></>}
+        {cityDigital.infoServiceRevenue && <>，信息服务业营收 <strong>{cityDigital.infoServiceRevenue.toLocaleString()}亿</strong>元</>}
         <span class="text-xs text-purple-600">（市级数据，来源：<a href={cityDigital.sourceUrl} class="underline">{cityDigital.source}</a>）</span>
+      </div>
+    )}
+
+    {cityCultureTotal && (
+      <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-purple-200 bg-purple-50 px-4 py-3 text-sm text-purple-800">
+        🎭 {city.name}{cityCultureTotal.year}年文化产业：
+        博物馆/纪念馆 <strong>{cityCultureTotal.totalMuseums}</strong>家
+        ，公共图书馆 <strong>{cityCultureTotal.totalLibraries}</strong>个
+        ，文化馆 <strong>{cityCultureTotal.totalCulturalCenters}</strong>个
+        {cityCultureTotal.performingGroups && <>，艺术表演团体 <strong>{cityCultureTotal.performingGroups}</strong>个</>}
+        <span class="text-xs text-purple-600">（市级数据，来源：<a href={cityCultureTotal.sourceUrl} class="underline">{cityCultureTotal.source}</a>）</span>
+      </div>
+    )}
+
+    {livingCost && (
+      <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        💰 {city.name}{livingCost.year}年生活成本：
+        城镇人均收入 <strong>{livingCost.urbanDisposableIncome.toLocaleString()}元</strong>
+        ，人均消费 <strong>{livingCost.perCapitaConsumption.toLocaleString()}元</strong>
+        ，房价收入比 <strong>{livingCost.housePriceIncomeRatio}年</strong>
+        ，生活成本指数 <strong>{livingCost.livingCostIndex}</strong>（上海=100）
+        <span class="text-xs text-amber-600">（来源：<a href={livingCost.sourceUrl} class="underline">{livingCost.source}</a>）</span>
+      </div>
+    )}
+
+    {aqTrend && (
+      <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-800">
+        🌬️ {city.name}空气质量趋势（2024-2025）：
+        PM2.5 从 <strong>{city.key === 'shanghai' ? '28.4' : '33'}μg/m³</strong> 降至 <strong>{aqTrend.annualPM25}μg/m³</strong>
+        ，AQI优良率 <strong>{aqTrend.annualAQIGoodRate}%</strong>
+        ，趋势 <strong>{aqTrend.trendDirection === 'improving' ? '↗ 持续改善' : '→ 稳定'}</strong>
+        <span class="text-xs text-teal-600">（来源：<a href={aqTrend.sourceUrl} class="underline">{aqTrend.source}</a>）</span>
+      </div>
+    )}
+
+    {cityEduRatio && (
+      <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-800">
+        📚 {city.name}{cityEduRatio.year}年教育质量：
+        中小学 <strong>{cityEduRatio.totalSchools}</strong>所 / 在校 <strong>{(cityEduRatio.totalStudents / 10000).toFixed(1)}万</strong>人
+        ，小学师生比 <strong>{cityEduRatio.primaryRatio}</strong> · 初中 <strong>{cityEduRatio.middleRatio}</strong> · 高中 <strong>{cityEduRatio.highRatio}</strong>
+        <span class="text-xs text-indigo-600">（来源：<a href={cityEduRatio.sourceUrl} class="underline">{cityEduRatio.source}</a>）</span>
       </div>
     )}
 
