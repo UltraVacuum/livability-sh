@@ -18,6 +18,9 @@ import { getCityCultureTotal } from '../../data/culturalIndustry';
 import { getCityLivingCost } from '../../data/livingCost';
 import { getCityAirQualityTrend } from '../../data/airQualityTrend';
 import { getCityEduRatio } from '../../data/educationQuality';
+import { CITY_EMPLOYMENT_TOTALS } from '../../data/employment';
+import { CITY_CHILDCARE_TOTALS } from '../../data/childcare';
+import { CITY_ENERGY_TOTALS } from '../../data/energy';
 import { SITE } from '../../consts';
 
 export function getStaticPaths() {
@@ -44,6 +47,9 @@ const cityCultureTotal = getCityCultureTotal(city.key);
 const livingCost = getCityLivingCost(city.key);
 const aqTrend = getCityAirQualityTrend(city.key);
 const cityEduRatio = getCityEduRatio(city.key);
+const cityEmployment = CITY_EMPLOYMENT_TOTALS[city.key];
+const cityChildcare = CITY_CHILDCARE_TOTALS[city.key];
+const cityEnergy = CITY_ENERGY_TOTALS[city.key];
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -262,6 +268,40 @@ const jsonLd = {
         中小学 <strong>{cityEduRatio.totalSchools}</strong>所 / 在校 <strong>{(cityEduRatio.totalStudents / 10000).toFixed(1)}万</strong>人
         ，小学师生比 <strong>{cityEduRatio.primaryRatio}</strong> · 初中 <strong>{cityEduRatio.middleRatio}</strong> · 高中 <strong>{cityEduRatio.highRatio}</strong>
         <span class="text-xs text-indigo-600">（来源：<a href={cityEduRatio.sourceUrl} class="underline">{cityEduRatio.source}</a>）</span>
+      </div>
+    )}
+
+    {cityEmployment && (
+      <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+        💼 {city.name}{cityEmployment.year}年就业：
+        城镇新增就业 <strong>{cityEmployment.newJobs}万</strong>人
+        {cityEmployment.surveyUnemploymentRate && <>，调查失业率 <strong>{cityEmployment.surveyUnemploymentRate}%</strong></>}
+        {cityEmployment.vocationalTraining && <>，职业培训 <strong>{cityEmployment.vocationalTraining}万</strong>人次</>}
+        {cityEmployment.communityServiceStations && <>，社区就业站点 <strong>{cityEmployment.communityServiceStations}</strong>个</>}
+        {cityEmployment.ruralLaborTransfer && <>，农村劳动力转移 <strong>{cityEmployment.ruralLaborTransfer}万</strong>人</>}
+        <span class="text-xs text-blue-600">（市级数据，来源：<a href={cityEmployment.sourceUrl} class="underline">{cityEmployment.source}</a>）</span>
+      </div>
+    )}
+
+    {cityChildcare && (
+      <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-pink-200 bg-pink-50 px-4 py-3 text-sm text-pink-800">
+        🧒 {city.name}{cityChildcare.year}年托育与学前教育：
+        幼儿园 <strong>{cityChildcare.kindergartens}</strong>所，在园幼儿 <strong>{cityChildcare.kindergartenStudents}万</strong>人
+        {cityChildcare.nurserySubsidyRecipients && <>，育儿补贴覆盖 <strong>{cityChildcare.nurserySubsidyRecipients}万</strong>婴幼儿</>}
+        {cityChildcare.preschoolEnrollmentRate && <>，学前三年毛入园率 <strong>{cityChildcare.preschoolEnrollmentRate}%</strong></>}
+        <span class="text-xs text-pink-600">（市级数据，来源：<a href={cityChildcare.sourceUrl} class="underline">{cityChildcare.source}</a>）</span>
+      </div>
+    )}
+
+    {cityEnergy && (
+      <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-800">
+        ⚡ {city.name}{cityEnergy.year}年能源与环保：
+        {cityEnergy.totalPowerConsumption > 0 && <>用电量 <strong>{cityEnergy.totalPowerConsumption}亿</strong>千瓦时（+{cityEnergy.powerGrowthRate}%）</>}
+        {cityEnergy.envInvestment && <>，环保投入 <strong>{cityEnergy.envInvestment}亿</strong>元（GDP的{cityEnergy.envInvestmentRatio}%）</>}
+        {cityEnergy.dailyWaste && <>，日均垃圾 <strong>{cityEnergy.dailyWaste}万</strong>吨</>}
+        {cityEnergy.renewableEnergy && <>，可再生能源发电 <strong>{cityEnergy.renewableEnergy}亿</strong>千瓦时（占{cityEnergy.renewableRatio}%）</>}
+        {cityEnergy.totalParks && <>，公园 <strong>{cityEnergy.totalParks}</strong>座</>}
+        <span class="text-xs text-teal-600">（市级数据，来源：<a href={cityEnergy.sourceUrl} class="underline">{cityEnergy.source}</a>）</span>
       </div>
     )}
 

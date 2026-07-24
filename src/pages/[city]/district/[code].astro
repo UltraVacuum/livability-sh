@@ -26,6 +26,9 @@ import { getDistrictCultureVenues, getCityCultureTotal } from '../../../data/cul
 import { getCityLivingCost } from '../../../data/livingCost';
 import { getCityAirQualityTrend } from '../../../data/airQualityTrend';
 import { getDistrictEducationQuality, getCityEduRatio } from '../../../data/educationQuality';
+import { getDistrictEmployment, employmentSource, employmentYear, CITY_EMPLOYMENT_TOTALS } from '../../../data/employment';
+import { getDistrictChildcare, childcareSource, childcareYear, CITY_CHILDCARE_TOTALS } from '../../../data/childcare';
+import { getDistrictEnergy, energySource, energyYear, CITY_ENERGY_TOTALS } from '../../../data/energy';
 
 export function getStaticPaths() {
   const paths = [];
@@ -123,6 +126,18 @@ const aqTrend = getCityAirQualityTrend(city.key);
 // 教育质量（区级师生比+名校+市级参考）
 const eduQuality = getDistrictEducationQuality(city.key, district.adcode);
 const cityEduRatio = getCityEduRatio(city.key);
+
+// 区级就业与劳动力市场
+const employment = getDistrictEmployment(city.key, district.adcode);
+const cityEmployment = CITY_EMPLOYMENT_TOTALS[city.key];
+
+// 区级托育与学前教育
+const childcare = getDistrictChildcare(city.key, district.adcode);
+const cityChildcare = CITY_CHILDCARE_TOTALS[city.key];
+
+// 区级能源与环保
+const energy = getDistrictEnergy(city.key, district.adcode);
+const cityEnergy = CITY_ENERGY_TOTALS[city.key];
 
 const radarSeries = [
   { name: district.name, color: '#0d9488', values: METRICS.map((m) => district.metrics[m.key].score) },
@@ -1212,6 +1227,167 @@ const jsonLd = {
             <span class="flex items-center gap-1"><span class="inline-block w-3 h-2 rounded bg-gray-700" /> 2025</span>
           </div>
         </div>
+      </div>
+    )}
+
+    {employment && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">💼 就业与劳动力市场</h3>
+          <span class="text-xs text-ink-soft">{employmentYear(city.key)} · {employmentSource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}就业概况（市级总量按人口比例分配）。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+            <div class="text-xs text-blue-700">新增就业</div>
+            <div class="mt-1 text-xl font-bold text-blue-900">{employment.newJobs.toLocaleString()}</div>
+            <div class="text-[10px] text-blue-600">人/年（估算）</div>
+          </div>
+          <div class="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+            <div class="text-xs text-emerald-700">再就业人数</div>
+            <div class="mt-1 text-xl font-bold text-emerald-900">{employment.reemployed.toLocaleString()}</div>
+            <div class="text-[10px] text-emerald-600">人/年（估算）</div>
+          </div>
+          <div class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+            <div class="text-xs text-amber-700">困难人员就业</div>
+            <div class="mt-1 text-xl font-bold text-amber-900">{employment.hardEmployment.toLocaleString()}</div>
+            <div class="text-[10px] text-amber-600">人/年（估算）</div>
+          </div>
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">月均收入参考</div>
+            <div class="mt-1 text-xl font-bold text-ink">{employment.avgWageMonthly.toLocaleString()}</div>
+            <div class="text-[10px] text-ink-soft">元/月</div>
+          </div>
+        </div>
+        {cityEmployment && (
+          <p class="mt-3 text-xs text-ink-soft">
+            📊 {city.name}市级参考：新增就业<strong>{cityEmployment.newJobs}万</strong>人
+            {cityEmployment.surveyUnemploymentRate && ` · 调查失业率${cityEmployment.surveyUnemploymentRate}%`}
+            {cityEmployment.vocationalTraining && ` · 职业培训${cityEmployment.vocationalTraining}万人次`}
+            {cityEmployment.communityServiceStations && ` · 社区就业站点${cityEmployment.communityServiceStations}个`}
+            {cityEmployment.ruralLaborTransfer && ` · 农村劳动力转移${cityEmployment.ruralLaborTransfer}万人`}
+          </p>
+        )}
+      </div>
+    )}
+
+    {childcare && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">🧒 托育与学前教育</h3>
+          <span class="text-xs text-ink-soft">{childcareYear(city.key)} · {childcareSource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}托育与学前教育资源（市级总量按人口比例分配）。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-pink-100 bg-pink-50 px-4 py-3">
+            <div class="text-xs text-pink-700">幼儿园</div>
+            <div class="mt-1 text-xl font-bold text-pink-900">{childcare.kindergartens}</div>
+            <div class="text-[10px] text-pink-600">所</div>
+          </div>
+          <div class="rounded-lg border border-pink-100 bg-pink-50 px-4 py-3">
+            <div class="text-xs text-pink-700">在园幼儿</div>
+            <div class="mt-1 text-xl font-bold text-pink-900">{childcare.kindergartenStudents.toLocaleString()}</div>
+            <div class="text-[10px] text-pink-600">人</div>
+          </div>
+          {childcare.nurseryCenters !== undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">托育机构/网点</div>
+              <div class="mt-1 text-xl font-bold text-ink">{childcare.nurseryCenters}</div>
+              <div class="text-[10px] text-ink-soft">个（估算）</div>
+            </div>
+          )}
+          {childcare.nurserySlots !== undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">托位数</div>
+              <div class="mt-1 text-xl font-bold text-ink">{childcare.nurserySlots.toLocaleString()}</div>
+              <div class="text-[10px] text-ink-soft">个（估算）</div>
+            </div>
+          )}
+          {childcare.childcareSubsidy !== undefined && (
+            <div class="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+              <div class="text-xs text-emerald-700">育儿补贴覆盖</div>
+              <div class="mt-1 text-xl font-bold text-emerald-900">{childcare.childcareSubsidy.toLocaleString()}</div>
+              <div class="text-[10px] text-emerald-600">名婴幼儿</div>
+            </div>
+          )}
+          {childcare.preschoolEnrollmentRate !== undefined && (
+            <div class="rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-3">
+              <div class="text-xs text-indigo-700">学前三年毛入园率</div>
+              <div class="mt-1 text-xl font-bold text-indigo-900">{childcare.preschoolEnrollmentRate}%</div>
+              <div class="text-[10px] text-indigo-600">市级统一值</div>
+            </div>
+          )}
+        </div>
+        {cityChildcare && (
+          <p class="mt-3 text-xs text-ink-soft">
+            📊 {city.name}市级参考：幼儿园<strong>{cityChildcare.kindergartens}</strong>所 · 在园幼儿<strong>{cityChildcare.kindergartenStudents}万</strong>人
+            {cityChildcare.nurserySubsidyRecipients && ` · 育儿补贴覆盖${cityChildcare.nurserySubsidyRecipients}万婴幼儿`}
+            {cityChildcare.preschoolEnrollmentRate && ` · 学前三年毛入园率${cityChildcare.preschoolEnrollmentRate}%`}
+          </p>
+        )}
+      </div>
+    )}
+
+    {energy && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">⚡ 能源与环保</h3>
+          <span class="text-xs text-ink-soft">{energyYear(city.key)} · {energySource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}能源消耗与环保数据。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {energy.powerConsumption !== undefined && (
+            <div class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+              <div class="text-xs text-amber-700">年用电量</div>
+              <div class="mt-1 text-xl font-bold text-amber-900">{energy.powerConsumption}</div>
+              <div class="text-[10px] text-amber-600">亿千瓦时（估算）</div>
+            </div>
+          )}
+          {energy.wasteSortedDaily !== undefined && (
+            <div class="rounded-lg border border-teal-100 bg-teal-50 px-4 py-3">
+              <div class="text-xs text-teal-700">日均生活垃圾分类</div>
+              <div class="mt-1 text-xl font-bold text-teal-900">{energy.wasteSortedDaily}</div>
+              <div class="text-[10px] text-teal-600">吨/日</div>
+            </div>
+          )}
+          {energy.wasteRecyclingRate !== undefined && (
+            <div class="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+              <div class="text-xs text-emerald-700">可回收物年量</div>
+              <div class="mt-1 text-xl font-bold text-emerald-900">{energy.wasteRecyclingRate}</div>
+              <div class="text-[10px] text-emerald-600">万吨/年</div>
+            </div>
+          )}
+          {energy.greenCoverageRate !== undefined && (
+            <div class="rounded-lg border border-green-100 bg-green-50 px-4 py-3">
+              <div class="text-xs text-green-700">绿化覆盖率</div>
+              <div class="mt-1 text-xl font-bold text-green-900">{energy.greenCoverageRate}%</div>
+              <div class="text-[10px] text-green-600">建成区</div>
+            </div>
+          )}
+          {energy.SewageTreatmentRate !== undefined && (
+            <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+              <div class="text-xs text-blue-700">污水处理率</div>
+              <div class="mt-1 text-xl font-bold text-blue-900">{energy.SewageTreatmentRate}%</div>
+              <div class="text-[10px] text-blue-600">市级统一值</div>
+            </div>
+          )}
+        </div>
+        {cityEnergy && (
+          <p class="mt-3 text-xs text-ink-soft">
+            📊 {city.name}市级参考：
+            {cityEnergy.totalPowerConsumption > 0 && `用电${cityEnergy.totalPowerConsumption}亿千瓦时（+${cityEnergy.powerGrowthRate}%）`}
+            {cityEnergy.envInvestment && ` · 环保投入${cityEnergy.envInvestment}亿元（GDP的${cityEnergy.envInvestmentRatio}%）`}
+            {cityEnergy.dailyWaste && ` · 日均垃圾${cityEnergy.dailyWaste}万吨`}
+            {cityEnergy.renewableEnergy && ` · 可再生能源发电${cityEnergy.renewableEnergy}亿千瓦时（占${cityEnergy.renewableRatio}%）`}
+            {cityEnergy.totalParks && ` · 公园${cityEnergy.totalParks}座`}
+          </p>
+        )}
       </div>
     )}
 
