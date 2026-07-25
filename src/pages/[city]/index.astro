@@ -21,6 +21,9 @@ import { getCityEduRatio } from '../../data/educationQuality';
 import { CITY_EMPLOYMENT_TOTALS } from '../../data/employment';
 import { CITY_CHILDCARE_TOTALS } from '../../data/childcare';
 import { CITY_ENERGY_TOTALS } from '../../data/energy';
+import { CITY_POSTAL_TOTALS } from '../../data/postal';
+import { CITY_COMMUNITY_TOTALS } from '../../data/communityService';
+import { CITY_UTILITY_TOTALS } from '../../data/utilities';
 import { SITE } from '../../consts';
 
 export function getStaticPaths() {
@@ -50,6 +53,9 @@ const cityEduRatio = getCityEduRatio(city.key);
 const cityEmployment = CITY_EMPLOYMENT_TOTALS[city.key];
 const cityChildcare = CITY_CHILDCARE_TOTALS[city.key];
 const cityEnergy = CITY_ENERGY_TOTALS[city.key];
+const cityPostal = CITY_POSTAL_TOTALS[city.key];
+const cityCommunity = CITY_COMMUNITY_TOTALS[city.key];
+const cityUtility = CITY_UTILITY_TOTALS[city.key];
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -302,6 +308,40 @@ const jsonLd = {
         {cityEnergy.renewableEnergy && <>，可再生能源发电 <strong>{cityEnergy.renewableEnergy}亿</strong>千瓦时（占{cityEnergy.renewableRatio}%）</>}
         {cityEnergy.totalParks && <>，公园 <strong>{cityEnergy.totalParks}</strong>座</>}
         <span class="text-xs text-teal-600">（市级数据，来源：<a href={cityEnergy.sourceUrl} class="underline">{cityEnergy.source}</a>）</span>
+      </div>
+    )}
+
+    {cityPostal && (
+      <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        📦 {city.name}{cityPostal.year}年邮政快递：
+        邮政业务总量 <strong>{cityPostal.postalRevenue}亿</strong>元
+        ，快递业务量 <strong>{cityPostal.expressVolume}亿</strong>件
+        {cityPostal.expressOutlets && ` · 网点约${cityPostal.expressOutlets}个`}
+        <span class="text-xs text-amber-600">（市级数据，来源：<a href={cityPostal.sourceUrl} class="underline">{cityPostal.source}</a>）</span>
+      </div>
+    )}
+
+    {cityCommunity && (
+      <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-800">
+        🏘️ {city.name}{cityCommunity.year}年社区服务：
+        街镇 <strong>{cityCommunity.subDistricts + cityCommunity.towns + (cityCommunity.townships || 0)}</strong>个
+        ，居委会 <strong>{cityCommunity.residentCommittees}</strong>个
+        ，社区服务中心 <strong>{cityCommunity.communityServiceCenters}</strong>个
+        ，社区食堂 <strong>{cityCommunity.communityCanteens}</strong>个
+        {cityCommunity.hotlineCalls && ` · ${cityCommunity.hotline}热线年接通${cityCommunity.hotlineCalls}万件`}
+        <span class="text-xs text-teal-600">（市级数据，来源：<a href={cityCommunity.sourceUrl} class="underline">{cityCommunity.source}</a>）</span>
+      </div>
+    )}
+
+    {cityUtility && (
+      <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-800">
+        🚰 {city.name}{cityUtility.year}年公用事业：
+        年供水 <strong>{cityUtility.totalWaterSupply}亿</strong>m³
+        （管网{cityUtility.pipelineLength.toLocaleString()}km）
+        ，燃气{cityUtility.totalGasUsers}万户
+        ，污水处理率 <strong>{cityUtility.sewageTreatmentRate}%</strong>
+        {cityUtility.heatingArea && ` · 供热${cityUtility.heatingArea.toLocaleString()}万㎡`}
+        <span class="text-xs text-sky-600">（市级数据，来源：<a href={cityUtility.sourceUrl} class="underline">{cityUtility.source}</a>）</span>
       </div>
     )}
 

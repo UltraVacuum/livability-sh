@@ -29,6 +29,9 @@ import { getDistrictEducationQuality, getCityEduRatio } from '../../../data/educ
 import { getDistrictEmployment, employmentSource, employmentYear, CITY_EMPLOYMENT_TOTALS } from '../../../data/employment';
 import { getDistrictChildcare, childcareSource, childcareYear, CITY_CHILDCARE_TOTALS } from '../../../data/childcare';
 import { getDistrictEnergy, energySource, energyYear, CITY_ENERGY_TOTALS } from '../../../data/energy';
+import { getDistrictPostal, postalSource, postalYear, CITY_POSTAL_TOTALS } from '../../../data/postal';
+import { getDistrictCommunity, communitySource, communityYear, CITY_COMMUNITY_TOTALS } from '../../../data/communityService';
+import { getDistrictUtility, utilitySource, utilityYear, CITY_UTILITY_TOTALS } from '../../../data/utilities';
 
 export function getStaticPaths() {
   const paths = [];
@@ -138,6 +141,18 @@ const cityChildcare = CITY_CHILDCARE_TOTALS[city.key];
 // 区级能源与环保
 const energy = getDistrictEnergy(city.key, district.adcode);
 const cityEnergy = CITY_ENERGY_TOTALS[city.key];
+
+// 邮政快递物流（区级）
+const postal = getDistrictPostal(city.key, district.adcode);
+const cityPostal = CITY_POSTAL_TOTALS[city.key];
+
+// 社区服务设施（区级）
+const community = getDistrictCommunity(city.key, district.adcode);
+const cityCommunity = CITY_COMMUNITY_TOTALS[city.key];
+
+// 市政公用事业（区级）
+const utility = getDistrictUtility(city.key, district.adcode);
+const cityUtility = CITY_UTILITY_TOTALS[city.key];
 
 const radarSeries = [
   { name: district.name, color: '#0d9488', values: METRICS.map((m) => district.metrics[m.key].score) },
@@ -1386,6 +1401,172 @@ const jsonLd = {
             {cityEnergy.dailyWaste && ` · 日均垃圾${cityEnergy.dailyWaste}万吨`}
             {cityEnergy.renewableEnergy && ` · 可再生能源发电${cityEnergy.renewableEnergy}亿千瓦时（占${cityEnergy.renewableRatio}%）`}
             {cityEnergy.totalParks && ` · 公园${cityEnergy.totalParks}座`}
+          </p>
+        )}
+      </div>
+    )}
+
+    {postal && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">📦 邮政快递物流</h3>
+          <span class="text-xs text-ink-soft">{postalYear(city.key)} · {postalSource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}邮政与快递物流网点分布。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+            <div class="text-xs text-amber-700">邮政局所</div>
+            <div class="mt-1 text-xl font-bold text-amber-900">{postal.postalOutlets}</div>
+            <div class="text-[10px] text-amber-600">处</div>
+          </div>
+          {postal.expressOutlets !== undefined && (
+            <div class="rounded-lg border border-orange-100 bg-orange-50 px-4 py-3">
+              <div class="text-xs text-orange-700">快递网点/驿站</div>
+              <div class="mt-1 text-xl font-bold text-orange-900">{postal.expressOutlets}</div>
+              <div class="text-[10px] text-orange-600">个（估算）</div>
+            </div>
+          )}
+          {postal.expressVolume !== undefined && (
+            <div class="rounded-lg border border-cyan-100 bg-cyan-50 px-4 py-3">
+              <div class="text-xs text-cyan-700">年快递业务量</div>
+              <div class="mt-1 text-xl font-bold text-cyan-900">{postal.expressVolume}</div>
+              <div class="text-[10px] text-cyan-600">亿件（估算）</div>
+            </div>
+          )}
+          {postal.smartLockers !== undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">智能快递柜</div>
+              <div class="mt-1 text-xl font-bold text-ink">{postal.smartLockers.toLocaleString()}</div>
+              <div class="text-[10px] text-ink-soft">组（估算）</div>
+            </div>
+          )}
+        </div>
+        {cityPostal && (
+          <p class="mt-3 text-xs text-ink-soft">
+            📊 {city.name}市级参考：邮政业务总量<strong>{cityPostal.postalRevenue}亿</strong>元
+            ，快递<strong>{cityPostal.expressVolume}亿</strong>件
+            {cityPostal.expressOutlets && ` · 网点约${cityPostal.expressOutlets}个`}
+            （{city.key === 'shanghai' ? '全国第一' : ''}）
+          </p>
+        )}
+      </div>
+    )}
+
+    {community && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">🏘️ 社区服务设施</h3>
+          <span class="text-xs text-ink-soft">{communityYear(city.key)} · {communitySource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}基层治理与社区服务设施分布。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+            <div class="text-xs text-blue-700">街道办事处</div>
+            <div class="mt-1 text-xl font-bold text-blue-900">{community.subDistricts}</div>
+            <div class="text-[10px] text-blue-600">个</div>
+          </div>
+          <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+            <div class="text-xs text-blue-700">镇政府</div>
+            <div class="mt-1 text-xl font-bold text-blue-900">{community.towns}</div>
+            <div class="text-[10px] text-blue-600">个{community.townships ? ` + 乡${community.townships}` : ''}</div>
+          </div>
+          <div class="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+            <div class="text-xs text-emerald-700">居委会</div>
+            <div class="mt-1 text-xl font-bold text-emerald-900">{community.residentCommittees}</div>
+            <div class="text-[10px] text-emerald-600">个{community.villageCommittees ? ` · 村委会${community.villageCommittees}` : ''}</div>
+          </div>
+          {community.communityServiceCenters !== undefined && (
+            <div class="rounded-lg border border-purple-100 bg-purple-50 px-4 py-3">
+              <div class="text-xs text-purple-700">社区综合服务中心</div>
+              <div class="mt-1 text-xl font-bold text-purple-900">{community.communityServiceCenters.toLocaleString()}</div>
+              <div class="text-[10px] text-purple-600">个（估算）</div>
+            </div>
+          )}
+          {community.communityCanteens !== undefined && (
+            <div class="rounded-lg border border-orange-100 bg-orange-50 px-4 py-3">
+              <div class="text-xs text-orange-700">社区食堂/助餐点</div>
+              <div class="mt-1 text-xl font-bold text-orange-900">{community.communityCanteens}</div>
+              <div class="text-[10px] text-orange-600">个（估算）</div>
+            </div>
+          )}
+        </div>
+        {cityCommunity && (
+          <p class="mt-3 text-xs text-ink-soft">
+            📊 {city.name}市级参考：街镇{cityCommunity.subDistricts + cityCommunity.towns + (cityCommunity.townships || 0)}个
+            ，居委会{cityCommunity.residentCommittees}个
+            {cityCommunity.villageCommittees && ` · 村委会${cityCommunity.villageCommittees}个`}
+            ，社区服务中心{cityCommunity.communityServiceCenters}个
+            ，社区食堂{cityCommunity.communityCanteens}个
+            {cityCommunity.hotlineCalls && ` · ${cityCommunity.hotline}热线年接通${cityCommunity.hotlineCalls}万件`}
+          </p>
+        )}
+      </div>
+    )}
+
+    {utility && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">🚰 市政公用事业</h3>
+          <span class="text-xs text-ink-soft">{utilityYear(city.key)} · {utilitySource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}供水/燃气/污水处理等市政公用事业概况。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+            <div class="text-xs text-blue-700">供水覆盖率</div>
+            <div class="mt-1 text-xl font-bold text-blue-900">{utility.waterSupplyCoverage}%</div>
+            <div class="text-[10px] text-blue-600">市级统一值</div>
+          </div>
+          <div class="rounded-lg border border-cyan-100 bg-cyan-50 px-4 py-3">
+            <div class="text-xs text-cyan-700">年供水量</div>
+            <div class="mt-1 text-xl font-bold text-cyan-900">{utility.annualWaterConsumption}</div>
+            <div class="text-[10px] text-cyan-600">亿m³（估算）</div>
+          </div>
+          {utility.gasUsers !== undefined && (
+            <div class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+              <div class="text-xs text-amber-700">管道燃气用户</div>
+              <div class="mt-1 text-xl font-bold text-amber-900">{utility.gasUsers}</div>
+              <div class="text-[10px] text-amber-600">万户（估算）</div>
+            </div>
+          )}
+          <div class="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+            <div class="text-xs text-emerald-700">污水处理率</div>
+            <div class="mt-1 text-xl font-bold text-emerald-900">{utility.sewageTreatmentRate}%</div>
+            <div class="text-[10px] text-emerald-600">{city.key === 'shanghai' ? '市级统一值' : '区级参考'}</div>
+          </div>
+          {utility.pipelineLength !== undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">供水管网长度</div>
+              <div class="mt-1 text-xl font-bold text-ink">{utility.pipelineLength.toLocaleString()}</div>
+              <div class="text-[10px] text-ink-soft">公里（估算）</div>
+            </div>
+          )}
+          {utility.heatingArea !== undefined && (
+            <div class="rounded-lg border border-orange-100 bg-orange-50 px-4 py-3">
+              <div class="text-xs text-orange-700">集中供热面积</div>
+              <div class="mt-1 text-xl font-bold text-orange-900">{utility.heatingArea.toLocaleString()}</div>
+              <div class="text-[10px] text-orange-600">万㎡（西北供暖）</div>
+            </div>
+          )}
+          {utility.heatingCoverageRate !== undefined && (
+            <div class="rounded-lg border border-orange-100 bg-orange-50 px-4 py-3">
+              <div class="text-xs text-orange-700">集中供热覆盖率</div>
+              <div class="mt-1 text-xl font-bold text-orange-900">{utility.heatingCoverageRate}%</div>
+              <div class="text-[10px] text-orange-600">冬季供暖季</div>
+            </div>
+          )}
+        </div>
+        {cityUtility && (
+          <p class="mt-3 text-xs text-ink-soft">
+            📊 {city.name}市级参考：年供水<strong>{cityUtility.totalWaterSupply}亿</strong>m³
+            （日均{cityUtility.dailyWaterSupply}万m³），管网{cityUtility.pipelineLength.toLocaleString()}km
+            ，燃气{cityUtility.totalGasUsers}万户，污水处理率{cityUtility.sewageTreatmentRate}%
+            {cityUtility.heatingArea && ` · 供热${cityUtility.heatingArea.toLocaleString()}万㎡`}
           </p>
         )}
       </div>
