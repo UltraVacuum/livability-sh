@@ -24,6 +24,9 @@ import { CITY_ENERGY_TOTALS } from '../../data/energy';
 import { CITY_POSTAL_TOTALS } from '../../data/postal';
 import { CITY_COMMUNITY_TOTALS } from '../../data/communityService';
 import { CITY_UTILITY_TOTALS } from '../../data/utilities';
+import { getCityHousingQuality } from '../../data/housingQuality';
+import { getCityFinancial } from '../../data/financialAccess';
+import { getCityDining } from '../../data/diningVitality';
 import { SITE } from '../../consts';
 
 export function getStaticPaths() {
@@ -56,6 +59,9 @@ const cityEnergy = CITY_ENERGY_TOTALS[city.key];
 const cityPostal = CITY_POSTAL_TOTALS[city.key];
 const cityCommunity = CITY_COMMUNITY_TOTALS[city.key];
 const cityUtility = CITY_UTILITY_TOTALS[city.key];
+const cityHousingQ = getCityHousingQuality(city.key);
+const cityFinancial = getCityFinancial(city.key);
+const cityDining = getCityDining(city.key);
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -342,6 +348,42 @@ const jsonLd = {
         ，污水处理率 <strong>{cityUtility.sewageTreatmentRate}%</strong>
         {cityUtility.heatingArea && ` · 供热${cityUtility.heatingArea.toLocaleString()}万㎡`}
         <span class="text-xs text-sky-600">（市级数据，来源：<a href={cityUtility.sourceUrl} class="underline">{cityUtility.source}</a>）</span>
+      </div>
+    )}
+
+    {cityHousingQ && (
+      <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+        🏠 {city.name}住房与居住品质：
+        {cityHousingQ.oldRenovationArea > 0 && `老旧小区改造 <strong>${cityHousingQ.oldRenovationArea}万㎡</strong>`}
+        {cityHousingQ.elevatorsAdded > 0 && ` · 加装电梯${cityHousingQ.elevatorsAdded}台`}
+        {cityHousingQ.affordableHousing > 0 && ` · 保障房${cityHousingQ.affordableHousing.toLocaleString()}套`}
+        {cityHousingQ.residentialSoldArea > 0 && ` · 住宅销售${cityHousingQ.residentialSoldArea}万㎡`}
+        {cityHousingQ.newPriceIndex && ` · 新房价格指数${cityHousingQ.newPriceIndex}`}
+        <span class="text-xs text-rose-600">（市级数据，来源：{city.key === 'shanghai' ? '上海市2025年统计公报' : '银川市2025年统计公报'}）</span>
+      </div>
+    )}
+
+    {cityFinancial && (
+      <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        💰 {city.name}金融概况：
+        金融业增加值 <strong>{cityFinancial.financialValueAdded}亿</strong>元
+        ，存款余额 <strong>{(cityFinancial.totalDeposits / 10000).toFixed(2)}万亿</strong>元
+        ，贷款余额 <strong>{(cityFinancial.totalLoans / 10000).toFixed(2)}万亿</strong>元
+        ，保费收入 <strong>{cityFinancial.insurancePremium}亿</strong>元
+        ，银行网点约{cityFinancial.bankOutlets}个
+        <span class="text-xs text-amber-600">（市级数据，来源：{city.key === 'shanghai' ? '上海市2025年统计公报' : '银川市2025年统计公报'}）</span>
+      </div>
+    )}
+
+    {cityDining && (
+      <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-800">
+        🍽️ {city.name}消费活力：
+        社零总额 <strong>{cityDining.totalRetailSales}亿</strong>元（+{cityDining.retailGrowth}%）
+        {cityDining.ecommerceValue && ` · 电商交易额${cityDining.ecommerceValue}万亿`}
+        {cityDining.onlineShoppingValue && ` · 网购${cityDining.onlineShoppingValue}万亿`}
+        {cityDining.exhibitionsCount && ` · 展览${cityDining.exhibitionsCount}场`}
+        {cityDining.accommodationCateringValue && ` · 住宿餐饮${cityDining.accommodationCateringValue}亿`}
+        <span class="text-xs text-orange-600">（市级数据，来源：{city.key === 'shanghai' ? '上海市2025年统计公报' : '银川市2025年统计公报'}）</span>
       </div>
     )}
 

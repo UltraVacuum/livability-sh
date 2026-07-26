@@ -32,6 +32,9 @@ import { getDistrictEnergy, energySource, energyYear, CITY_ENERGY_TOTALS } from 
 import { getDistrictPostal, postalSource, postalYear, CITY_POSTAL_TOTALS } from '../../../data/postal';
 import { getDistrictCommunity, communitySource, communityYear, CITY_COMMUNITY_TOTALS } from '../../../data/communityService';
 import { getDistrictUtility, utilitySource, utilityYear, CITY_UTILITY_TOTALS } from '../../../data/utilities';
+import { getDistrictHousingQuality, getCityHousingQuality, housingQualitySource, housingQualityYear } from '../../../data/housingQuality';
+import { getDistrictFinancial, getCityFinancial, financialSource, financialYear, CITY_FINANCIAL_TOTALS } from '../../../data/financialAccess';
+import { getDistrictDining, getCityDining, diningSource, diningYear, CITY_DINING_TOTALS } from '../../../data/diningVitality';
 
 export function getStaticPaths() {
   const paths = [];
@@ -153,6 +156,18 @@ const cityCommunity = CITY_COMMUNITY_TOTALS[city.key];
 // 市政公用事业（区级）
 const utility = getDistrictUtility(city.key, district.adcode);
 const cityUtility = CITY_UTILITY_TOTALS[city.key];
+
+// 住房与居住品质（区级+市级）
+const housingQ = getDistrictHousingQuality(city.key, district.adcode);
+const cityHousingQ = getCityHousingQuality(city.key);
+
+// 金融服务可达性（区级+市级）
+const financial = getDistrictFinancial(city.key, district.adcode);
+const cityFinancial = getCityFinancial(city.key);
+
+// 餐饮与消费活力（区级+市级）
+const dining = getDistrictDining(city.key, district.adcode);
+const cityDining = getCityDining(city.key);
 
 const radarSeries = [
   { name: district.name, color: '#0d9488', values: METRICS.map((m) => district.metrics[m.key].score) },
@@ -1567,6 +1582,153 @@ const jsonLd = {
             （日均{cityUtility.dailyWaterSupply}万m³），管网{cityUtility.pipelineLength.toLocaleString()}km
             ，燃气{cityUtility.totalGasUsers}万户，污水处理率{cityUtility.sewageTreatmentRate}%
             {cityUtility.heatingArea && ` · 供热${cityUtility.heatingArea.toLocaleString()}万㎡`}
+          </p>
+        )}
+      </div>
+    )}
+
+    {housingQ && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">🏠 住房与居住品质</h3>
+          <span class="text-xs text-ink-soft">{housingQualityYear(city.key)} · {housingQualitySource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}住房改造与居住品质参考。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {housingQ.oldRenovationArea !== undefined && housingQ.oldRenovationArea > 0 && (
+            <div class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+              <div class="text-xs text-amber-700">老旧小区改造</div>
+              <div class="mt-1 text-xl font-bold text-amber-900">{housingQ.oldRenovationArea}</div>
+              <div class="text-[10px] text-amber-600">万㎡（估算）</div>
+            </div>
+          )}
+          {housingQ.elevatorsAdded !== undefined && housingQ.elevatorsAdded > 0 && (
+            <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+              <div class="text-xs text-blue-700">加装电梯</div>
+              <div class="mt-1 text-xl font-bold text-blue-900">{housingQ.elevatorsAdded}</div>
+              <div class="text-[10px] text-blue-600">台（估算）</div>
+            </div>
+          )}
+          {housingQ.affordableHousing !== undefined && housingQ.affordableHousing > 0 && (
+            <div class="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+              <div class="text-xs text-emerald-700">保障性租赁住房</div>
+              <div class="mt-1 text-xl font-bold text-emerald-900">{housingQ.affordableHousing.toLocaleString()}</div>
+              <div class="text-[10px] text-emerald-600">套（估算）</div>
+            </div>
+          )}
+          {housingQ.residentialSoldArea !== undefined && (
+            <div class="rounded-lg border border-cyan-100 bg-cyan-50 px-4 py-3">
+              <div class="text-xs text-cyan-700">住宅销售面积</div>
+              <div class="mt-1 text-xl font-bold text-cyan-900">{housingQ.residentialSoldArea}</div>
+              <div class="text-[10px] text-cyan-600">万㎡（估算）</div>
+            </div>
+          )}
+        </div>
+        {cityHousingQ && (
+          <p class="mt-3 text-xs text-ink-soft">
+            📊 {city.name}市级参考：
+            {cityHousingQ.oldRenovationArea > 0 && `老旧小区改造${cityHousingQ.oldRenovationArea}万㎡`}
+            {cityHousingQ.elevatorsAdded > 0 && ` · 加装电梯${cityHousingQ.elevatorsAdded}台`}
+            {cityHousingQ.affordableHousing > 0 && ` · 保障房${cityHousingQ.affordableHousing.toLocaleString()}套`}
+            {cityHousingQ.newPriceIndex && ` · 新房价格指数${cityHousingQ.newPriceIndex}`}
+            {cityHousingQ.secondhandPriceIndex && ` · 二手房价格指数${cityHousingQ.secondhandPriceIndex}`}
+          </p>
+        )}
+      </div>
+    )}
+
+    {financial && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">💰 金融服务可达性</h3>
+          <span class="text-xs text-ink-soft">{financialYear(city.key)} · {financialSource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}金融网点与保险服务覆盖。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {financial.bankOutlets !== undefined && (
+            <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+              <div class="text-xs text-blue-700">银行网点</div>
+              <div class="mt-1 text-xl font-bold text-blue-900">{financial.bankOutlets}</div>
+              <div class="text-[10px] text-blue-600">个（估算）</div>
+            </div>
+          )}
+          {financial.perCapitaDeposits !== undefined && (
+            <div class="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+              <div class="text-xs text-emerald-700">人均存款</div>
+              <div class="mt-1 text-xl font-bold text-emerald-900">{financial.perCapitaDeposits}</div>
+              <div class="text-[10px] text-emerald-600">万元（估算）</div>
+            </div>
+          )}
+          {financial.insurancePenetration !== undefined && (
+            <div class="rounded-lg border border-purple-100 bg-purple-50 px-4 py-3">
+              <div class="text-xs text-purple-700">保险密度（人均保费）</div>
+              <div class="mt-1 text-xl font-bold text-purple-900">{financial.insurancePenetration.toLocaleString()}</div>
+              <div class="text-[10px] text-purple-600">元（估算）</div>
+            </div>
+          )}
+        </div>
+        {cityFinancial && (
+          <p class="mt-3 text-xs text-ink-soft">
+            📊 {city.name}市级参考：金融业增加值<strong>{cityFinancial.financialValueAdded}亿</strong>元
+            ，存款余额<strong>{(cityFinancial.totalDeposits / 10000).toFixed(2)}万亿</strong>元
+            ，贷款余额<strong>{(cityFinancial.totalLoans / 10000).toFixed(2)}万亿</strong>元
+            ，保费收入<strong>{cityFinancial.insurancePremium}亿</strong>元
+            ，银行网点约{cityFinancial.bankOutlets}个
+          </p>
+        )}
+      </div>
+    )}
+
+    {dining && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">🍽️ 餐饮与消费活力</h3>
+          <span class="text-xs text-ink-soft">{diningYear(city.key)} · {diningSource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}零售与餐饮消费概况。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {dining.retailSales !== undefined && (
+            <div class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+              <div class="text-xs text-amber-700">社会消费品零售额</div>
+              <div class="mt-1 text-xl font-bold text-amber-900">{dining.retailSales}</div>
+              <div class="text-[10px] text-amber-600">亿元（估算）</div>
+            </div>
+          )}
+          {dining.cateringRevenue !== undefined && (
+            <div class="rounded-lg border border-orange-100 bg-orange-50 px-4 py-3">
+              <div class="text-xs text-orange-700">餐饮收入</div>
+              <div class="mt-1 text-xl font-bold text-orange-900">{dining.cateringRevenue}</div>
+              <div class="text-[10px] text-orange-600">亿元（估算）</div>
+            </div>
+          )}
+          {dining.shoppingMalls !== undefined && (
+            <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+              <div class="text-xs text-blue-700">购物中心/综合体</div>
+              <div class="mt-1 text-xl font-bold text-blue-900">{dining.shoppingMalls}</div>
+              <div class="text-[10px] text-blue-600">个（估算）</div>
+            </div>
+          )}
+          {dining.convenienceStores !== undefined && (
+            <div class="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+              <div class="text-xs text-emerald-700">便利店</div>
+              <div class="mt-1 text-xl font-bold text-emerald-900">{dining.convenienceStores}</div>
+              <div class="text-[10px] text-emerald-600">个（估算）</div>
+            </div>
+          )}
+        </div>
+        {cityDining && (
+          <p class="mt-3 text-xs text-ink-soft">
+            📊 {city.name}市级参考：社零<strong>{cityDining.totalRetailSales}亿</strong>元（+{cityDining.retailGrowth}%）
+            {cityDining.ecommerceValue && ` · 电商交易额${cityDining.ecommerceValue}万亿`}
+            {cityDining.onlineShoppingValue && ` · 网购${cityDining.onlineShoppingValue}万亿`}
+            {cityDining.exhibitionsCount && ` · 展览${cityDining.exhibitionsCount}场`}
+            {cityDining.accommodationCateringValue && ` · 住宿餐饮增加值${cityDining.accommodationCateringValue}亿`}
           </p>
         )}
       </div>
