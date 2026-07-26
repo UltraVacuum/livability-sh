@@ -1,0 +1,328 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import {
+  BENCHMARK_CITIES,
+  BENCHMARK_METRICS,
+  DATA_SOURCES,
+  getCityRankInBenchmark,
+} from '../data/globalBenchmarks';
+import { SITE } from '../consts';
+
+// 预计算：每个指标的城市排名
+const metricRankings = BENCHMARK_METRICS.map((metric) => {
+  const entries = Object.entries(metric.values).filter(
+    ([, v]) => v !== undefined,
+  );
+  const sorted = entries.sort((a, b) => {
+    const va = a[1] as number;
+    const vb = b[1] as number;
+    return metric.lowerIsBetter ? va - vb : vb - va;
+  });
+  return { metric, sorted: sorted.map(([key, val]) => ({ key, val: val as number })) };
+});
+
+// 本站城市对标排名摘要
+const yijuduCities = BENCHMARK_CITIES.filter((c) => c.category === 'yijudu-city');
+const globalCities = BENCHMARK_CITIES.filter((c) => c.category !== 'yijudu-city');
+
+const categoryLabels: Record<string, string> = {
+  'yijudu-city': '本站城市',
+  'global-mega': '全球大都市',
+  'global-mid': '中等规模城市',
+  'asian-hub': '亚洲枢纽',
+};
+
+const categoryColors: Record<string, string> = {
+  'yijudu-city': 'bg-accent-soft text-accent',
+  'global-mega': 'bg-blue-100 text-blue-700',
+  'global-mid': 'bg-emerald-100 text-emerald-700',
+  'asian-hub': 'bg-purple-100 text-purple-700',
+};
+
+const sourceCategoryLabels: Record<string, string> = {
+  health: '健康医疗',
+  economy: '经济',
+  environment: '环境',
+  urban: '城市基建',
+  social: '社会指标',
+};
+
+const sourceCategoryColors: Record<string, string> = {
+  health: 'bg-red-100 text-red-700',
+  economy: 'bg-amber-100 text-amber-700',
+  environment: 'bg-green-100 text-green-700',
+  urban: 'bg-blue-100 text-blue-700',
+  social: 'bg-purple-100 text-purple-700',
+};
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Dataset',
+  name: '全球城市宜居度对标数据',
+  description:
+    '上海、银川与全球主要城市在空气质量、GDP、绿地、交通、安全等维度的横向对比，数据来自 World Bank、WHO、Numbeo 等公开数据源',
+  url: `${SITE.url}/global-benchmarks`,
+  creator: { '@type': 'Organization', name: SITE.name },
+  keywords: ['城市宜居度', '全球城市对比', '空气质量', 'PM2.5', 'World Bank', 'WHO'],
+};
+
+const usedSources = DATA_SOURCES.filter((s) => s.used);
+const futureSources = DATA_SOURCES.filter((s) => !s.used);
+---
+
+<BaseLayout
+  title="全球城市对标 · 国际坐标系下的宜居度参考"
+  description="上海、银川与纽约、伦敦、东京、新加坡等全球城市在 PM2.5、GDP、绿地、交通、安全等维度的横向对比。数据来自 World Bank、WHO、Numbeo 等公开数据源。"
+  path="/global-benchmarks"
+  keywords={[
+    '全球城市对比',
+    '城市宜居度排名',
+    '国际城市对标',
+    'PM2.5全球排名',
+    '世界城市空气质量',
+    'World Bank城市数据',
+    'WHO空气质量数据库',
+  ]}
+  jsonLd={jsonLd}
+>
+  <section class="container-page py-10 sm:py-14">
+    {/* ── Hero ── */}
+    <div class="mx-auto max-w-3xl">
+      <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">
+        全球<span class="text-accent">城市对标</span>
+      </h1>
+      <p class="mt-3 text-base text-ink-soft sm:text-lg">
+        把上海和银川放到全球坐标系里看一看。
+        8 个维度、10 座城市、5 个国际公开数据源——
+        空气质量、经济水平、绿地覆盖、交通安全，每项都能查到原始来源。
+      </p>
+    </div>
+
+    {/* ── 本站城市摘要 ── */}
+    <div class="mt-10 grid gap-4 sm:grid-cols-2">
+      {yijuduCities.map((city) => (
+        <div class="card p-5">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-2xl">{city.flag}</span>
+              <h2 class="text-xl font-bold">{city.name}</h2>
+            </div>
+            <span class={`rounded-full px-3 py-1 text-xs font-medium ${categoryColors[city.category]}`}>
+              {categoryLabels[city.category]}
+            </span>
+          </div>
+          <p class="mt-2 text-sm text-ink-soft">{city.blurb}</p>
+          <div class="mt-4 grid grid-cols-3 gap-3 text-sm">
+            <div>
+              <div class="text-xs text-ink-soft">人口</div>
+              <div class="font-semibold">{city.population} 万</div>
+            </div>
+            {city.gdpPerCapitaUSD && (
+              <div>
+                <div class="text-xs text-ink-soft">人均 GDP</div>
+                <div class="font-semibold">${(city.gdpPerCapitaUSD / 1000).toFixed(1)}K</div>
+              </div>
+            )}
+            <div>
+              <div class="text-xs text-ink-soft">对标组</div>
+              <div class="font-semibold">{globalCities.length} 城</div>
+            </div>
+          </div>
+          {/* 全球排名摘要 */}
+          <div class="mt-4 space-y-1.5 border-t pt-3">
+            {BENCHMARK_METRICS.slice(0, 4).map((metric) => {
+              const rank = getCityRankInBenchmark(metric.key, city.key);
+              if (!rank) return null;
+              return (
+                <div class="flex items-center justify-between text-xs">
+                  <span class="text-ink-soft">{metric.label}</span>
+                  <span class="font-medium">
+                    第 {rank.rank}/{rank.total} 名
+                    <span class={`ml-1 ${rank.rank <= 3 ? 'text-emerald-600' : rank.rank <= 6 ? 'text-amber-600' : 'text-red-500'}`}>
+                      {rank.rank <= 3 ? '🟢' : rank.rank <= 6 ? '🟡' : '🔴'}
+                    </span>
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+
+    {/* ── 对标城市列表 ── */}
+    <h2 class="mt-12 text-xl font-bold">对标城市</h2>
+    <p class="mt-1 text-sm text-ink-soft">覆盖全球大都市、亚洲枢纽和中等规模城市</p>
+    <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {globalCities.map((city) => (
+        <div class="card flex items-center gap-3 p-4">
+          <span class="text-2xl">{city.flag}</span>
+          <div class="flex-1">
+            <div class="flex items-center gap-2">
+              <span class="font-semibold">{city.name}</span>
+              <span class="text-xs text-ink-soft">{city.country}</span>
+            </div>
+            <div class="text-xs text-ink-soft">{city.blurb}</div>
+          </div>
+          <span class={`rounded-full px-2.5 py-0.5 text-xs ${categoryColors[city.category]}`}>
+            {categoryLabels[city.category]}
+          </span>
+        </div>
+      ))}
+    </div>
+
+    {/* ── 维度对比条形图 ── */}
+    <h2 class="mt-14 text-xl font-bold">维度对比</h2>
+    <p class="mt-1 text-sm text-ink-soft">
+      点击指标查看全部城市排名 · 数据来源标注于每项指标下方
+    </p>
+
+    <div class="mt-6 space-y-10">
+      {metricRankings.map(({ metric, sorted }) => (
+        <div class="card p-6">
+          <div class="flex flex-wrap items-baseline justify-between gap-2">
+            <h3 class="text-lg font-semibold">
+              {metric.label}
+              {metric.lowerIsBetter && (
+                <span class="ml-2 text-xs font-normal text-ink-soft">（越低越好）</span>
+              )}
+            </h3>
+            <span class="text-xs text-ink-soft">{metric.year} 年 · {metric.description}</span>
+          </div>
+
+          {/* 条形图 */}
+          <div class="mt-4 space-y-2">
+            {sorted.map(({ key, val }, i) => {
+              const city = BENCHMARK_CITIES.find((c) => c.key === key)!;
+              const maxVal = Math.max(...sorted.map((s) => s.val));
+              const minVal = Math.min(...sorted.map((s) => s.val));
+              const range = maxVal - minVal || 1;
+              const pct = metric.lowerIsBetter
+                ? ((maxVal - val) / range) * 100
+                : ((val - minVal) / range) * 100;
+              const barWidth = Math.max(8, Math.min(100, pct));
+              const isYijudu = city.category === 'yijudu-city';
+              return (
+                <div class="flex items-center gap-3">
+                  <div class="flex w-28 items-center gap-1.5 text-sm">
+                    <span>{city.flag}</span>
+                    <span class={isYijudu ? 'font-bold text-accent' : ''}>{city.name}</span>
+                  </div>
+                  <div class="relative h-7 flex-1 overflow-hidden rounded bg-ink-soft/5">
+                    <div
+                      class={`absolute inset-y-0 left-0 rounded ${
+                        isYijudu
+                          ? 'bg-accent'
+                          : i === 0
+                            ? 'bg-emerald-400'
+                            : i === sorted.length - 1
+                              ? 'bg-red-300'
+                              : 'bg-ink-soft/30'
+                      }`}
+                      style={`width: ${barWidth}%`}
+                    />
+                    <span class="absolute inset-y-0 right-2 flex items-center text-xs font-medium">
+                      {val.toLocaleString()} {metric.unit}
+                    </span>
+                  </div>
+                  <span class="w-8 text-right text-xs text-ink-soft">#{i + 1}</span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* 数据来源 */}
+          <div class="mt-4 border-t pt-3">
+            <a
+              href={metric.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-xs text-accent hover:underline"
+            >
+              📊 {metric.source} ↗
+            </a>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    {/* ── 本站城市深度分析链接 ── */}
+    <div class="mt-12 card border-l-4 border-accent p-5">
+      <h3 class="font-semibold">深度分析</h3>
+      <p class="mt-1 text-sm text-ink-soft">
+        国际对标是宏观参考。要看区县级颗粒度的六维宜居度评分，进入城市详情页：
+      </p>
+      <div class="mt-3 flex flex-wrap gap-3">
+        {yijuduCities.map((city) => (
+          <a
+            href={`/${city.key}/`}
+            class="rounded-lg border border-ink-soft/20 px-4 py-2 text-sm font-medium transition hover:border-accent hover:bg-accent-soft"
+          >
+            {city.flag} {city.name} → 区县宜居度
+          </a>
+        ))}
+      </div>
+    </div>
+
+    {/* ── 数据源清单 ── */}
+    <h2 class="mt-14 text-xl font-bold">数据源</h2>
+    <p class="mt-1 text-sm text-ink-soft">
+      来自 <a href="https://github.com/awesomedata/awesome-public-datasets" target="_blank" rel="noopener noreferrer" class="text-accent hover:underline">awesome-public-datasets</a>
+      推荐的公开数据集，所有数据均可免费获取、可验证
+    </p>
+
+    {/* 已使用 */}
+    <h3 class="mt-6 text-sm font-semibold text-emerald-700">✅ 已在本页使用</h3>
+    <div class="mt-3 grid gap-3 sm:grid-cols-2">
+      {usedSources.map((src) => (
+        <div class="card p-4">
+          <div class="flex items-start justify-between gap-2">
+            <a
+              href={src.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="font-medium text-accent hover:underline"
+            >{src.name} ↗</a>
+            <span class={`shrink-0 rounded-full px-2 py-0.5 text-xs ${sourceCategoryColors[src.category]}`}>
+              {sourceCategoryLabels[src.category]}
+            </span>
+          </div>
+          <p class="mt-1.5 text-xs leading-relaxed text-ink-soft">{src.description}</p>
+        </div>
+      ))}
+    </div>
+
+    {/* 未来可扩展 */}
+    <h3 class="mt-8 text-sm font-semibold text-ink-soft">🔮 未来可扩展的数据源</h3>
+    <div class="mt-3 grid gap-3 sm:grid-cols-2">
+      {futureSources.map((src) => (
+        <div class="card p-4 opacity-75">
+          <div class="flex items-start justify-between gap-2">
+            <a
+              href={src.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="font-medium text-ink-soft hover:underline"
+            >{src.name} ↗</a>
+            <span class={`shrink-0 rounded-full px-2 py-0.5 text-xs ${sourceCategoryColors[src.category]}`}>
+              {sourceCategoryLabels[src.category]}
+            </span>
+          </div>
+          <p class="mt-1.5 text-xs leading-relaxed text-ink-soft">{src.description}</p>
+        </div>
+      ))}
+    </div>
+
+    {/* ── 方法论说明 ── */}
+    <div class="mt-12 card border-l-4 border-amber-400 p-5">
+      <h3 class="font-semibold">⚠️ 数据说明</h3>
+      <ul class="mt-2 space-y-1.5 text-sm text-ink-soft">
+        <li>• 本页数据为<strong>城市级估算值</strong>，部分指标使用国家级数据代理，非精确区县级数据</li>
+        <li>• 人均 GDP 为名义美元值，未做购买力平价（PPP）调整，仅做粗略对比</li>
+        <li>• 安全指数和成本指数来自 Numbeo 众包数据，可能存在统计偏差</li>
+        <li>• 各指标年份不完全一致，已标注于每项指标中</li>
+        <li>• 如需精确的区级宜居度评分，请查看 <a href="/methodology" class="text-accent hover:underline">评分方法</a> 页面</li>
+      </ul>
+    </div>
+  </section>
+</BaseLayout>
