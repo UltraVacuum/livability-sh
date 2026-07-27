@@ -27,6 +27,9 @@ import { CITY_UTILITY_TOTALS } from '../../data/utilities';
 import { getCityHousingQuality } from '../../data/housingQuality';
 import { getCityFinancial } from '../../data/financialAccess';
 import { getCityDining } from '../../data/diningVitality';
+import { CITY_EMERGENCY_TOTALS } from '../../data/emergencyShelter';
+import { CITY_TRANSIT_TOTALS } from '../../data/publicTransport';
+import { CITY_WATER_TOTALS } from '../../data/waterQuality';
 import { SITE } from '../../consts';
 
 export function getStaticPaths() {
@@ -62,6 +65,9 @@ const cityUtility = CITY_UTILITY_TOTALS[city.key];
 const cityHousingQ = getCityHousingQuality(city.key);
 const cityFinancial = getCityFinancial(city.key);
 const cityDining = getCityDining(city.key);
+const cityEmergency = CITY_EMERGENCY_TOTALS[city.key];
+const cityTransitTotal = CITY_TRANSIT_TOTALS[city.key];
+const cityWater = CITY_WATER_TOTALS[city.key];
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -384,6 +390,41 @@ const jsonLd = {
         {cityDining.exhibitionsCount && ` · 展览${cityDining.exhibitionsCount}场`}
         {cityDining.accommodationCateringValue && ` · 住宿餐饮${cityDining.accommodationCateringValue}亿`}
         <span class="text-xs text-orange-600">（市级数据，来源：{city.key === 'shanghai' ? '上海市2025年统计公报' : '银川市2025年统计公报'}）</span>
+      </div>
+    )}
+
+    {cityEmergency && (
+      <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+        🚨 {city.name}{cityEmergency.year}年应急与消防：
+        应急避难场所 <strong>{cityEmergency.totalShelters}</strong>个
+        ，消防站 <strong>{cityEmergency.totalFireStations}</strong>个
+        ，消防员 <strong>{cityEmergency.totalFirefighters.toLocaleString()}</strong>人
+        ，年度火灾 <strong>{cityEmergency.annualFireIncidents.toLocaleString()}</strong>起
+        <span class="text-xs text-red-600">（市级数据，来源：<a href={cityEmergency.sourceUrl} class="underline">{cityEmergency.source}</a>）</span>
+      </div>
+    )}
+
+    {cityTransitTotal && (
+      <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+        🚌 {city.name}{cityTransitTotal.year}年公共交通：
+        公交线路 <strong>{cityTransitTotal.totalRoutes}</strong>条
+        ，公交站点 <strong>{cityTransitTotal.totalStops.toLocaleString()}</strong>个
+        ，公交车 <strong>{cityTransitTotal.totalBuses.toLocaleString()}</strong>辆（新能源{cityTransitTotal.newEnergyRatio}%）
+        ，出租车 <strong>{cityTransitTotal.totalTaxis.toLocaleString()}</strong>辆
+        ，年客运 <strong>{cityTransitTotal.annualRidership}</strong>亿人次
+        <span class="text-xs text-blue-600">（市级数据，来源：<a href={cityTransitTotal.sourceUrl} class="underline">{cityTransitTotal.source}</a>）</span>
+      </div>
+    )}
+
+    {cityWater && (
+      <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-cyan-200 bg-cyan-50 px-4 py-3 text-sm text-cyan-800">
+        💧 {city.name}{cityWater.year}年水环境：
+        {cityWater.mainRiverName}水质 <strong>{cityWater.mainRiverQuality}</strong>
+        ，地表水III类+占比 <strong>{cityWater.surfaceWaterQualityRate}%</strong>
+        ，污水处理率 <strong>{cityWater.sewageTreatmentRate}%</strong>
+        ，再生水利用 <strong>{cityWater.recycledWaterRate}%</strong>
+        ，人均日用水 <strong>{cityWater.perCapitaDailyWater}</strong>升
+        <span class="text-xs text-cyan-600">（市级数据，来源：<a href={cityWater.sourceUrl} class="underline">{cityWater.source}</a>）</span>
       </div>
     )}
 

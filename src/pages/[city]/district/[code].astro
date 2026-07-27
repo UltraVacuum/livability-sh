@@ -35,6 +35,9 @@ import { getDistrictUtility, utilitySource, utilityYear, CITY_UTILITY_TOTALS } f
 import { getDistrictHousingQuality, getCityHousingQuality, housingQualitySource, housingQualityYear } from '../../../data/housingQuality';
 import { getDistrictFinancial, getCityFinancial, financialSource, financialYear, CITY_FINANCIAL_TOTALS } from '../../../data/financialAccess';
 import { getDistrictDining, getCityDining, diningSource, diningYear, CITY_DINING_TOTALS } from '../../../data/diningVitality';
+import { getDistrictEmergency, emergencySource, emergencyYear, CITY_EMERGENCY_TOTALS } from '../../../data/emergencyShelter';
+import { getDistrictTransitDetail, transitSource, transitYear, CITY_TRANSIT_TOTALS } from '../../../data/publicTransport';
+import { getDistrictWater, waterSource, waterYear, CITY_WATER_TOTALS } from '../../../data/waterQuality';
 
 export function getStaticPaths() {
   const paths = [];
@@ -168,6 +171,18 @@ const cityFinancial = getCityFinancial(city.key);
 // 餐饮与消费活力（区级+市级）
 const dining = getDistrictDining(city.key, district.adcode);
 const cityDining = getCityDining(city.key);
+
+// 应急避难与消防（区级）
+const emergency = getDistrictEmergency(city.key, district.adcode);
+const cityEmergency = CITY_EMERGENCY_TOTALS[city.key];
+
+// 公共交通细化（区级）
+const transitDetail = getDistrictTransitDetail(city.key, district.adcode);
+const cityTransitTotal = CITY_TRANSIT_TOTALS[city.key];
+
+// 水资源与水环境质量（区级）
+const water = getDistrictWater(city.key, district.adcode);
+const cityWater = CITY_WATER_TOTALS[city.key];
 
 const radarSeries = [
   { name: district.name, color: '#0d9488', values: METRICS.map((m) => district.metrics[m.key].score) },
@@ -1729,6 +1744,168 @@ const jsonLd = {
             {cityDining.onlineShoppingValue && ` · 网购${cityDining.onlineShoppingValue}万亿`}
             {cityDining.exhibitionsCount && ` · 展览${cityDining.exhibitionsCount}场`}
             {cityDining.accommodationCateringValue && ` · 住宿餐饮增加值${cityDining.accommodationCateringValue}亿`}
+          </p>
+        )}
+      </div>
+    )}
+
+    {emergency && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">🚨 应急避难与消防安全</h3>
+          <span class="text-xs text-ink-soft">{emergencyYear(city.key)} · {emergencySource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}应急避难与消防资源分布。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-red-100 bg-red-50 px-4 py-3">
+            <div class="text-xs text-red-700">应急避难场所</div>
+            <div class="mt-1 text-xl font-bold text-red-900">{emergency.shelters}</div>
+            <div class="text-[10px] text-red-600">个{emergency.shelterCapacity ? `（容纳${emergency.shelterCapacity}万人）` : ''}</div>
+          </div>
+          <div class="rounded-lg border border-orange-100 bg-orange-50 px-4 py-3">
+            <div class="text-xs text-orange-700">消防站</div>
+            <div class="mt-1 text-xl font-bold text-orange-900">{emergency.fireStations}</div>
+            <div class="text-[10px] text-orange-600">个（含微型站）</div>
+          </div>
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">消防员</div>
+            <div class="mt-1 text-xl font-bold text-ink">{emergency.firefighters}</div>
+            <div class="text-[10px] text-ink-soft">人（估算）</div>
+          </div>
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">年度火灾起数</div>
+            <div class="mt-1 text-xl font-bold text-ink">{emergency.annualFireIncidents}</div>
+            <div class="text-[10px] text-ink-soft">起（估算）</div>
+          </div>
+          {emergency.civilAirDefenseArea !== undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">人防工程面积</div>
+              <div class="mt-1 text-xl font-bold text-ink">{emergency.civilAirDefenseArea}</div>
+              <div class="text-[10px] text-ink-soft">万㎡（估算）</div>
+            </div>
+          )}
+        </div>
+        {cityEmergency && (
+          <p class="mt-3 text-xs text-ink-soft">
+            📊 {city.name}市级参考：避难场所<strong>{cityEmergency.totalShelters}</strong>个，消防站<strong>{cityEmergency.totalFireStations}</strong>个，消防员<strong>{cityEmergency.totalFirefighters.toLocaleString()}</strong>人
+          </p>
+        )}
+      </div>
+    )}
+
+    {transitDetail && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">🚌 公共交通细化</h3>
+          <span class="text-xs text-ink-soft">{transitYear(city.key)} · {transitSource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}公共交通资源分布。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+            <div class="text-xs text-blue-700">公交运营线路</div>
+            <div class="mt-1 text-xl font-bold text-blue-900">{transitDetail.busRoutes}</div>
+            <div class="text-[10px] text-blue-600">条</div>
+          </div>
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">公交站点</div>
+            <div class="mt-1 text-xl font-bold text-ink">{transitDetail.busStops}</div>
+            <div class="text-[10px] text-ink-soft">个</div>
+          </div>
+          <div class="rounded-lg border border-green-100 bg-green-50 px-4 py-3">
+            <div class="text-xs text-green-700">公交车</div>
+            <div class="mt-1 text-xl font-bold text-green-900">{transitDetail.buses}</div>
+            <div class="text-[10px] text-green-600">辆（新能源{transitDetail.newEnergyBusRatio}%）</div>
+          </div>
+          <div class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+            <div class="text-xs text-amber-700">出租车</div>
+            <div class="mt-1 text-xl font-bold text-amber-900">{transitDetail.taxis}</div>
+            <div class="text-[10px] text-amber-600">辆（含网约）</div>
+          </div>
+          {transitDetail.busExclusiveLanes !== undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">公交专用道</div>
+              <div class="mt-1 text-xl font-bold text-ink">{transitDetail.busExclusiveLanes}</div>
+              <div class="text-[10px] text-ink-soft">公里</div>
+            </div>
+          )}
+          {transitDetail.ferryRoutes !== undefined && transitDetail.ferryRoutes > 0 && (
+            <div class="rounded-lg border border-cyan-100 bg-cyan-50 px-4 py-3">
+              <div class="text-xs text-cyan-700">轮渡航线</div>
+              <div class="mt-1 text-xl font-bold text-cyan-900">{transitDetail.ferryRoutes}</div>
+              <div class="text-[10px] text-cyan-600">条（黄浦江）</div>
+            </div>
+          )}
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">年客运量</div>
+            <div class="mt-1 text-xl font-bold text-ink">{transitDetail.annualRidership}</div>
+            <div class="text-[10px] text-ink-soft">亿人次（估算）</div>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {water && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">💧 水资源与水环境质量</h3>
+          <span class="text-xs text-ink-soft">{waterYear(city.key)} · {waterSource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}水环境质量与用水数据{water.mainWaterBody ? ` · 主要水体：${water.mainWaterBody}` : ''}。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-cyan-100 bg-cyan-50 px-4 py-3">
+            <div class="text-xs text-cyan-700">地表水III类+</div>
+            <div class="mt-1 text-xl font-bold text-cyan-900">{water.surfaceWaterQualityRate}%</div>
+            <div class="text-[10px] text-cyan-600">达到或优于III类</div>
+          </div>
+          <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+            <div class="text-xs text-blue-700">水功能区达标</div>
+            <div class="mt-1 text-xl font-bold text-blue-900">{water.waterFunctionZoneRate}%</div>
+            <div class="text-[10px] text-blue-600">重要水功能区</div>
+          </div>
+          <div class="rounded-lg border border-teal-100 bg-teal-50 px-4 py-3">
+            <div class="text-xs text-teal-700">污水处理率</div>
+            <div class="mt-1 text-xl font-bold text-teal-900">{water.sewageTreatmentRate}%</div>
+            <div class="text-[10px] text-teal-600">城镇污水处理</div>
+          </div>
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">人均日用水</div>
+            <div class="mt-1 text-xl font-bold text-ink">{water.perCapitaDailyWater}</div>
+            <div class="text-[10px] text-ink-soft">升/人·日</div>
+          </div>
+          <div class="rounded-lg border border-green-100 bg-green-50 px-4 py-3">
+            <div class="text-xs text-green-700">再生水利用率</div>
+            <div class="mt-1 text-xl font-bold text-green-900">{water.recycledWaterRate}%</div>
+            <div class="text-[10px] text-green-600">污水再生利用</div>
+          </div>
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">节水器具普及</div>
+            <div class="mt-1 text-xl font-bold text-ink">{water.waterSavingDeviceRate}%</div>
+            <div class="text-[10px] text-ink-soft">居民节水器具</div>
+          </div>
+          {water.riverLakeLength !== undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">河湖长度</div>
+              <div class="mt-1 text-xl font-bold text-ink">{water.riverLakeLength}</div>
+              <div class="text-[10px] text-ink-soft">公里</div>
+            </div>
+          )}
+          {water.wetlandArea !== undefined && (
+            <div class="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+              <div class="text-xs text-emerald-700">湿地面积</div>
+              <div class="mt-1 text-xl font-bold text-emerald-900">{water.wetlandArea}</div>
+              <div class="text-[10px] text-emerald-600">公顷</div>
+            </div>
+          )}
+        </div>
+        {cityWater && (
+          <p class="mt-3 text-xs text-ink-soft">
+            📊 {city.name}市级参考：{cityWater.mainRiverName}水质<strong>{cityWater.mainRiverQuality}</strong>，地表水III类+占比<strong>{cityWater.surfaceWaterQualityRate}%</strong>，再生水<strong>{cityWater.recycledWaterRate}%</strong>
           </p>
         )}
       </div>
