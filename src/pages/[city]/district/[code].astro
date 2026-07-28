@@ -38,6 +38,9 @@ import { getDistrictDining, getCityDining, diningSource, diningYear, CITY_DINING
 import { getDistrictEmergency, emergencySource, emergencyYear, CITY_EMERGENCY_TOTALS } from '../../../data/emergencyShelter';
 import { getDistrictTransitDetail, transitSource, transitYear, CITY_TRANSIT_TOTALS } from '../../../data/publicTransport';
 import { getDistrictWater, waterSource, waterYear, CITY_WATER_TOTALS } from '../../../data/waterQuality';
+import { getDistrictWaste, wasteSource, wasteYear, CITY_WASTE_TOTALS } from '../../../data/wasteManagement';
+import { getDistrictFamily, familySource, familyYear, CITY_FAMILY_TOTALS } from '../../../data/familyPlanning';
+import { getDistrictFoodSafety, foodSafetySource, foodSafetyYear, CITY_FOOD_TOTALS } from '../../../data/foodSafety';
 
 export function getStaticPaths() {
   const paths = [];
@@ -183,6 +186,18 @@ const cityTransitTotal = CITY_TRANSIT_TOTALS[city.key];
 // 水资源与水环境质量（区级）
 const water = getDistrictWater(city.key, district.adcode);
 const cityWater = CITY_WATER_TOTALS[city.key];
+
+// 垃圾分类与废物管理（区级）
+const waste = getDistrictWaste(city.key, district.adcode);
+const cityWaste = CITY_WASTE_TOTALS[city.key];
+
+// 婚育与人口（区级）
+const family = getDistrictFamily(city.key, district.adcode);
+const cityFamily = CITY_FAMILY_TOTALS[city.key];
+
+// 食品安全（区级）
+const food = getDistrictFoodSafety(city.key, district.adcode);
+const cityFood = CITY_FOOD_TOTALS[city.key];
 
 const radarSeries = [
   { name: district.name, color: '#0d9488', values: METRICS.map((m) => district.metrics[m.key].score) },
@@ -1906,6 +1921,173 @@ const jsonLd = {
         {cityWater && (
           <p class="mt-3 text-xs text-ink-soft">
             📊 {city.name}市级参考：{cityWater.mainRiverName}水质<strong>{cityWater.mainRiverQuality}</strong>，地表水III类+占比<strong>{cityWater.surfaceWaterQualityRate}%</strong>，再生水<strong>{cityWater.recycledWaterRate}%</strong>
+          </p>
+        )}
+      </div>
+    )}
+
+    {waste && (
+      <div class="mt-6 rounded-xl border border-emerald-200 bg-emerald-50/50 p-5">
+        <h3 class="text-base font-semibold text-emerald-900">♻️ 垃圾分类与废物管理</h3>
+        <span class="text-xs text-ink-soft">{wasteYear(city.key)} · {wasteSource(city.key)}</span>
+        <p class="mt-2 text-sm text-ink-soft">
+          {district.name}垃圾分类与废物管理概况{waste.wasteIndex ? `，无废指数 <strong>${waste.wasteIndex}</strong>` : ''}。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {waste.wasteIndex !== undefined && (
+            <div class="rounded-lg border border-emerald-100 bg-white px-4 py-3">
+              <div class="text-xs text-emerald-700">无废指数</div>
+              <div class="mt-1 text-xl font-bold text-emerald-900">{waste.wasteIndex}</div>
+              <div class="text-[10px] text-emerald-600">满分100</div>
+            </div>
+          )}
+          {waste.dailyWaste !== undefined && (
+            <div class="rounded-lg border border-orange-100 bg-orange-50 px-4 py-3">
+              <div class="text-xs text-orange-700">日均垃圾产生量</div>
+              <div class="mt-1 text-xl font-bold text-orange-900">{waste.dailyWaste.toLocaleString()}</div>
+              <div class="text-[10px] text-orange-600">吨/日</div>
+            </div>
+          )}
+          {waste.recyclingRate !== undefined && (
+            <div class="rounded-lg border border-green-100 bg-green-50 px-4 py-3">
+              <div class="text-xs text-green-700">回收利用率</div>
+              <div class="mt-1 text-xl font-bold text-green-900">{waste.recyclingRate}%</div>
+            </div>
+          )}
+          {waste.classificationScore !== undefined && waste.classificationScore > 0 && (
+            <div class="rounded-lg border border-teal-100 bg-teal-50 px-4 py-3">
+              <div class="text-xs text-teal-700">分类实效评估</div>
+              <div class="mt-1 text-xl font-bold text-teal-900">{waste.classificationScore}</div>
+              <div class="text-[10px] text-teal-600">分</div>
+            </div>
+          )}
+          {waste.harmlessRate !== undefined && (
+            <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+              <div class="text-xs text-blue-700">无害化处理率</div>
+              <div class="mt-1 text-xl font-bold text-blue-900">{waste.harmlessRate}%</div>
+            </div>
+          )}
+          {waste.resourceRate !== undefined && (
+            <div class="rounded-lg border border-purple-100 bg-purple-50 px-4 py-3">
+              <div class="text-xs text-purple-700">资源化利用率</div>
+              <div class="mt-1 text-xl font-bold text-purple-900">{waste.resourceRate}%</div>
+            </div>
+          )}
+          {waste.perCapitaDaily !== undefined && (
+            <div class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+              <div class="text-xs text-amber-700">人均日产生量</div>
+              <div class="mt-1 text-xl font-bold text-amber-900">{waste.perCapitaDaily}</div>
+              <div class="text-[10px] text-amber-600">公斤/日</div>
+            </div>
+          )}
+        </div>
+        {cityWaste && (
+          <p class="mt-3 text-xs text-ink-soft">
+            📊 {city.name}市级参考：无废指数<strong>{cityWaste.wasteIndex || '—'}</strong>，回收利用率<strong>{cityWaste.recyclingRate}%</strong>{cityWaste.kwhPerTonDry ? `，干垃圾发电${cityWaste.kwhPerTonDry}度/吨` : ''}{cityWaste.carbonReductionPerTonWet ? `，湿垃圾减碳${cityWaste.carbonReductionPerTonWet}kg/吨` : ''}
+          </p>
+        )}
+      </div>
+    )}
+
+    {family && (
+      <div class="mt-6 rounded-xl border border-rose-200 bg-rose-50/50 p-5">
+        <h3 class="text-base font-semibold text-rose-900">👶 婚育与人口结构</h3>
+        <span class="text-xs text-ink-soft">{familyYear(city.key)} · {familySource(city.key)}</span>
+        <p class="mt-2 text-sm text-ink-soft">
+          {district.name}婚育与人口数据{family.totalFertilityRate ? `，总和生育率 <strong>${family.totalFertilityRate}</strong>` : ''}。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {family.totalFertilityRate !== undefined && (
+            <div class="rounded-lg border border-rose-100 bg-white px-4 py-3">
+              <div class="text-xs text-rose-700">总和生育率</div>
+              <div class="mt-1 text-xl font-bold text-rose-900">{family.totalFertilityRate}</div>
+              <div class="text-[10px] text-rose-600">更替水平=2.1</div>
+            </div>
+          )}
+          {family.generalFertilityRate !== undefined && (
+            <div class="rounded-lg border border-pink-100 bg-pink-50 px-4 py-3">
+              <div class="text-xs text-pink-700">一般生育率</div>
+              <div class="mt-1 text-xl font-bold text-pink-900">{family.generalFertilityRate}‰</div>
+            </div>
+          )}
+          {family.avgFirstBirthAge !== undefined && (
+            <div class="rounded-lg border border-orange-100 bg-orange-50 px-4 py-3">
+              <div class="text-xs text-orange-700">平均初育年龄</div>
+              <div class="mt-1 text-xl font-bold text-orange-900">{family.avgFirstBirthAge}</div>
+              <div class="text-[10px] text-orange-600">岁</div>
+            </div>
+          )}
+          {family.birthRate !== undefined && (
+            <div class="rounded-lg border border-red-100 bg-red-50 px-4 py-3">
+              <div class="text-xs text-red-700">出生率</div>
+              <div class="mt-1 text-xl font-bold text-red-900">{family.birthRate}‰</div>
+            </div>
+          )}
+          {family.firstChildRate !== undefined && (
+            <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+              <div class="text-xs text-blue-700">一孩率</div>
+              <div class="mt-1 text-xl font-bold text-blue-900">{family.firstChildRate}%</div>
+            </div>
+          )}
+          {family.secondChildRate !== undefined && (
+            <div class="rounded-lg border border-green-100 bg-green-50 px-4 py-3">
+              <div class="text-xs text-green-700">二孩率</div>
+              <div class="mt-1 text-xl font-bold text-green-900">{family.secondChildRate}%</div>
+            </div>
+          )}
+          {family.thirdChildRate !== undefined && (
+            <div class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+              <div class="text-xs text-amber-700">三孩率</div>
+              <div class="mt-1 text-xl font-bold text-amber-900">{family.thirdChildRate}%</div>
+            </div>
+          )}
+        </div>
+        {cityFamily && (
+          <p class="mt-3 text-xs text-ink-soft">
+            📊 {city.name}市级参考：总和生育率<strong>{cityFamily.totalFertilityRate}</strong>，出生率<strong>{cityFamily.birthRate}‰</strong>，自然增长率<strong>{cityFamily.naturalGrowthRate > 0 ? '+' : ''}{cityFamily.naturalGrowthRate}‰</strong>，平均初育年龄<strong>{cityFamily.avgFirstBirthAge}岁</strong>
+          </p>
+        )}
+      </div>
+    )}
+
+    {food && (
+      <div class="mt-6 rounded-xl border border-lime-200 bg-lime-50/50 p-5">
+        <h3 class="text-base font-semibold text-lime-900">🍽️ 食品安全</h3>
+        <span class="text-xs text-ink-soft">{foodSafetyYear(city.key)} · {foodSafetySource(city.key)}</span>
+        <p class="mt-2 text-sm text-ink-soft">
+          {district.name}食品安全概况{food.inspectionPassRate ? `，监督抽检合格率 <strong>${food.inspectionPassRate}%</strong>` : ''}。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {food.inspectionPassRate !== undefined && (
+            <div class="rounded-lg border border-lime-100 bg-white px-4 py-3">
+              <div class="text-xs text-lime-700">监督抽检合格率</div>
+              <div class="mt-1 text-xl font-bold text-lime-900">{food.inspectionPassRate}%</div>
+            </div>
+          )}
+          {food.gradeARate !== undefined && (
+            <div class="rounded-lg border border-green-100 bg-green-50 px-4 py-3">
+              <div class="text-xs text-green-700">餐饮A级占比</div>
+              <div class="mt-1 text-xl font-bold text-green-900">{food.gradeARate}%</div>
+              <div class="text-[10px] text-green-600">年度良好</div>
+            </div>
+          )}
+          {food.gradeABRate !== undefined && (
+            <div class="rounded-lg border border-teal-100 bg-teal-50 px-4 py-3">
+              <div class="text-xs text-teal-700">餐饮A+B级占比</div>
+              <div class="mt-1 text-xl font-bold text-teal-900">{food.gradeABRate}%</div>
+            </div>
+          )}
+          {food.smileyRate !== undefined && (
+            <div class="rounded-lg border border-yellow-100 bg-yellow-50 px-4 py-3">
+              <div class="text-xs text-yellow-700">动态笑脸占比</div>
+              <div class="mt-1 text-xl font-bold text-yellow-900">{food.smileyRate}%</div>
+              <div class="text-[10px] text-yellow-600">😊 良好</div>
+            </div>
+          )}
+        </div>
+        {cityFood && (
+          <p class="mt-3 text-xs text-ink-soft">
+            📊 {city.name}市级参考：监测合格率<strong>{cityFood.monitoringPassRate}%</strong>，年抽检<strong>{cityFood.annualInspections.toLocaleString()}</strong>批次{cityFood.poisoningIncidents !== undefined ? `，集体食物中毒<strong>${cityFood.poisoningIncidents}</strong>起` : ''}
           </p>
         )}
       </div>

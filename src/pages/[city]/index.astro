@@ -30,6 +30,9 @@ import { getCityDining } from '../../data/diningVitality';
 import { CITY_EMERGENCY_TOTALS } from '../../data/emergencyShelter';
 import { CITY_TRANSIT_TOTALS } from '../../data/publicTransport';
 import { CITY_WATER_TOTALS } from '../../data/waterQuality';
+import { CITY_WASTE_TOTALS } from '../../data/wasteManagement';
+import { CITY_FAMILY_TOTALS } from '../../data/familyPlanning';
+import { CITY_FOOD_TOTALS } from '../../data/foodSafety';
 import { SITE } from '../../consts';
 
 export function getStaticPaths() {
@@ -68,6 +71,9 @@ const cityDining = getCityDining(city.key);
 const cityEmergency = CITY_EMERGENCY_TOTALS[city.key];
 const cityTransitTotal = CITY_TRANSIT_TOTALS[city.key];
 const cityWater = CITY_WATER_TOTALS[city.key];
+const cityWaste = CITY_WASTE_TOTALS[city.key];
+const cityFamily = CITY_FAMILY_TOTALS[city.key];
+const cityFood = CITY_FOOD_TOTALS[city.key];
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -425,6 +431,47 @@ const jsonLd = {
         ，再生水利用 <strong>{cityWater.recycledWaterRate}%</strong>
         ，人均日用水 <strong>{cityWater.perCapitaDailyWater}</strong>升
         <span class="text-xs text-cyan-600">（市级数据，来源：<a href={cityWater.sourceUrl} class="underline">{cityWater.source}</a>）</span>
+      </div>
+    )}
+
+    {cityWaste && (
+      <div class="mx-auto mt-2 max-w-4xl rounded-lg bg-emerald-50 px-4 py-2 text-sm text-emerald-900">
+        ♻️ {city.name}{cityWaste.year}年垃圾分类与废物管理：
+        {cityWaste.wasteIndex > 0 && <>无废指数 <strong>{cityWaste.wasteIndex}</strong>（同比+{cityWaste.wasteIndexTrend}）</>}
+        {cityWaste.wasteIndex > 0 && '，'}
+        生活垃圾回收利用率 <strong>{cityWaste.recyclingRate}%</strong>
+        ，分类实效评估 <strong>{cityWaste.classificationScore}</strong>分
+        {cityWaste.dailyWaste > 0 && <>，日均垃圾 <strong>{cityWaste.dailyWaste}</strong>万吨</>}
+        {cityWaste.incinerationPlants > 0 && <>，焚烧厂 <strong>{cityWaste.incinerationPlants}</strong>座</>}
+        {cityWaste.harmlessRate && <>，无害化率 <strong>{cityWaste.harmlessRate}%</strong></>}
+        {cityWaste.resourceRate && <>，资源化率 <strong>{cityWaste.resourceRate}%</strong></>}
+        <span class="text-xs text-emerald-600">（市级数据，来源：<a href={cityWaste.sourceUrl} class="underline">{cityWaste.source}</a>）</span>
+      </div>
+    )}
+
+    {cityFamily && (
+      <div class="mx-auto mt-2 max-w-4xl rounded-lg bg-rose-50 px-4 py-2 text-sm text-rose-900">
+        👶 {city.name}{cityFamily.year}年婚育与人口：
+        总和生育率 <strong>{cityFamily.totalFertilityRate}</strong>
+        ，出生率 <strong>{cityFamily.birthRate}‰</strong>
+        ，自然增长率 <strong>{cityFamily.naturalGrowthRate > 0 ? '+' : ''}{cityFamily.naturalGrowthRate}‰</strong>
+        ，出生 <strong>{cityFamily.births}</strong>万 / 死亡 <strong>{cityFamily.deaths}</strong>万
+        ，平均初育年龄 <strong>{cityFamily.avgFirstBirthAge}</strong>岁
+        ，常住人口 <strong>{cityFamily.population}</strong>万（性别比{cityFamily.sexRatio}）
+        <span class="text-xs text-rose-600">（市级数据，来源：<a href={cityFamily.sourceUrl} class="underline">{cityFamily.source}</a>）</span>
+      </div>
+    )}
+
+    {cityFood && (
+      <div class="mx-auto mt-2 max-w-4xl rounded-lg bg-lime-50 px-4 py-2 text-sm text-lime-900">
+        🍽️ {city.name}{cityFood.year}年食品安全：
+        食品安全监测合格率 <strong>{cityFood.monitoringPassRate}%</strong>
+        ，监督抽检合格率 <strong>{cityFood.inspectionPassRate}%</strong>
+        ，年抽检 <strong>{cityFood.annualInspections.toLocaleString()}</strong>批次
+        ，{cityFood.fullCoverageCategories}个食品大类合格率100%
+        {cityFood.quantGradingSystem && '，实行餐饮量化分级（笑脸/平脸/哭脸）'}
+        {cityFood.poisoningIncidents !== undefined && cityFood.poisoningIncidents > 0 ? `，集体食物中毒<strong>${cityFood.poisoningIncidents}</strong>起/<strong>${cityFood.poisoningCases}</strong>人` : '，无集体食物中毒事件'}
+        <span class="text-xs text-lime-600">（市级数据，来源：<a href={cityFood.sourceUrl} class="underline">{cityFood.source}</a>）</span>
       </div>
     )}
 
