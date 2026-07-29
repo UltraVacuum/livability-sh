@@ -41,6 +41,9 @@ import { getDistrictWater, waterSource, waterYear, CITY_WATER_TOTALS } from '../
 import { getDistrictWaste, wasteSource, wasteYear, CITY_WASTE_TOTALS } from '../../../data/wasteManagement';
 import { getDistrictFamily, familySource, familyYear, CITY_FAMILY_TOTALS } from '../../../data/familyPlanning';
 import { getDistrictFoodSafety, foodSafetySource, foodSafetyYear, CITY_FOOD_TOTALS } from '../../../data/foodSafety';
+import { getDistrictOutdoor, outdoorSource, outdoorYear, CITY_OUTDOOR_TOTALS } from '../../../data/outdoorRecreation';
+import { getDistrictNight, nightSource, nightYear, CITY_NIGHT_TOTALS } from '../../../data/nighttimeEconomy';
+import { getDistrictPet, petSource, petYear, CITY_PET_TOTALS } from '../../../data/petFriendly';
 
 export function getStaticPaths() {
   const paths = [];
@@ -198,6 +201,18 @@ const cityFamily = CITY_FAMILY_TOTALS[city.key];
 // 食品安全（区级）
 const food = getDistrictFoodSafety(city.key, district.adcode);
 const cityFood = CITY_FOOD_TOTALS[city.key];
+
+// 户外休闲（区级）
+const outdoor = getDistrictOutdoor(city.key, district.adcode);
+const cityOutdoor = CITY_OUTDOOR_TOTALS[city.key];
+
+// 夜间经济（区级）
+const night = getDistrictNight(city.key, district.adcode);
+const cityNight = CITY_NIGHT_TOTALS[city.key];
+
+// 宠物友好（区级）
+const pet = getDistrictPet(city.key, district.adcode);
+const cityPet = CITY_PET_TOTALS[city.key];
 
 const radarSeries = [
   { name: district.name, color: '#0d9488', values: METRICS.map((m) => district.metrics[m.key].score) },
@@ -2088,6 +2103,176 @@ const jsonLd = {
         {cityFood && (
           <p class="mt-3 text-xs text-ink-soft">
             📊 {city.name}市级参考：监测合格率<strong>{cityFood.monitoringPassRate}%</strong>，年抽检<strong>{cityFood.annualInspections.toLocaleString()}</strong>批次{cityFood.poisoningIncidents !== undefined ? `，集体食物中毒<strong>${cityFood.poisoningIncidents}</strong>起` : ''}
+          </p>
+        )}
+      </div>
+    )}
+
+    {outdoor && (
+      <div class="mt-6 rounded-xl border border-green-200 bg-green-50/50 p-5">
+        <h3 class="text-base font-semibold text-green-900">🌳 户外休闲</h3>
+        <span class="text-xs text-ink-soft">{outdoorYear(city.key)} · {outdoorSource(city.key)}</span>
+        <p class="mt-2 text-sm text-ink-soft">
+          {district.name}户外休闲资源{outdoor.parks ? `，公园 <strong>${outdoor.parks}</strong> 座` : ''}{outdoor.greenwayKm ? `，绿道 <strong>${outdoor.greenwayKm}</strong> 公里` : ''}。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {outdoor.parks !== undefined && (
+            <div class="rounded-lg border border-green-100 bg-white px-4 py-3">
+              <div class="text-xs text-green-700">公园数量</div>
+              <div class="mt-1 text-xl font-bold text-green-900">{outdoor.parks}</div>
+              <div class="text-[10px] text-green-600">座</div>
+            </div>
+          )}
+          {outdoor.parkArea !== undefined && (
+            <div class="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+              <div class="text-xs text-emerald-700">公园面积</div>
+              <div class="mt-1 text-xl font-bold text-emerald-900">{outdoor.parkArea}</div>
+              <div class="text-[10px] text-emerald-600">公顷</div>
+            </div>
+          )}
+          {outdoor.greenwayKm !== undefined && (
+            <div class="rounded-lg border border-teal-100 bg-teal-50 px-4 py-3">
+              <div class="text-xs text-teal-700">绿道长度</div>
+              <div class="mt-1 text-xl font-bold text-teal-900">{outdoor.greenwayKm}</div>
+              <div class="text-[10px] text-teal-600">公里</div>
+            </div>
+          )}
+          {outdoor.trailKm !== undefined && (
+            <div class="rounded-lg border border-lime-100 bg-lime-50 px-4 py-3">
+              <div class="text-xs text-lime-700">步道总长</div>
+              <div class="mt-1 text-xl font-bold text-lime-900">{outdoor.trailKm}</div>
+              <div class="text-[10px] text-lime-600">公里</div>
+            </div>
+          )}
+          {outdoor.campgrounds !== undefined && (
+            <div class="rounded-lg border border-orange-100 bg-orange-50 px-4 py-3">
+              <div class="text-xs text-orange-700">露营地</div>
+              <div class="mt-1 text-xl font-bold text-orange-900">{outdoor.campgrounds}</div>
+              <div class="text-[10px] text-orange-600">个</div>
+            </div>
+          )}
+          {outdoor.perCapitaParkArea !== undefined && (
+            <div class="rounded-lg border border-green-100 bg-green-50 px-4 py-3">
+              <div class="text-xs text-green-700">人均公园绿地</div>
+              <div class="mt-1 text-xl font-bold text-green-900">{outdoor.perCapitaParkArea}</div>
+              <div class="text-[10px] text-green-600">㎡</div>
+            </div>
+          )}
+        </div>
+        {cityOutdoor && (
+          <p class="mt-3 text-xs text-ink-soft">
+            📊 {city.name}市级参考：公园 <strong>{cityOutdoor.totalParks}</strong> 座，绿道 <strong>{cityOutdoor.totalGreenwayKm}</strong> 公里，露营地 <strong>{cityOutdoor.totalCampgrounds}</strong> 个，经常锻炼人数比例 <strong>{cityOutdoor.sportsParticipationRate}%</strong>
+          </p>
+        )}
+      </div>
+    )}
+
+    {night && (
+      <div class="mt-6 rounded-xl border border-indigo-200 bg-indigo-50/50 p-5">
+        <h3 class="text-base font-semibold text-indigo-900">🌙 夜间经济</h3>
+        <span class="text-xs text-ink-soft">{nightYear(city.key)} · {nightSource(city.key)}</span>
+        <p class="mt-2 text-sm text-ink-soft">
+          {district.name}夜间经济资源{night.convenience24h ? `，24h便利店 <strong>${night.convenience24h}</strong> 家` : ''}{night.nightMarkets ? `，夜市 <strong>${night.nightMarkets}</strong> 个` : ''}。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {night.convenience24h !== undefined && (
+            <div class="rounded-lg border border-indigo-100 bg-white px-4 py-3">
+              <div class="text-xs text-indigo-700">24h便利店</div>
+              <div class="mt-1 text-xl font-bold text-indigo-900">{night.convenience24h}</div>
+              <div class="text-[10px] text-indigo-600">家</div>
+            </div>
+          )}
+          {night.nightMarkets !== undefined && (
+            <div class="rounded-lg border border-purple-100 bg-purple-50 px-4 py-3">
+              <div class="text-xs text-purple-700">夜市/集市</div>
+              <div class="mt-1 text-xl font-bold text-purple-900">{night.nightMarkets}</div>
+              <div class="text-[10px] text-purple-600">个</div>
+            </div>
+          )}
+          {night.bars !== undefined && (
+            <div class="rounded-lg border border-violet-100 bg-violet-50 px-4 py-3">
+              <div class="text-xs text-violet-700">酒吧</div>
+              <div class="mt-1 text-xl font-bold text-violet-900">{night.bars}</div>
+              <div class="text-[10px] text-violet-600">家</div>
+            </div>
+          )}
+          {night.ktv !== undefined && (
+            <div class="rounded-lg border border-fuchsia-100 bg-fuchsia-50 px-4 py-3">
+              <div class="text-xs text-fuchsia-700">KTV</div>
+              <div class="mt-1 text-xl font-bold text-fuchsia-900">{night.ktv}</div>
+              <div class="text-[10px] text-fuchsia-600">家</div>
+            </div>
+          )}
+          {night.nightBusRoutes !== undefined && (
+            <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+              <div class="text-xs text-blue-700">夜间公交</div>
+              <div class="mt-1 text-xl font-bold text-blue-900">{night.nightBusRoutes}</div>
+              <div class="text-[10px] text-blue-600">条线路</div>
+            </div>
+          )}
+          {night.nightZones !== undefined && night.nightZones > 0 && (
+            <div class="rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-3">
+              <div class="text-xs text-indigo-700">夜间经济集聚区</div>
+              <div class="mt-1 text-xl font-bold text-indigo-900">{night.nightZones}</div>
+              <div class="text-[10px] text-indigo-600">个</div>
+            </div>
+          )}
+        </div>
+        {cityNight && (
+          <p class="mt-3 text-xs text-ink-soft">
+            📊 {city.name}市级参考：24h便利店 <strong>{cityNight.totalConvenience24h}</strong> 家，夜市 <strong>{cityNight.totalNightMarkets}</strong> 个，酒吧 <strong>{cityNight.totalBars}</strong> 家，夜间集聚区 <strong>{cityNight.totalNightZones}</strong> 个
+          </p>
+        )}
+      </div>
+    )}
+
+    {pet && (
+      <div class="mt-6 rounded-xl border border-amber-200 bg-amber-50/50 p-5">
+        <h3 class="text-base font-semibold text-amber-900">🐕 宠物友好度</h3>
+        <span class="text-xs text-ink-soft">{petYear(city.key)} · {petSource(city.key)}</span>
+        <p class="mt-2 text-sm text-ink-soft">
+          {district.name}宠物友好资源{pet.petHospitals ? `，宠物医院/诊所 <strong>${pet.petHospitals}</strong> 家` : ''}{pet.petStores ? `，宠物店 <strong>${pet.petStores}</strong> 家` : ''}。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {pet.petHospitals !== undefined && (
+            <div class="rounded-lg border border-amber-100 bg-white px-4 py-3">
+              <div class="text-xs text-amber-700">宠物医院/诊所</div>
+              <div class="mt-1 text-xl font-bold text-amber-900">{pet.petHospitals}</div>
+              <div class="text-[10px] text-amber-600">家</div>
+            </div>
+          )}
+          {pet.petStores !== undefined && (
+            <div class="rounded-lg border border-orange-100 bg-orange-50 px-4 py-3">
+              <div class="text-xs text-orange-700">宠物店</div>
+              <div class="mt-1 text-xl font-bold text-orange-900">{pet.petStores}</div>
+              <div class="text-[10px] text-orange-600">家（含美容寄养）</div>
+            </div>
+          )}
+          {pet.petParks !== undefined && (
+            <div class="rounded-lg border border-green-100 bg-green-50 px-4 py-3">
+              <div class="text-xs text-green-700">宠物友好公园</div>
+              <div class="mt-1 text-xl font-bold text-green-900">{pet.petParks}</div>
+              <div class="text-[10px] text-green-600">个</div>
+            </div>
+          )}
+          {pet.registeredDogs !== undefined && (
+            <div class="rounded-lg border border-yellow-100 bg-yellow-50 px-4 py-3">
+              <div class="text-xs text-yellow-700">登记犬只</div>
+              <div class="mt-1 text-xl font-bold text-yellow-900">{pet.registeredDogs}</div>
+              <div class="text-[10px] text-yellow-600">万只</div>
+            </div>
+          )}
+          {pet.petOwnershipRate !== undefined && (
+            <div class="rounded-lg border border-rose-100 bg-rose-50 px-4 py-3">
+              <div class="text-xs text-rose-700">养宠家庭比例</div>
+              <div class="mt-1 text-xl font-bold text-rose-900">{pet.petOwnershipRate}%</div>
+              <div class="text-[10px] text-rose-600">🦊 🐱</div>
+            </div>
+          )}
+        </div>
+        {cityPet && (
+          <p class="mt-3 text-xs text-ink-soft">
+            📊 {city.name}市级参考：宠物医院 <strong>{cityPet.totalPetHospitals}</strong> 家，宠物店 <strong>{cityPet.totalPetStores}</strong> 家，市场规模 <strong>{cityPet.marketSize}亿</strong>元/年，养宠家庭比例 <strong>{cityPet.petOwnershipRate}%</strong>
           </p>
         )}
       </div>

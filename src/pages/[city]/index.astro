@@ -33,6 +33,9 @@ import { CITY_WATER_TOTALS } from '../../data/waterQuality';
 import { CITY_WASTE_TOTALS } from '../../data/wasteManagement';
 import { CITY_FAMILY_TOTALS } from '../../data/familyPlanning';
 import { CITY_FOOD_TOTALS } from '../../data/foodSafety';
+import { CITY_OUTDOOR_TOTALS } from '../../data/outdoorRecreation';
+import { CITY_NIGHT_TOTALS } from '../../data/nighttimeEconomy';
+import { CITY_PET_TOTALS } from '../../data/petFriendly';
 import { SITE } from '../../consts';
 
 export function getStaticPaths() {
@@ -74,6 +77,9 @@ const cityWater = CITY_WATER_TOTALS[city.key];
 const cityWaste = CITY_WASTE_TOTALS[city.key];
 const cityFamily = CITY_FAMILY_TOTALS[city.key];
 const cityFood = CITY_FOOD_TOTALS[city.key];
+const cityOutdoor = CITY_OUTDOOR_TOTALS[city.key];
+const cityNight = CITY_NIGHT_TOTALS[city.key];
+const cityPet = CITY_PET_TOTALS[city.key];
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -472,6 +478,42 @@ const jsonLd = {
         {cityFood.quantGradingSystem && '，实行餐饮量化分级（笑脸/平脸/哭脸）'}
         {cityFood.poisoningIncidents !== undefined && cityFood.poisoningIncidents > 0 ? `，集体食物中毒<strong>${cityFood.poisoningIncidents}</strong>起/<strong>${cityFood.poisoningCases}</strong>人` : '，无集体食物中毒事件'}
         <span class="text-xs text-lime-600">（市级数据，来源：<a href={cityFood.sourceUrl} class="underline">{cityFood.source}</a>）</span>
+      </div>
+    )}
+
+    {cityOutdoor && (
+      <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+        🌳 {city.name}{cityOutdoor.year}年户外休闲：
+        公园 <strong>{cityOutdoor.totalParks}</strong> 座
+        ，绿道 <strong>{cityOutdoor.totalGreenwayKm}</strong> 公里
+        ，步道 <strong>{cityOutdoor.totalTrailKm}</strong> 公里
+        ，露营地 <strong>{cityOutdoor.totalCampgrounds}</strong> 个
+        ，经常锻炼人数比例 <strong>{cityOutdoor.sportsParticipationRate}%</strong>
+        <span class="text-xs text-green-600">（市级数据，来源：<a href={cityOutdoor.sourceUrl} class="underline">{cityOutdoor.source}</a>）</span>
+      </div>
+    )}
+
+    {cityNight && (
+      <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-800">
+        🌙 {city.name}{cityNight.year}年夜间经济：
+        24h便利店 <strong>{cityNight.totalConvenience24h}</strong> 家
+        ，夜市/集市 <strong>{cityNight.totalNightMarkets}</strong> 个
+        ，酒吧 <strong>{cityNight.totalBars}</strong> 家
+        ，夜间集聚区 <strong>{cityNight.totalNightZones}</strong> 个
+        ，夜间公交 <strong>{cityNight.totalNightBusRoutes}</strong> 条
+        <span class="text-xs text-indigo-600">（市级数据，来源：<a href={cityNight.sourceUrl} class="underline">{cityNight.source}</a>）</span>
+      </div>
+    )}
+
+    {cityPet && (
+      <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        🐕 {city.name}{cityPet.year}年宠物友好：
+        宠物医院 <strong>{cityPet.totalPetHospitals}</strong> 家
+        ，宠物店 <strong>{cityPet.totalPetStores}</strong> 家
+        ，宠物公园 <strong>{cityPet.totalPetParks}</strong> 个
+        ，登记犬只 <strong>{cityPet.totalRegisteredDogs}</strong> 万只
+        ，市场规模 <strong>{cityPet.marketSize}亿</strong> 元/年
+        <span class="text-xs text-amber-600">（市级数据，来源：<a href={cityPet.sourceUrl} class="underline">{cityPet.source}</a>）</span>
       </div>
     )}
 
