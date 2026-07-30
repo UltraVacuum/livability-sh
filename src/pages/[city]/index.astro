@@ -39,6 +39,9 @@ import { CITY_PET_TOTALS } from '../../data/petFriendly';
 import { CITY_ENTITY_TOTALS } from '../../data/marketEntities';
 import { CITY_COMMUNITY_HEALTH_TOTALS } from '../../data/communityHealth';
 import { CITY_ASSISTANCE_TOTALS } from '../../data/socialAssistance';
+import { CITY_HOUSING_SECURITY_TOTALS } from '../../data/housingSecurity';
+import { CITY_ROAD_SAFETY_TOTALS } from '../../data/roadSafety';
+import { CITY_SANITATION_TOTALS } from '../../data/sanitation';
 import { SITE } from '../../consts';
 
 export function getStaticPaths() {
@@ -86,6 +89,9 @@ const cityPet = CITY_PET_TOTALS[city.key];
 const cityEntities = CITY_ENTITY_TOTALS[city.key];
 const cityCommunityHealth = CITY_COMMUNITY_HEALTH_TOTALS[city.key];
 const cityAssistance = CITY_ASSISTANCE_TOTALS[city.key];
+const cityHousingSecurity = CITY_HOUSING_SECURITY_TOTALS[city.key];
+const cityRoadSafety = CITY_ROAD_SAFETY_TOTALS[city.key];
+const citySanitation = CITY_SANITATION_TOTALS[city.key];
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -555,6 +561,42 @@ const jsonLd = {
         {cityAssistance.elderlyInstitutions ? `，养老机构 <strong>${cityAssistance.elderlyInstitutions}</strong> 家` : ''}
         {cityAssistance.communityServiceCoverage ? `，社区服务覆盖率 <strong>${cityAssistance.communityServiceCoverage}%</strong>` : ''}
         <span class="text-xs text-violet-600">（市级数据，来源：<a href={cityAssistance.sourceUrl} class="underline">{cityAssistance.source}</a>）</span>
+      </div>
+    )}
+
+    {cityHousingSecurity && (
+      <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-800">
+        🏠 {city.name}{cityHousingSecurity.year}年住房保障：
+        保障房累计 <strong>{cityHousingSecurity.totalAffordable}</strong> 万套
+        ，公租房 <strong>{cityHousingSecurity.publicRental}</strong> 万套
+        {cityHousingSecurity.rentalHousing ? `，保障性租赁住房 <strong>${cityHousingSecurity.rentalHousing}</strong> 万套/间` : ''}
+        {cityHousingSecurity.sharedOwnership ? `，共有产权房 <strong>${cityHousingSecurity.sharedOwnership}</strong> 万户` : ''}
+        {cityHousingSecurity.oldRenovationArea ? `，旧区/老旧小区改造 <strong>${cityHousingSecurity.oldRenovationArea}</strong> 万㎡` : ''}
+        <span class="text-xs text-teal-600">（市级数据，来源：<a href={cityHousingSecurity.sourceUrl} class="underline">{cityHousingSecurity.source}</a>）</span>
+      </div>
+    )}
+
+    {cityRoadSafety && (
+      <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+        🚦 {city.name}{cityRoadSafety.year}年道路交通安全：
+        道路总里程 <strong>{cityRoadSafety.totalRoadLength.toLocaleString()}</strong> 公里
+        ，机动车 <strong>{cityRoadSafety.totalVehicles}</strong> 万辆
+        ，交通事故死亡 <strong>{cityRoadSafety.totalDeaths}</strong> 人
+        ，万车死亡率 <strong>{cityRoadSafety.deathRatePer10kVehicles}</strong>
+        ，停车泊位 <strong>{cityRoadSafety.parkingSpots}</strong> 万个
+        <span class="text-xs text-blue-600">（市级数据，来源：<a href={cityRoadSafety.sourceUrl} class="underline">{cityRoadSafety.source}</a>）</span>
+      </div>
+    )}
+
+    {citySanitation && (
+      <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+        🧹 {city.name}{citySanitation.year}年环境卫生：
+        公共厕所 <strong>{citySanitation.publicToilets}</strong> 座
+        ，环卫工人 <strong>{citySanitation.sanitationWorkers.toLocaleString()}</strong> 人
+        ，日均垃圾 <strong>{citySanitation.dailyWaste.toLocaleString()}</strong> 吨
+        ，垃圾分类覆盖率 <strong>{citySanitation.classificationRate}%</strong>
+        ，资源化利用率 <strong>{citySanitation.resourceRecoveryRate}%</strong>
+        <span class="text-xs text-emerald-600">（市级数据，来源：<a href={citySanitation.sourceUrl} class="underline">{citySanitation.source}</a>）</span>
       </div>
     )}
 

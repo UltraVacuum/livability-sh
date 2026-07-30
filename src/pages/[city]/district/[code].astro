@@ -47,6 +47,9 @@ import { getDistrictPet, petSource, petYear, CITY_PET_TOTALS } from '../../../da
 import { getDistrictEntities, entitySource, entityYear, CITY_ENTITY_TOTALS } from '../../../data/marketEntities';
 import { getDistrictCommunityHealth, communityHealthSource, communityHealthYear, CITY_COMMUNITY_HEALTH_TOTALS } from '../../../data/communityHealth';
 import { getDistrictAssistance, assistanceSource, assistanceYear, CITY_ASSISTANCE_TOTALS } from '../../../data/socialAssistance';
+import { getDistrictHousingSecurity, housingSecuritySource, housingSecurityYear, CITY_HOUSING_SECURITY_TOTALS } from '../../../data/housingSecurity';
+import { getDistrictRoadSafety, roadSafetySource, roadSafetyYear, CITY_ROAD_SAFETY_TOTALS } from '../../../data/roadSafety';
+import { getDistrictSanitation, sanitationSource, sanitationYear, CITY_SANITATION_TOTALS } from '../../../data/sanitation';
 
 export function getStaticPaths() {
   const paths = [];
@@ -228,6 +231,18 @@ const cityCommunityHealth = CITY_COMMUNITY_HEALTH_TOTALS[city.key];
 // 社会保障与救助（区级）
 const assistance = getDistrictAssistance(city.key, district.adcode);
 const cityAssistance = CITY_ASSISTANCE_TOTALS[city.key];
+
+// 住房保障体系（区级）
+const housingSecurity = getDistrictHousingSecurity(city.key, district.adcode);
+const cityHousingSecurity = CITY_HOUSING_SECURITY_TOTALS[city.key];
+
+// 道路交通安全（区级）
+const roadSafety = getDistrictRoadSafety(city.key, district.adcode);
+const cityRoadSafety = CITY_ROAD_SAFETY_TOTALS[city.key];
+
+// 环境卫生（区级）
+const sanitation = getDistrictSanitation(city.key, district.adcode);
+const citySanitation = CITY_SANITATION_TOTALS[city.key];
 
 const radarSeries = [
   { name: district.name, color: '#0d9488', values: METRICS.map((m) => district.metrics[m.key].score) },
@@ -2413,6 +2428,187 @@ const jsonLd = {
         {cityAssistance && (
           <p class="mt-3 text-xs text-ink-soft">
             📊 {city.name}市级参考：养老保险参保 <strong>{cityAssistance.pensionInsurance}</strong> 万人，医疗保险参保 <strong>{cityAssistance.medicalInsurance}</strong> 万人{cityAssistance.lowIncomeStandard ? `，低保标准 <strong>${cityAssistance.lowIncomeStandard}</strong> 元/月` : ''}{cityAssistance.elderlyInstitutions ? `，养老机构 <strong>${cityAssistance.elderlyInstitutions}</strong> 家` : ''}{cityAssistance.communityServiceCoverage ? `，社区服务覆盖率 <strong>${cityAssistance.communityServiceCoverage}%</strong>` : ''}
+          </p>
+        )}
+      </div>
+    )}
+
+    {housingSecurity && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">🏠 住房保障体系</h3>
+          <span class="text-xs text-ink-soft">{housingSecurityYear(city.key)} · {housingSecuritySource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}住房保障数据。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-teal-100 bg-teal-50 px-4 py-3">
+            <div class="text-xs text-teal-700">保障性住房累计</div>
+            <div class="mt-1 text-xl font-bold text-teal-900">{housingSecurity.affordableHousing.toLocaleString()}</div>
+            <div class="text-[10px] text-teal-600">套（估算）</div>
+          </div>
+          <div class="rounded-lg border border-teal-100 bg-teal-50 px-4 py-3">
+            <div class="text-xs text-teal-700">本年新增保障房</div>
+            <div class="mt-1 text-xl font-bold text-teal-900">{housingSecurity.newAffordableThisYear.toLocaleString()}</div>
+            <div class="text-[10px] text-teal-600">套（估算）</div>
+          </div>
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">公租房累计</div>
+            <div class="mt-1 text-xl font-bold text-ink">{housingSecurity.publicRental.toLocaleString()}</div>
+            <div class="text-[10px] text-ink-soft">套（估算）</div>
+          </div>
+          {housingSecurity.rentalHousing !== undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">保障性租赁住房</div>
+              <div class="mt-1 text-xl font-bold text-ink">{housingSecurity.rentalHousing.toLocaleString()}</div>
+              <div class="text-[10px] text-ink-soft">套/间（估算）</div>
+            </div>
+          )}
+          {housingSecurity.sharedOwnership !== undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">共有产权房累计签约</div>
+              <div class="mt-1 text-xl font-bold text-ink">{housingSecurity.sharedOwnership.toLocaleString()}</div>
+              <div class="text-[10px] text-ink-soft">户（估算）</div>
+            </div>
+          )}
+          {housingSecurity.oldRenovationArea !== undefined && (
+            <div class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+              <div class="text-xs text-amber-700">旧区/老旧小区改造</div>
+              <div class="mt-1 text-xl font-bold text-amber-900">{housingSecurity.oldRenovationArea}</div>
+              <div class="text-[10px] text-amber-600">万平方米</div>
+            </div>
+          )}
+          {housingSecurity.oldRenovationHouseholds !== undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">改造受益居民</div>
+              <div class="mt-1 text-xl font-bold text-ink">{housingSecurity.oldRenovationHouseholds.toLocaleString()}</div>
+              <div class="text-[10px] text-ink-soft">户</div>
+            </div>
+          )}
+        </div>
+        {cityHousingSecurity && (
+          <p class="mt-3 text-xs text-ink-soft">
+            📊 {city.name}市级参考：保障房累计 <strong>{cityHousingSecurity.totalAffordable}</strong> 万套，公租房 <strong>{cityHousingSecurity.publicRental}</strong> 万套{cityHousingSecurity.rentalHousing ? `，保障性租赁住房 <strong>${cityHousingSecurity.rentalHousing}</strong> 万套/间` : ''}{cityHousingSecurity.sharedOwnership ? `，共有产权房 <strong>${cityHousingSecurity.sharedOwnership}</strong> 万户` : ''}
+          </p>
+        )}
+      </div>
+    )}
+
+    {roadSafety && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">🚦 道路交通安全</h3>
+          <span class="text-xs text-ink-soft">{roadSafetyYear(city.key)} · {roadSafetySource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}道路交通安全数据。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+            <div class="text-xs text-blue-700">道路总里程</div>
+            <div class="mt-1 text-xl font-bold text-blue-900">{roadSafety.roadLength.toLocaleString()}</div>
+            <div class="text-[10px] text-blue-600">公里</div>
+          </div>
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">机动车保有量</div>
+            <div class="mt-1 text-xl font-bold text-ink">{roadSafety.vehicles}</div>
+            <div class="text-[10px] text-ink-soft">万辆</div>
+          </div>
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">私人小客车</div>
+            <div class="mt-1 text-xl font-bold text-ink">{roadSafety.privateCars}</div>
+            <div class="text-[10px] text-ink-soft">万辆</div>
+          </div>
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">停车泊位</div>
+            <div class="mt-1 text-xl font-bold text-ink">{roadSafety.parkingSpots}</div>
+            <div class="text-[10px] text-ink-soft">万个</div>
+          </div>
+          <div class="rounded-lg border border-red-100 bg-red-50 px-4 py-3">
+            <div class="text-xs text-red-700">交通事故</div>
+            <div class="mt-1 text-xl font-bold text-red-900">{roadSafety.accidents.toLocaleString()}</div>
+            <div class="text-[10px] text-red-600">起（含轻微事故）</div>
+          </div>
+          <div class="rounded-lg border border-red-100 bg-red-50 px-4 py-3">
+            <div class="text-xs text-red-700">交通事故死亡</div>
+            <div class="mt-1 text-xl font-bold text-red-900">{roadSafety.accidentDeaths}</div>
+            <div class="text-[10px] text-red-600">人</div>
+          </div>
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">交通事故受伤</div>
+            <div class="mt-1 text-xl font-bold text-ink">{roadSafety.accidentInjuries}</div>
+            <div class="text-[10px] text-ink-soft">人</div>
+          </div>
+          {roadSafety.drunkDrivingCases !== undefined && (
+            <div class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+              <div class="text-xs text-amber-700">醉驾查处</div>
+              <div class="mt-1 text-xl font-bold text-amber-900">{roadSafety.drunkDrivingCases}</div>
+              <div class="text-[10px] text-amber-600">起</div>
+            </div>
+          )}
+        </div>
+        {cityRoadSafety && (
+          <p class="mt-3 text-xs text-ink-soft">
+            📊 {city.name}市级参考：道路总里程 <strong>{cityRoadSafety.totalRoadLength.toLocaleString()}</strong> 公里，机动车 <strong>{cityRoadSafety.totalVehicles}</strong> 万辆，万车死亡率 <strong>{cityRoadSafety.deathRatePer10kVehicles}</strong>（越低越好）
+          </p>
+        )}
+      </div>
+    )}
+
+    {sanitation && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">🧹 环境卫生</h3>
+          <span class="text-xs text-ink-soft">{sanitationYear(city.key)} · {sanitationSource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}环境卫生数据。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+            <div class="text-xs text-emerald-700">公共厕所</div>
+            <div class="mt-1 text-xl font-bold text-emerald-900">{sanitation.publicToilets}</div>
+            <div class="text-[10px] text-emerald-600">座</div>
+          </div>
+          {sanitation.smartToilets !== undefined && (
+            <div class="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+              <div class="text-xs text-emerald-700">智慧公厕</div>
+              <div class="mt-1 text-xl font-bold text-emerald-900">{sanitation.smartToilets}</div>
+              <div class="text-[10px] text-emerald-600">座</div>
+            </div>
+          )}
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">环卫工人</div>
+            <div class="mt-1 text-xl font-bold text-ink">{sanitation.sanitationWorkers.toLocaleString()}</div>
+            <div class="text-[10px] text-ink-soft">人</div>
+          </div>
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">日均生活垃圾</div>
+            <div class="mt-1 text-xl font-bold text-ink">{sanitation.dailyWaste.toLocaleString()}</div>
+            <div class="text-[10px] text-ink-soft">吨</div>
+          </div>
+          <div class="rounded-lg border border-teal-100 bg-teal-50 px-4 py-3">
+            <div class="text-xs text-teal-700">垃圾分类覆盖率</div>
+            <div class="mt-1 text-xl font-bold text-teal-900">{sanitation.wasteClassificationRate}%</div>
+            <div class="text-[10px] text-teal-600">{city.key === 'shanghai' ? '（全市覆盖）' : ''}</div>
+          </div>
+          {sanitation.resourceRecoveryRate !== undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">资源化利用率</div>
+              <div class="mt-1 text-xl font-bold text-ink">{sanitation.resourceRecoveryRate}%</div>
+              <div class="text-[10px] text-ink-soft">（垃圾处理）</div>
+            </div>
+          )}
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">道路清扫保洁</div>
+            <div class="mt-1 text-xl font-bold text-ink">{sanitation.roadCleaningArea.toLocaleString()}</div>
+            <div class="text-[10px] text-ink-soft">万平方米</div>
+          </div>
+        </div>
+        {citySanitation && (
+          <p class="mt-3 text-xs text-ink-soft">
+            📊 {city.name}市级参考：公厕 <strong>{citySanitation.publicToilets}</strong> 座，环卫工人 <strong>{citySanitation.sanitationWorkers.toLocaleString()}</strong> 人，日均垃圾 <strong>{citySanitation.dailyWaste.toLocaleString()}</strong> 吨，无害化处理率 <strong>{citySanitation.harmlessTreatmentRate}%</strong>
           </p>
         )}
       </div>
