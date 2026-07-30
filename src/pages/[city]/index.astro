@@ -36,6 +36,9 @@ import { CITY_FOOD_TOTALS } from '../../data/foodSafety';
 import { CITY_OUTDOOR_TOTALS } from '../../data/outdoorRecreation';
 import { CITY_NIGHT_TOTALS } from '../../data/nighttimeEconomy';
 import { CITY_PET_TOTALS } from '../../data/petFriendly';
+import { CITY_ENTITY_TOTALS } from '../../data/marketEntities';
+import { CITY_COMMUNITY_HEALTH_TOTALS } from '../../data/communityHealth';
+import { CITY_ASSISTANCE_TOTALS } from '../../data/socialAssistance';
 import { SITE } from '../../consts';
 
 export function getStaticPaths() {
@@ -80,6 +83,9 @@ const cityFood = CITY_FOOD_TOTALS[city.key];
 const cityOutdoor = CITY_OUTDOOR_TOTALS[city.key];
 const cityNight = CITY_NIGHT_TOTALS[city.key];
 const cityPet = CITY_PET_TOTALS[city.key];
+const cityEntities = CITY_ENTITY_TOTALS[city.key];
+const cityCommunityHealth = CITY_COMMUNITY_HEALTH_TOTALS[city.key];
+const cityAssistance = CITY_ASSISTANCE_TOTALS[city.key];
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -514,6 +520,41 @@ const jsonLd = {
         ，登记犬只 <strong>{cityPet.totalRegisteredDogs}</strong> 万只
         ，市场规模 <strong>{cityPet.marketSize}亿</strong> 元/年
         <span class="text-xs text-amber-600">（市级数据，来源：<a href={cityPet.sourceUrl} class="underline">{cityPet.source}</a>）</span>
+      </div>
+    )}
+
+    {cityEntities && (
+      <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-cyan-200 bg-cyan-50 px-4 py-3 text-sm text-cyan-800">
+        🏢 {city.name}{cityEntities.year}年市场主体：
+        年末经营主体 <strong>{cityEntities.totalEntities}</strong> 万户
+        ，新设 <strong>{cityEntities.newEntities}</strong> 万户
+        {cityEntities.newHighTechCompanies ? `，新认定高新企业 <strong>${cityEntities.newHighTechCompanies}</strong> 家` : ''}
+        {cityEntities.actualForeignInvestment ? `，实际使用外资 <strong>${cityEntities.actualForeignInvestment}</strong> 亿美元` : ''}
+        <span class="text-xs text-cyan-600">（市级数据，来源：<a href={cityEntities.sourceUrl} class="underline">{cityEntities.source}</a>）</span>
+      </div>
+    )}
+
+    {cityCommunityHealth && (
+      <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+        🏥 {city.name}{cityCommunityHealth.year}年社区卫生服务：
+        {cityCommunityHealth.communityOPShare ? `社区门诊量占比 <strong>${cityCommunityHealth.communityOPShare}%</strong>` : ''}
+        {cityCommunityHealth.aedDevices ? `，AED设备 <strong>${cityCommunityHealth.aedDevices}</strong> 台（${cityCommunityHealth.aedPer100k}台/10万人）` : ''}
+        {cityCommunityHealth.tcmPatrolStations ? `，中医药巡诊站 <strong>${cityCommunityHealth.tcmPatrolStations}</strong> 家` : ''}
+        {cityCommunityHealth.adultSmokingRate ? `，成人吸烟率 <strong>${cityCommunityHealth.adultSmokingRate}%</strong>` : ''}
+        {cityCommunityHealth.cdcCount ? `，疾控中心 <strong>${cityCommunityHealth.cdcCount}</strong> 个` : ''}
+        <span class="text-xs text-emerald-600">（市级数据，来源：<a href={cityCommunityHealth.sourceUrl} class="underline">{cityCommunityHealth.source}</a>）</span>
+      </div>
+    )}
+
+    {cityAssistance && (
+      <div class="mx-auto mt-2 max-w-2xl rounded-lg border border-violet-200 bg-violet-50 px-4 py-3 text-sm text-violet-800">
+        🛡️ {city.name}{cityAssistance.year}年社会保障：
+        养老保险参保 <strong>{cityAssistance.pensionInsurance}</strong> 万人
+        ，医疗保险参保 <strong>{cityAssistance.medicalInsurance}</strong> 万人
+        {cityAssistance.lowIncomeStandard ? `，低保标准 <strong>${cityAssistance.lowIncomeStandard}</strong> 元/月` : ''}
+        {cityAssistance.elderlyInstitutions ? `，养老机构 <strong>${cityAssistance.elderlyInstitutions}</strong> 家` : ''}
+        {cityAssistance.communityServiceCoverage ? `，社区服务覆盖率 <strong>${cityAssistance.communityServiceCoverage}%</strong>` : ''}
+        <span class="text-xs text-violet-600">（市级数据，来源：<a href={cityAssistance.sourceUrl} class="underline">{cityAssistance.source}</a>）</span>
       </div>
     )}
 

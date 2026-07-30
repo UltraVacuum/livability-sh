@@ -44,6 +44,9 @@ import { getDistrictFoodSafety, foodSafetySource, foodSafetyYear, CITY_FOOD_TOTA
 import { getDistrictOutdoor, outdoorSource, outdoorYear, CITY_OUTDOOR_TOTALS } from '../../../data/outdoorRecreation';
 import { getDistrictNight, nightSource, nightYear, CITY_NIGHT_TOTALS } from '../../../data/nighttimeEconomy';
 import { getDistrictPet, petSource, petYear, CITY_PET_TOTALS } from '../../../data/petFriendly';
+import { getDistrictEntities, entitySource, entityYear, CITY_ENTITY_TOTALS } from '../../../data/marketEntities';
+import { getDistrictCommunityHealth, communityHealthSource, communityHealthYear, CITY_COMMUNITY_HEALTH_TOTALS } from '../../../data/communityHealth';
+import { getDistrictAssistance, assistanceSource, assistanceYear, CITY_ASSISTANCE_TOTALS } from '../../../data/socialAssistance';
 
 export function getStaticPaths() {
   const paths = [];
@@ -213,6 +216,18 @@ const cityNight = CITY_NIGHT_TOTALS[city.key];
 // 宠物友好（区级）
 const pet = getDistrictPet(city.key, district.adcode);
 const cityPet = CITY_PET_TOTALS[city.key];
+
+// 市场主体与营商环境（区级）
+const entities = getDistrictEntities(city.key, district.adcode);
+const cityEntities = CITY_ENTITY_TOTALS[city.key];
+
+// 社区卫生服务（区级）
+const communityHealth = getDistrictCommunityHealth(city.key, district.adcode);
+const cityCommunityHealth = CITY_COMMUNITY_HEALTH_TOTALS[city.key];
+
+// 社会保障与救助（区级）
+const assistance = getDistrictAssistance(city.key, district.adcode);
+const cityAssistance = CITY_ASSISTANCE_TOTALS[city.key];
 
 const radarSeries = [
   { name: district.name, color: '#0d9488', values: METRICS.map((m) => district.metrics[m.key].score) },
@@ -2273,6 +2288,131 @@ const jsonLd = {
         {cityPet && (
           <p class="mt-3 text-xs text-ink-soft">
             📊 {city.name}市级参考：宠物医院 <strong>{cityPet.totalPetHospitals}</strong> 家，宠物店 <strong>{cityPet.totalPetStores}</strong> 家，市场规模 <strong>{cityPet.marketSize}亿</strong>元/年，养宠家庭比例 <strong>{cityPet.petOwnershipRate}%</strong>
+          </p>
+        )}
+      </div>
+    )}
+
+    {entities && (
+      <div class="mt-6 rounded-xl border border-cyan-200 bg-cyan-50/50 p-5">
+        <h3 class="text-base font-semibold text-cyan-900">🏢 市场主体与营商环境</h3>
+        <span class="text-xs text-ink-soft">{entityYear(city.key)} · {entitySource(city.key)}</span>
+        <p class="mt-2 text-sm text-ink-soft">
+          {district.name}年末各类经营主体 <strong>{entities.totalEntities.toLocaleString()}</strong> 户，新设 <strong>{entities.newEntities.toLocaleString()}</strong> 户{entities.newRegisteredCapital ? `，新设注册资本 <strong>${entities.newRegisteredCapital}</strong> 亿元` : ''}{entities.highTechCompanies ? `，高新技术企业 <strong>${entities.highTechCompanies}</strong> 家` : ''}。
+        </p>
+        <div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-cyan-100 bg-white px-4 py-3">
+            <div class="text-xs text-cyan-700">年末经营主体</div>
+            <div class="mt-1 text-xl font-bold text-cyan-900">{entities.totalEntities.toLocaleString()}</div>
+            <div class="text-[10px] text-cyan-600">户</div>
+          </div>
+          <div class="rounded-lg border border-teal-100 bg-teal-50 px-4 py-3">
+            <div class="text-xs text-teal-700">新设经营主体</div>
+            <div class="mt-1 text-xl font-bold text-teal-900">{entities.newEntities.toLocaleString()}</div>
+            <div class="text-[10px] text-teal-600">户</div>
+          </div>
+          {entities.highTechCompanies !== undefined && (
+            <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+              <div class="text-xs text-blue-700">高新技术企业</div>
+              <div class="mt-1 text-xl font-bold text-blue-900">{entities.highTechCompanies}</div>
+              <div class="text-[10px] text-blue-600">家</div>
+            </div>
+          )}
+          {entities.foreignEnterprises !== undefined && (
+            <div class="rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-3">
+              <div class="text-xs text-indigo-700">外商投资企业</div>
+              <div class="mt-1 text-xl font-bold text-indigo-900">{entities.foreignEnterprises}</div>
+              <div class="text-[10px] text-indigo-600">家</div>
+            </div>
+          )}
+        </div>
+        {cityEntities && (
+          <p class="mt-3 text-xs text-ink-soft">
+            📊 {city.name}市级参考：年末经营主体 <strong>{cityEntities.totalEntities}</strong> 万户，新设 <strong>{cityEntities.newEntities}</strong> 万户{cityEntities.newHighTechCompanies ? `，新认定高新企业 <strong>${cityEntities.newHighTechCompanies}</strong> 家` : ''}{cityEntities.actualForeignInvestment ? `，实际使用外资 <strong>${cityEntities.actualForeignInvestment}</strong> 亿美元` : ''}
+          </p>
+        )}
+      </div>
+    )}
+
+    {communityHealth && (
+      <div class="mt-6 rounded-xl border border-emerald-200 bg-emerald-50/50 p-5">
+        <h3 class="text-base font-semibold text-emerald-900">🏥 社区卫生服务</h3>
+        <span class="text-xs text-ink-soft">{communityHealthYear(city.key)} · {communityHealthSource(city.key)}</span>
+        <p class="mt-2 text-sm text-ink-soft">
+          {district.name}社区卫生服务中心 <strong>{communityHealth.communityCenters}</strong> 家{communityHealth.aedDevices ? `，AED设备 <strong>${communityHealth.aedDevices}</strong> 台` : ''}{communityHealth.communityClinics ? `，卫生服务站/诊所 <strong>${communityHealth.communityClinics}</strong> 个` : ''}。
+        </p>
+        <div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-emerald-100 bg-white px-4 py-3">
+            <div class="text-xs text-emerald-700">社区卫生服务中心</div>
+            <div class="mt-1 text-xl font-bold text-emerald-900">{communityHealth.communityCenters}</div>
+            <div class="text-[10px] text-emerald-600">家</div>
+          </div>
+          {communityHealth.aedDevices !== undefined && (
+            <div class="rounded-lg border border-red-100 bg-red-50 px-4 py-3">
+              <div class="text-xs text-red-700">AED设备</div>
+              <div class="mt-1 text-xl font-bold text-red-900">{communityHealth.aedDevices}</div>
+              <div class="text-[10px] text-red-600">台</div>
+            </div>
+          )}
+          {communityHealth.communityClinics !== undefined && (
+            <div class="rounded-lg border border-teal-100 bg-teal-50 px-4 py-3">
+              <div class="text-xs text-teal-700">卫生服务站</div>
+              <div class="mt-1 text-xl font-bold text-teal-900">{communityHealth.communityClinics}</div>
+              <div class="text-[10px] text-teal-600">个</div>
+            </div>
+          )}
+          {communityHealth.traditionalChineseMedicineStations !== undefined && (
+            <div class="rounded-lg border border-green-100 bg-green-50 px-4 py-3">
+              <div class="text-xs text-green-700">中医药巡诊站</div>
+              <div class="mt-1 text-xl font-bold text-green-900">{communityHealth.traditionalChineseMedicineStations}</div>
+              <div class="text-[10px] text-green-600">个</div>
+            </div>
+          )}
+        </div>
+        {cityCommunityHealth && (
+          <p class="mt-3 text-xs text-ink-soft">
+            📊 {city.name}市级参考：{cityCommunityHealth.communityOPShare ? `社区门诊量占比 <strong>${cityCommunityHealth.communityOPShare}%</strong>` : ''}{cityCommunityHealth.aedDevices ? `，AED <strong>${cityCommunityHealth.aedDevices}</strong> 台（${cityCommunityHealth.aedPer100k}台/10万人）` : ''}{cityCommunityHealth.tcmPatrolStations ? `，中医药巡诊站 <strong>${cityCommunityHealth.tcmPatrolStations}</strong> 家` : ''}{cityCommunityHealth.adultSmokingRate ? `，成人吸烟率 <strong>${cityCommunityHealth.adultSmokingRate}%</strong>` : ''}{cityCommunityHealth.cdcCount ? `，疾控中心 <strong>${cityCommunityHealth.cdcCount}</strong> 个` : ''}
+          </p>
+        )}
+      </div>
+    )}
+
+    {assistance && (
+      <div class="mt-6 rounded-xl border border-violet-200 bg-violet-50/50 p-5">
+        <h3 class="text-base font-semibold text-violet-900">🛡️ 社会保障与救助</h3>
+        <span class="text-xs text-ink-soft">{assistanceYear(city.key)} · {assistanceSource(city.key)}</span>
+        <p class="mt-2 text-sm text-ink-soft">
+          {district.name}基本养老保险参保 <strong>{assistance.pensionInsurance}</strong> 万人，基本医疗保险参保 <strong>{assistance.medicalInsurance}</strong> 万人{assistance.lowIncomeRecipients ? `，低保对象 <strong>${assistance.lowIncomeRecipients.toLocaleString()}</strong> 人` : ''}。
+        </p>
+        <div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-violet-100 bg-white px-4 py-3">
+            <div class="text-xs text-violet-700">养老保险参保</div>
+            <div class="mt-1 text-xl font-bold text-violet-900">{assistance.pensionInsurance}</div>
+            <div class="text-[10px] text-violet-600">万人</div>
+          </div>
+          <div class="rounded-lg border border-purple-100 bg-purple-50 px-4 py-3">
+            <div class="text-xs text-purple-700">医疗保险参保</div>
+            <div class="mt-1 text-xl font-bold text-purple-900">{assistance.medicalInsurance}</div>
+            <div class="text-[10px] text-purple-600">万人</div>
+          </div>
+          {assistance.unemploymentInsurance !== undefined && (
+            <div class="rounded-lg border border-fuchsia-100 bg-fuchsia-50 px-4 py-3">
+              <div class="text-xs text-fuchsia-700">失业保险参保</div>
+              <div class="mt-1 text-xl font-bold text-fuchsia-900">{assistance.unemploymentInsurance}</div>
+              <div class="text-[10px] text-fuchsia-600">万人</div>
+            </div>
+          )}
+          {assistance.lowIncomeRecipients !== undefined && (
+            <div class="rounded-lg border border-pink-100 bg-pink-50 px-4 py-3">
+              <div class="text-xs text-pink-700">低保对象</div>
+              <div class="mt-1 text-xl font-bold text-pink-900">{assistance.lowIncomeRecipients.toLocaleString()}</div>
+              <div class="text-[10px] text-pink-600">人</div>
+            </div>
+          )}
+        </div>
+        {cityAssistance && (
+          <p class="mt-3 text-xs text-ink-soft">
+            📊 {city.name}市级参考：养老保险参保 <strong>{cityAssistance.pensionInsurance}</strong> 万人，医疗保险参保 <strong>{cityAssistance.medicalInsurance}</strong> 万人{cityAssistance.lowIncomeStandard ? `，低保标准 <strong>${cityAssistance.lowIncomeStandard}</strong> 元/月` : ''}{cityAssistance.elderlyInstitutions ? `，养老机构 <strong>${cityAssistance.elderlyInstitutions}</strong> 家` : ''}{cityAssistance.communityServiceCoverage ? `，社区服务覆盖率 <strong>${cityAssistance.communityServiceCoverage}%</strong>` : ''}
           </p>
         )}
       </div>
