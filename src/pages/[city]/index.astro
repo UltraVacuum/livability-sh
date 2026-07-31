@@ -42,6 +42,9 @@ import { CITY_ASSISTANCE_TOTALS } from '../../data/socialAssistance';
 import { CITY_HOUSING_SECURITY_TOTALS } from '../../data/housingSecurity';
 import { CITY_ROAD_SAFETY_TOTALS } from '../../data/roadSafety';
 import { CITY_SANITATION_TOTALS } from '../../data/sanitation';
+import { CITY_MENTAL_TOTALS } from '../../data/mentalHealth';
+import { CITY_LEGAL_TOTALS } from '../../data/legalService';
+import { CITY_VOLUNTEER_TOTALS } from '../../data/volunteer';
 import { SITE } from '../../consts';
 
 export function getStaticPaths() {
@@ -92,6 +95,9 @@ const cityAssistance = CITY_ASSISTANCE_TOTALS[city.key];
 const cityHousingSecurity = CITY_HOUSING_SECURITY_TOTALS[city.key];
 const cityRoadSafety = CITY_ROAD_SAFETY_TOTALS[city.key];
 const citySanitation = CITY_SANITATION_TOTALS[city.key];
+const cityMental = CITY_MENTAL_TOTALS[city.key];
+const cityLegal = CITY_LEGAL_TOTALS[city.key];
+const cityVolunteer = CITY_VOLUNTEER_TOTALS[city.key];
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -597,6 +603,43 @@ const jsonLd = {
         ，垃圾分类覆盖率 <strong>{citySanitation.classificationRate}%</strong>
         ，资源化利用率 <strong>{citySanitation.resourceRecoveryRate}%</strong>
         <span class="text-xs text-emerald-600">（市级数据，来源：<a href={citySanitation.sourceUrl} class="underline">{citySanitation.source}</a>）</span>
+      </div>
+    )}
+
+    {cityMental && (
+      <div class="mt-3 rounded-lg border border-violet-200 bg-violet-50 px-4 py-3 text-sm text-violet-800">
+        🧠 {city.name}{cityMental.year}年心理健康服务：
+        精神卫生中心 <strong>{cityMental.mentalHealthCenters}</strong> 所
+        ，心理咨询机构 <strong>{cityMental.counselingClinics}</strong> 家
+        ，社会工作站 <strong>{cityMental.socialWorkStations}</strong> 个
+        ，专职社工 <strong>{cityMental.socialWorkers.toLocaleString()}</strong> 人
+        ，儿童心理服务覆盖率 <strong>{cityMental.childCoverageRate}%</strong>
+        <span class="text-xs text-violet-600">（市级数据，来源：<a href={cityMental.sourceUrl} class="underline">{cityMental.source}</a>）</span>
+      </div>
+    )}
+
+    {cityLegal && (
+      <div class="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800">
+        ⚖️ {city.name}{cityLegal.year}年法律服务：
+        律师事务所 <strong>{cityLegal.lawFirms}</strong> 家
+        ，执业律师 <strong>{cityLegal.lawyers.toLocaleString()}</strong> 人
+        ，法律援助中心 <strong>{cityLegal.legalAidCenters}</strong> 个
+        ，公证处 <strong>{cityLegal.notaryOffices}</strong> 家
+        ，调解委 <strong>{cityLegal.mediationCommittees.toLocaleString()}</strong> 个
+        ，年援助案件 <strong>{cityLegal.annualAidCases.toLocaleString()}</strong> 件
+        <span class="text-xs text-slate-600">（市级数据，来源：<a href={cityLegal.sourceUrl} class="underline">{cityLegal.source}</a>）</span>
+      </div>
+    )}
+
+    {cityVolunteer && (
+      <div class="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+        🤝 {city.name}{cityVolunteer.year}年志愿服务与社会组织：
+        注册志愿者 <strong>{cityVolunteer.volunteers}</strong> 万人（参与率 <strong>{cityVolunteer.participationRate}%</strong>）
+        ，志愿团体 <strong>{cityVolunteer.volunteerGroups.toLocaleString()}</strong> 个
+        ，社会组织 <strong>{cityVolunteer.socialOrganizations.toLocaleString()}</strong> 家
+        ，慈善组织 <strong>{cityVolunteer.charityOrgs}</strong> 家
+        ，年志愿服务 <strong>{cityVolunteer.annualHours.toLocaleString()}</strong> 万小时
+        <span class="text-xs text-rose-600">（市级数据，来源：<a href={cityVolunteer.sourceUrl} class="underline">{cityVolunteer.source}</a>）</span>
       </div>
     )}
 

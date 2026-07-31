@@ -50,6 +50,9 @@ import { getDistrictAssistance, assistanceSource, assistanceYear, CITY_ASSISTANC
 import { getDistrictHousingSecurity, housingSecuritySource, housingSecurityYear, CITY_HOUSING_SECURITY_TOTALS } from '../../../data/housingSecurity';
 import { getDistrictRoadSafety, roadSafetySource, roadSafetyYear, CITY_ROAD_SAFETY_TOTALS } from '../../../data/roadSafety';
 import { getDistrictSanitation, sanitationSource, sanitationYear, CITY_SANITATION_TOTALS } from '../../../data/sanitation';
+import { getDistrictMentalHealth, mentalHealthSource, mentalHealthYear, CITY_MENTAL_TOTALS } from '../../../data/mentalHealth';
+import { getDistrictLegalService, legalServiceSource, legalServiceYear, CITY_LEGAL_TOTALS } from '../../../data/legalService';
+import { getDistrictVolunteer, volunteerSource, volunteerYear, CITY_VOLUNTEER_TOTALS } from '../../../data/volunteer';
 
 export function getStaticPaths() {
   const paths = [];
@@ -243,6 +246,18 @@ const cityRoadSafety = CITY_ROAD_SAFETY_TOTALS[city.key];
 // 环境卫生（区级）
 const sanitation = getDistrictSanitation(city.key, district.adcode);
 const citySanitation = CITY_SANITATION_TOTALS[city.key];
+
+// 心理健康服务（区级）
+const mentalHealth = getDistrictMentalHealth(city.key, district.adcode);
+const cityMental = CITY_MENTAL_TOTALS[city.key];
+
+// 法律服务体系（区级）
+const legalService = getDistrictLegalService(city.key, district.adcode);
+const cityLegal = CITY_LEGAL_TOTALS[city.key];
+
+// 志愿服务与社会组织（区级）
+const volunteer = getDistrictVolunteer(city.key, district.adcode);
+const cityVolunteer = CITY_VOLUNTEER_TOTALS[city.key];
 
 const radarSeries = [
   { name: district.name, color: '#0d9488', values: METRICS.map((m) => district.metrics[m.key].score) },
@@ -2609,6 +2624,154 @@ const jsonLd = {
         {citySanitation && (
           <p class="mt-3 text-xs text-ink-soft">
             📊 {city.name}市级参考：公厕 <strong>{citySanitation.publicToilets}</strong> 座，环卫工人 <strong>{citySanitation.sanitationWorkers.toLocaleString()}</strong> 人，日均垃圾 <strong>{citySanitation.dailyWaste.toLocaleString()}</strong> 吨，无害化处理率 <strong>{citySanitation.harmlessTreatmentRate}%</strong>
+          </p>
+        )}
+      </div>
+    )}
+
+    {mentalHealth && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">🧠 心理健康服务</h3>
+          <span class="text-xs text-ink-soft">{mentalHealthYear(city.key)} · {mentalHealthSource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}心理健康服务与社会工作数据。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-violet-100 bg-violet-50 px-4 py-3">
+            <div class="text-xs text-violet-700">精神卫生中心</div>
+            <div class="mt-1 text-xl font-bold text-violet-900">{mentalHealth.mentalHealthCenters}</div>
+            <div class="text-[10px] text-violet-600">所</div>
+          </div>
+          <div class="rounded-lg border border-violet-100 bg-violet-50 px-4 py-3">
+            <div class="text-xs text-violet-700">心理咨询机构</div>
+            <div class="mt-1 text-xl font-bold text-violet-900">{mentalHealth.counselingClinics}</div>
+            <div class="text-[10px] text-violet-600">家</div>
+          </div>
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">社会工作站</div>
+            <div class="mt-1 text-xl font-bold text-ink">{mentalHealth.socialWorkStations}</div>
+            <div class="text-[10px] text-ink-soft">个（街镇全覆盖）</div>
+          </div>
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">专职社会工作者</div>
+            <div class="mt-1 text-xl font-bold text-ink">{mentalHealth.socialWorkers.toLocaleString()}</div>
+            <div class="text-[10px] text-ink-soft">人（持证）</div>
+          </div>
+          {mentalHealth.childCoverageRate !== undefined && (
+            <div class="rounded-lg border border-violet-100 bg-violet-50 px-4 py-3">
+              <div class="text-xs text-violet-700">儿童心理服务覆盖率</div>
+              <div class="mt-1 text-xl font-bold text-violet-900">{mentalHealth.childCoverageRate}%</div>
+              <div class="text-[10px] text-violet-600">（估算）</div>
+            </div>
+          )}
+        </div>
+        {cityMental && (
+          <p class="mt-3 text-xs text-ink-soft">
+            📊 {city.name}市级参考：精神卫生中心 <strong>{cityMental.mentalHealthCenters}</strong> 所，咨询机构 <strong>{cityMental.counselingClinics}</strong> 家，社工站 <strong>{cityMental.socialWorkStations}</strong> 个，专职社工 <strong>{cityMental.socialWorkers.toLocaleString()}</strong> 人
+          </p>
+        )}
+      </div>
+    )}
+
+    {legalService && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">⚖️ 法律服务体系</h3>
+          <span class="text-xs text-ink-soft">{legalServiceYear(city.key)} · {legalServiceSource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}法律服务资源分布。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-slate-100 bg-slate-50 px-4 py-3">
+            <div class="text-xs text-slate-700">律师事务所</div>
+            <div class="mt-1 text-xl font-bold text-slate-900">{legalService.lawFirms}</div>
+            <div class="text-[10px] text-slate-600">家</div>
+          </div>
+          <div class="rounded-lg border border-slate-100 bg-slate-50 px-4 py-3">
+            <div class="text-xs text-slate-700">执业律师</div>
+            <div class="mt-1 text-xl font-bold text-slate-900">{legalService.lawyers.toLocaleString()}</div>
+            <div class="text-[10px] text-slate-600">人</div>
+          </div>
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">法律援助中心</div>
+            <div class="mt-1 text-xl font-bold text-ink">{legalService.legalAidCenters}</div>
+            <div class="text-[10px] text-ink-soft">个（免费法律帮助）</div>
+          </div>
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">公证处</div>
+            <div class="mt-1 text-xl font-bold text-ink">{legalService.notaryOffices}</div>
+            <div class="text-[10px] text-ink-soft">家</div>
+          </div>
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">人民调解委员会</div>
+            <div class="mt-1 text-xl font-bold text-ink">{legalService.mediationCommittees}</div>
+            <div class="text-[10px] text-ink-soft">个</div>
+          </div>
+          {legalService.annualAidCases !== undefined && (
+            <div class="rounded-lg border border-slate-100 bg-slate-50 px-4 py-3">
+              <div class="text-xs text-slate-700">年法律援助案件</div>
+              <div class="mt-1 text-xl font-bold text-slate-900">{legalService.annualAidCases.toLocaleString()}</div>
+              <div class="text-[10px] text-slate-600">件</div>
+            </div>
+          )}
+        </div>
+        {cityLegal && (
+          <p class="mt-3 text-xs text-ink-soft">
+            📊 {city.name}市级参考：律所 <strong>{cityLegal.lawFirms}</strong> 家，律师 <strong>{cityLegal.lawyers.toLocaleString()}</strong> 人，法律援助热线 <strong>{cityLegal.hotline}</strong>，年援助案件 <strong>{cityLegal.annualAidCases.toLocaleString()}</strong> 件
+          </p>
+        )}
+      </div>
+    )}
+
+    {volunteer && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">🤝 志愿服务与社会组织</h3>
+          <span class="text-xs text-ink-soft">{volunteerYear(city.key)} · {volunteerSource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}志愿服务与社会组织概况。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-rose-100 bg-rose-50 px-4 py-3">
+            <div class="text-xs text-rose-700">注册志愿者</div>
+            <div class="mt-1 text-xl font-bold text-rose-900">{volunteer.volunteers}</div>
+            <div class="text-[10px] text-rose-600">万人</div>
+          </div>
+          <div class="rounded-lg border border-rose-100 bg-rose-50 px-4 py-3">
+            <div class="text-xs text-rose-700">志愿服务团体</div>
+            <div class="mt-1 text-xl font-bold text-rose-900">{volunteer.volunteerGroups.toLocaleString()}</div>
+            <div class="text-[10px] text-rose-600">个</div>
+          </div>
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">社会组织</div>
+            <div class="mt-1 text-xl font-bold text-ink">{volunteer.socialOrganizations.toLocaleString()}</div>
+            <div class="text-[10px] text-ink-soft">家</div>
+          </div>
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">慈善组织</div>
+            <div class="mt-1 text-xl font-bold text-ink">{volunteer.charityOrgs}</div>
+            <div class="text-[10px] text-ink-soft">家</div>
+          </div>
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">红十字会基层组织</div>
+            <div class="mt-1 text-xl font-bold text-ink">{volunteer.redCrossBranches}</div>
+            <div class="text-[10px] text-ink-soft">个</div>
+          </div>
+          {volunteer.annualDonation !== undefined && (
+            <div class="rounded-lg border border-rose-100 bg-rose-50 px-4 py-3">
+              <div class="text-xs text-rose-700">年慈善捐赠</div>
+              <div class="mt-1 text-xl font-bold text-rose-900">{volunteer.annualDonation}</div>
+              <div class="text-[10px] text-rose-600">亿元（估算）</div>
+            </div>
+          )}
+        </div>
+        {cityVolunteer && (
+          <p class="mt-3 text-xs text-ink-soft">
+            📊 {city.name}市级参考：志愿者 <strong>{cityVolunteer.volunteers}</strong> 万人（参与率 <strong>{cityVolunteer.participationRate}%</strong>），社会组织 <strong>{cityVolunteer.socialOrganizations.toLocaleString()}</strong> 家，年志愿服务 <strong>{cityVolunteer.annualHours.toLocaleString()}</strong> 万小时
           </p>
         )}
       </div>
