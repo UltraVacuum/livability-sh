@@ -48,6 +48,9 @@ import { CITY_VOLUNTEER_TOTALS } from '../../data/volunteer';
 import { CITY_RENEWABLE_TOTALS } from '../../data/renewableEnergy';
 import { CITY_DIGITAL_LIFE_TOTALS } from '../../data/digitalLife';
 import { CITY_AGRICULTURE_TOTALS } from '../../data/agriculture';
+import { CITY_EMP_SERVICE_TOTALS } from '../../data/employmentService';
+import { CITY_DISASTER_TOTALS } from '../../data/disasterRisk';
+import { CITY_ACCESSIBILITY_TOTALS } from '../../data/accessibility';
 import { SITE } from '../../consts';
 
 export function getStaticPaths() {
@@ -104,6 +107,9 @@ const cityVolunteer = CITY_VOLUNTEER_TOTALS[city.key];
 const cityRenewable = CITY_RENEWABLE_TOTALS[city.key];
 const cityDigitalLifeData = CITY_DIGITAL_LIFE_TOTALS[city.key];
 const cityAgriculture = CITY_AGRICULTURE_TOTALS[city.key];
+const cityEmpService = CITY_EMP_SERVICE_TOTALS[city.key];
+const cityDisaster = CITY_DISASTER_TOTALS[city.key];
+const cityAccessibility = CITY_ACCESSIBILITY_TOTALS[city.key];
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -676,6 +682,47 @@ const jsonLd = {
         ，美丽乡村 <strong>{cityAgriculture.beautifulVillages}</strong> 个
         ，农村居民收入 <strong>{cityAgriculture.ruralIncome.toLocaleString()}元</strong>（+{cityAgriculture.incomeGrowth}%）
         <span class="text-xs text-green-600">（市级数据，来源：<a href={cityAgriculture.sourceUrl} class="underline">{cityAgriculture.source}</a>）</span>
+      </div>
+    )}
+
+    {cityEmpService && (
+      <div class="mt-3 rounded-lg border border-cyan-200 bg-cyan-50 px-4 py-3 text-sm text-cyan-800">
+        💼 {city.name}{cityEmpService.year}年就业服务与人才市场：
+        城镇新增就业 <strong>{cityEmpService.newJobs}万</strong>人
+        ，失业人员再就业 <strong>{cityEmpService.reemployed}万</strong>人
+        ，职业培训 <strong>{cityEmpService.vocationalTraining}万</strong>人次
+        ，创业帮扶 <strong>{cityEmpService.entrepreneurshipSupport.toLocaleString()}</strong>户
+        ，就业服务站点 <strong>{cityEmpService.jobServiceStations}</strong>个
+        ，人才公寓 <strong>{cityEmpService.talentApartments.toLocaleString()}</strong>套
+        {cityEmpService.overseasTalent ? `，海外人才定居 ${cityEmpService.overseasTalent}万人/年` : ''}
+        ，登记失业率 <strong>{cityEmpService.registeredUnemploymentRate}%</strong>
+        <span class="text-xs text-cyan-600">（市级数据，来源：<a href={cityEmpService.sourceUrl} class="underline">{cityEmpService.source}</a>）</span>
+      </div>
+    )}
+
+    {cityDisaster && (
+      <div class="mt-3 rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-800">
+        🌪️ {city.name}{cityDisaster.year}年气象灾害风险与应急：
+        {city.key === 'shanghai' ? <>高温日数 <strong>{cityDisaster.highTempDays}天</strong>，暴雨预警 <strong>{cityDisaster.rainstormWarnings}次</strong>，台风影响 <strong>{cityDisaster.typhoonTimes}次</strong>，雷电预警 <strong>{cityDisaster.lightningWarnings}次</strong>，直接经济损失 <strong>{cityDisaster.directLoss}亿</strong>元，防汛墙 <strong>{cityDisaster.floodWalls}km</strong>，排水泵站 <strong>{cityDisaster.drainagePumps}座</strong>，气象站 <strong>{cityDisaster.weatherStations}</strong>个</> : <>高温日数 <strong>{cityDisaster.highTempDays}天</strong>，沙尘暴 <strong>{cityDisaster.sandstormDays}天</strong>，暴雨预警 <strong>{cityDisaster.rainstormWarnings}次</strong>，冰雹 <strong>{cityDisaster.hailTimes}次</strong>，直接经济损失 <strong>{cityDisaster.directLoss}亿</strong>元，气象站 <strong>{cityDisaster.weatherStations}</strong>个</>}
+        ，预警覆盖率 <strong>{cityDisaster.warningCoverage}%</strong>
+        <span class="text-xs text-orange-600">（市级数据，来源：<a href={cityDisaster.sourceUrl} class="underline">{cityDisaster.source}</a>）</span>
+      </div>
+    )}
+
+    {cityAccessibility && (
+      <div class="mt-3 rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-800">
+        ♿ {city.name}{cityAccessibility.year}年无障碍设施建设：
+        无障碍设施点位 <strong>{cityAccessibility.totalFacilities}万</strong>个
+        ，缘石坡道 <strong>{cityAccessibility.curbRamps}万</strong>处
+        ，无障碍公厕 <strong>{cityAccessibility.accessibleToilets}</strong>座
+        ，无障碍电梯 <strong>{cityAccessibility.accessibleElevators.toLocaleString()}</strong>部
+        ，盲道 <strong>{cityAccessibility.tactilePaving}km</strong>
+        ，导盲犬 <strong>{cityAccessibility.guideDogs}</strong>条
+        ，低地板公交 <strong>{cityAccessibility.lowFloorBuses}</strong>辆
+        {cityAccessibility.accessibleTaxis ? `，无障碍出租车 ${cityAccessibility.accessibleTaxis}辆` : ''}
+        ，家庭无障碍改造 <strong>{cityAccessibility.homeRetrofit}万</strong>户
+        ，网站无障碍达标率 <strong>{cityAccessibility.webAccessibilityRate}%</strong>
+        <span class="text-xs text-indigo-600">（市级数据，来源：<a href={cityAccessibility.sourceUrl} class="underline">{cityAccessibility.source}</a>）</span>
       </div>
     )}
 
