@@ -53,6 +53,9 @@ import { getDistrictSanitation, sanitationSource, sanitationYear, CITY_SANITATIO
 import { getDistrictMentalHealth, mentalHealthSource, mentalHealthYear, CITY_MENTAL_TOTALS } from '../../../data/mentalHealth';
 import { getDistrictLegalService, legalServiceSource, legalServiceYear, CITY_LEGAL_TOTALS } from '../../../data/legalService';
 import { getDistrictVolunteer, volunteerSource, volunteerYear, CITY_VOLUNTEER_TOTALS } from '../../../data/volunteer';
+import { getDistrictRenewable, renewableSource, renewableYear, CITY_RENEWABLE_TOTALS } from '../../../data/renewableEnergy';
+import { getDistrictDigitalLife, digitalLifeSource, digitalLifeYear, CITY_DIGITAL_LIFE_TOTALS } from '../../../data/digitalLife';
+import { getDistrictAgriculture, agricultureSource, agricultureYear, CITY_AGRICULTURE_TOTALS } from '../../../data/agriculture';
 
 export function getStaticPaths() {
   const paths = [];
@@ -258,6 +261,18 @@ const cityLegal = CITY_LEGAL_TOTALS[city.key];
 // 志愿服务与社会组织（区级）
 const volunteer = getDistrictVolunteer(city.key, district.adcode);
 const cityVolunteer = CITY_VOLUNTEER_TOTALS[city.key];
+
+// 可再生能源与绿色设施（区级）
+const renewable = getDistrictRenewable(city.key, district.adcode);
+const cityRenewable = CITY_RENEWABLE_TOTALS[city.key];
+
+// 数字生活与互联网服务（区级）
+const digitalLife = getDistrictDigitalLife(city.key, district.adcode);
+const cityDigitalLife = CITY_DIGITAL_LIFE_TOTALS[city.key];
+
+// 农业与乡村振兴（区级）
+const agriculture = getDistrictAgriculture(city.key, district.adcode);
+const cityAgriculture = CITY_AGRICULTURE_TOTALS[city.key];
 
 const radarSeries = [
   { name: district.name, color: '#0d9488', values: METRICS.map((m) => district.metrics[m.key].score) },
@@ -2772,6 +2787,168 @@ const jsonLd = {
         {cityVolunteer && (
           <p class="mt-3 text-xs text-ink-soft">
             📊 {city.name}市级参考：志愿者 <strong>{cityVolunteer.volunteers}</strong> 万人（参与率 <strong>{cityVolunteer.participationRate}%</strong>），社会组织 <strong>{cityVolunteer.socialOrganizations.toLocaleString()}</strong> 家，年志愿服务 <strong>{cityVolunteer.annualHours.toLocaleString()}</strong> 万小时
+          </p>
+        )}
+      </div>
+    )}
+
+    {renewable && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">⚡ 可再生能源与绿色设施</h3>
+          <span class="text-xs text-ink-soft">{renewableYear(city.key)} · {renewableSource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}新能源基础设施与绿色建筑概况。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {renewable.chargingStations !== undefined && (
+            <div class="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+              <div class="text-xs text-emerald-700">充电站/点</div>
+              <div class="mt-1 text-xl font-bold text-emerald-900">{renewable.chargingStations}</div>
+              <div class="text-[10px] text-emerald-600">个</div>
+            </div>
+          )}
+          {renewable.chargingGuns !== undefined && (
+            <div class="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+              <div class="text-xs text-emerald-700">充电枪</div>
+              <div class="mt-1 text-xl font-bold text-emerald-900">{renewable.chargingGuns.toLocaleString()}</div>
+              <div class="text-[10px] text-emerald-600">个</div>
+            </div>
+          )}
+          {renewable.pvCapacity !== undefined && (
+            <div class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+              <div class="text-xs text-amber-700">分布式光伏装机</div>
+              <div class="mt-1 text-xl font-bold text-amber-900">{renewable.pvCapacity}</div>
+              <div class="text-[10px] text-amber-600">万千瓦</div>
+            </div>
+          )}
+          {renewable.greenBuildings !== undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">绿色建筑项目</div>
+              <div class="mt-1 text-xl font-bold text-ink">{renewable.greenBuildings}</div>
+              <div class="text-[10px] text-ink-soft">个</div>
+            </div>
+          )}
+          {renewable.greenBuildingArea !== undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">绿色建筑面积</div>
+              <div class="mt-1 text-xl font-bold text-ink">{renewable.greenBuildingArea}</div>
+              <div class="text-[10px] text-ink-soft">万㎡</div>
+            </div>
+          )}
+        </div>
+        {cityRenewable && (
+          <p class="mt-3 text-xs text-ink-soft">
+            ⚡ {city.name}市级参考：{city.key === 'shanghai' ? `光伏累计 <strong>${cityRenewable.totalPvCapacity}万千瓦</strong>（+${cityRenewable.pvGrowthRate}%），充电设施 <strong>${cityRenewable.totalChargingGuns}万个</strong>/站 <strong>${cityRenewable.totalChargingStations}座</strong>，新能源汽车 <strong>${cityRenewable.newEnergyVehicles}万辆</strong>，绿色建筑占比 <strong>${cityRenewable.greenBuildingRatio}%</strong>` : `可再生能源发电 <strong>${cityRenewable.renewableGeneration}亿千瓦时</strong>（占比 ${cityRenewable.renewableShare}%），充电桩 <strong>${cityRenewable.totalChargingGuns}万个</strong>，新能源汽车 <strong>${cityRenewable.newEnergyVehicles}万辆</strong>`}
+          </p>
+        )}
+      </div>
+    )}
+
+    {digitalLife && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">📱 数字生活与互联网服务</h3>
+          <span class="text-xs text-ink-soft">{digitalLifeYear(city.key)} · {digitalLifeSource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}互联网消费与数字生活服务概况。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {digitalLife.ecommerceScale !== undefined && (
+            <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+              <div class="text-xs text-blue-700">网络购物交易额</div>
+              <div class="mt-1 text-xl font-bold text-blue-900">{digitalLife.ecommerceScale}</div>
+              <div class="text-[10px] text-blue-600">亿元（估算）</div>
+            </div>
+          )}
+          {digitalLife.rideHailingVehicles !== undefined && (
+            <div class="rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-3">
+              <div class="text-xs text-indigo-700">网约车</div>
+              <div class="mt-1 text-xl font-bold text-indigo-900">{digitalLife.rideHailingVehicles.toLocaleString()}</div>
+              <div class="text-[10px] text-indigo-600">辆（持证）</div>
+            </div>
+          )}
+          {digitalLife.foodDeliveryRiders !== undefined && (
+            <div class="rounded-lg border border-orange-100 bg-orange-50 px-4 py-3">
+              <div class="text-xs text-orange-700">外卖骑手</div>
+              <div class="mt-1 text-xl font-bold text-orange-900">{digitalLife.foodDeliveryRiders.toLocaleString()}</div>
+              <div class="text-[10px] text-orange-600">人</div>
+            </div>
+          )}
+          {digitalLife.fiveGUsers !== undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">5G 用户</div>
+              <div class="mt-1 text-xl font-bold text-ink">{digitalLife.fiveGUsers}</div>
+              <div class="text-[10px] text-ink-soft">万户</div>
+            </div>
+          )}
+        </div>
+        {cityDigitalLife && (
+          <p class="mt-3 text-xs text-ink-soft">
+            📱 {city.name}市级参考：{city.key === 'shanghai' ? `电商交易 <strong>${cityDigitalLife.ecommerceTotal}万亿</strong>元（网购 ${cityDigitalLife.onlineShopping}万亿），5G用户 <strong>${cityDigitalLife.fiveGUsers}万</strong>，基站 <strong>${cityDigitalLife.fiveGStations}万</strong>个，宽带 <strong>${cityDigitalLife.avgBroadband}Mbps</strong>，网约车 <strong>${cityDigitalLife.rideHailingTotal}万</strong>辆` : `移动电话 <strong>${cityDigitalLife.mobileUsers}万</strong>户，宽带 <strong>${cityDigitalLife.broadbandUsers}万</strong>户，网约车 <strong>${cityDigitalLife.rideHailingTotal}万</strong>辆`}
+          </p>
+        )}
+      </div>
+    )}
+
+    {agriculture && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">🌾 农业与乡村振兴</h3>
+          <span class="text-xs text-ink-soft">{agricultureYear(city.key)} · {agricultureSource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}农业生产与乡村发展概况。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {agriculture.agriOutput !== undefined && (
+            <div class="rounded-lg border border-green-100 bg-green-50 px-4 py-3">
+              <div class="text-xs text-green-700">农林牧渔业产值</div>
+              <div class="mt-1 text-xl font-bold text-green-900">{agriculture.agriOutput}</div>
+              <div class="text-[10px] text-green-600">亿元</div>
+            </div>
+          )}
+          {agriculture.grainOutput !== undefined && (
+            <div class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+              <div class="text-xs text-amber-700">粮食产量</div>
+              <div class="mt-1 text-xl font-bold text-amber-900">{agriculture.grainOutput}</div>
+              <div class="text-[10px] text-amber-600">万吨</div>
+            </div>
+          )}
+          {agriculture.leisureFarms !== undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">休闲农业/农家乐</div>
+              <div class="mt-1 text-xl font-bold text-ink">{agriculture.leisureFarms}</div>
+              <div class="text-[10px] text-ink-soft">个</div>
+            </div>
+          )}
+          {agriculture.modernAgriParks !== undefined && (
+            <div class="rounded-lg border border-line bg-surface px-4 py-3">
+              <div class="text-xs text-ink-soft">现代农业园区</div>
+              <div class="mt-1 text-xl font-bold text-ink">{agriculture.modernAgriParks}</div>
+              <div class="text-[10px] text-ink-soft">个</div>
+            </div>
+          )}
+          {agriculture.beautifulVillages !== undefined && (
+            <div class="rounded-lg border border-teal-100 bg-teal-50 px-4 py-3">
+              <div class="text-xs text-teal-700">美丽乡村/示范村</div>
+              <div class="mt-1 text-xl font-bold text-teal-900">{agriculture.beautifulVillages}</div>
+              <div class="text-[10px] text-teal-600">个</div>
+            </div>
+          )}
+          {agriculture.ruralIncome !== undefined && (
+            <div class="rounded-lg border border-violet-100 bg-violet-50 px-4 py-3">
+              <div class="text-xs text-violet-700">农村人均可支配收入</div>
+              <div class="mt-1 text-xl font-bold text-violet-900">{agriculture.ruralIncome.toLocaleString()}</div>
+              <div class="text-[10px] text-violet-600">元/年</div>
+            </div>
+          )}
+        </div>
+        {cityAgriculture && (
+          <p class="mt-3 text-xs text-ink-soft">
+            🌾 {city.name}市级参考：农业总产值 <strong>{cityAgriculture.totalAgriOutput}亿</strong>元，粮食 <strong>{cityAgriculture.grainOutput}万吨</strong>，乡村振兴示范村 <strong>{cityAgriculture.demonstrationVillages}</strong>个，美丽乡村 <strong>{cityAgriculture.beautifulVillages}</strong>个，农村居民收入 <strong>{cityAgriculture.ruralIncome.toLocaleString()}元</strong>（+{cityAgriculture.incomeGrowth}%）
           </p>
         )}
       </div>

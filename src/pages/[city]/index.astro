@@ -45,6 +45,9 @@ import { CITY_SANITATION_TOTALS } from '../../data/sanitation';
 import { CITY_MENTAL_TOTALS } from '../../data/mentalHealth';
 import { CITY_LEGAL_TOTALS } from '../../data/legalService';
 import { CITY_VOLUNTEER_TOTALS } from '../../data/volunteer';
+import { CITY_RENEWABLE_TOTALS } from '../../data/renewableEnergy';
+import { CITY_DIGITAL_LIFE_TOTALS } from '../../data/digitalLife';
+import { CITY_AGRICULTURE_TOTALS } from '../../data/agriculture';
 import { SITE } from '../../consts';
 
 export function getStaticPaths() {
@@ -98,6 +101,9 @@ const citySanitation = CITY_SANITATION_TOTALS[city.key];
 const cityMental = CITY_MENTAL_TOTALS[city.key];
 const cityLegal = CITY_LEGAL_TOTALS[city.key];
 const cityVolunteer = CITY_VOLUNTEER_TOTALS[city.key];
+const cityRenewable = CITY_RENEWABLE_TOTALS[city.key];
+const cityDigitalLifeData = CITY_DIGITAL_LIFE_TOTALS[city.key];
+const cityAgriculture = CITY_AGRICULTURE_TOTALS[city.key];
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -640,6 +646,36 @@ const jsonLd = {
         ，慈善组织 <strong>{cityVolunteer.charityOrgs}</strong> 家
         ，年志愿服务 <strong>{cityVolunteer.annualHours.toLocaleString()}</strong> 万小时
         <span class="text-xs text-rose-600">（市级数据，来源：<a href={cityVolunteer.sourceUrl} class="underline">{cityVolunteer.source}</a>）</span>
+      </div>
+    )}
+
+    {cityRenewable && (
+      <div class="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+        ⚡ {city.name}{cityRenewable.year}年可再生能源与绿色设施：
+        {city.key === 'shanghai' ? <>光伏累计装机 <strong>{cityRenewable.totalPvCapacity}万千瓦</strong>（+{cityRenewable.pvGrowthRate}%），新增 <strong>{cityRenewable.newPvCapacity}万千瓦</strong>，充电设施 <strong>{cityRenewable.totalChargingGuns}万个</strong>（站 <strong>{cityRenewable.totalChargingStations.toLocaleString()}</strong> 座），新能源汽车 <strong>{cityRenewable.newEnergyVehicles}万辆</strong>，绿色建筑占比 <strong>{cityRenewable.greenBuildingRatio}%</strong>，超低能耗 <strong>{cityRenewable.ultraLowEnergyArea}万㎡</strong></> : <>可再生能源发电 <strong>{cityRenewable.renewableGeneration}亿千瓦时</strong>（占比 <strong>{cityRenewable.renewableShare}%</strong>），充电桩 <strong>{cityRenewable.totalChargingGuns}万个</strong>，新能源汽车 <strong>{cityRenewable.newEnergyVehicles}万辆</strong></>}
+        <span class="text-xs text-emerald-600">（市级数据，来源：<a href={cityRenewable.sourceUrl} class="underline">{cityRenewable.source}</a>）</span>
+      </div>
+    )}
+
+    {cityDigitalLifeData && (
+      <div class="mt-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+        📱 {city.name}{cityDigitalLifeData.year}年数字生活：
+        {city.key === 'shanghai' ? <>电商交易额 <strong>{cityDigitalLifeData.ecommerceTotal}万亿</strong>元（+15.2%），网络购物 <strong>{cityDigitalLifeData.onlineShopping}万亿</strong>元，5G用户 <strong>{cityDigitalLifeData.fiveGUsers}万</strong>，5G基站 <strong>{cityDigitalLifeData.fiveGStations}万</strong>个，宽带 <strong>{cityDigitalLifeData.avgBroadband}Mbps</strong>，网约车约 <strong>{cityDigitalLifeData.rideHailingTotal}万</strong>辆</> : <>移动电话 <strong>{cityDigitalLifeData.mobileUsers}万</strong>户，宽带 <strong>{cityDigitalLifeData.broadbandUsers}万</strong>户，网约车约 <strong>{cityDigitalLifeData.rideHailingTotal}万</strong>辆</>}
+        <span class="text-xs text-blue-600">（市级数据，来源：<a href={cityDigitalLifeData.sourceUrl} class="underline">{cityDigitalLifeData.source}</a>）</span>
+      </div>
+    )}
+
+    {cityAgriculture && (
+      <div class="mt-3 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+        🌾 {city.name}{cityAgriculture.year}年农业与乡村振兴：
+        农林牧渔业总产值 <strong>{cityAgriculture.totalAgriOutput}亿</strong>元
+        ，粮食产量 <strong>{cityAgriculture.grainOutput}万吨</strong>
+        {cityAgriculture.milkOutput ? `，牛奶 ${cityAgriculture.milkOutput}万吨` : ''}
+        {cityAgriculture.meatOutput ? `，肉产量 ${cityAgriculture.meatOutput}万吨` : ''}
+        ，乡村振兴示范村 <strong>{cityAgriculture.demonstrationVillages}</strong> 个
+        ，美丽乡村 <strong>{cityAgriculture.beautifulVillages}</strong> 个
+        ，农村居民收入 <strong>{cityAgriculture.ruralIncome.toLocaleString()}元</strong>（+{cityAgriculture.incomeGrowth}%）
+        <span class="text-xs text-green-600">（市级数据，来源：<a href={cityAgriculture.sourceUrl} class="underline">{cityAgriculture.source}</a>）</span>
       </div>
     )}
 
