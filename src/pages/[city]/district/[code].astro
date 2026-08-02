@@ -59,6 +59,9 @@ import { getDistrictAgriculture, agricultureSource, agricultureYear, CITY_AGRICU
 import { getDistrictEmploymentService, employmentServiceSource, employmentServiceYear, CITY_EMP_SERVICE_TOTALS } from '../../../data/employmentService';
 import { getDistrictDisasterRisk, disasterRiskSource, disasterRiskYear, CITY_DISASTER_TOTALS } from '../../../data/disasterRisk';
 import { getDistrictAccessibility, accessibilitySource, accessibilityYear, CITY_ACCESSIBILITY_TOTALS } from '../../../data/accessibility';
+import { getDistrictLibrary, librarySource, libraryYear, CITY_LIBRARY_TOTALS } from '../../../data/libraryService';
+import { getDistrictFuneral, funeralSource, funeralYear, CITY_FUNERAL_TOTALS } from '../../../data/funeralService';
+import { getDistrictGovService, govServiceSource, govServiceYear, CITY_GOV_SERVICE_TOTALS } from '../../../data/govService';
 
 export function getStaticPaths() {
   const paths = [];
@@ -282,6 +285,12 @@ const disasterRisk = getDistrictDisasterRisk(city.key, district.adcode);
 const cityDisaster = CITY_DISASTER_TOTALS[city.key];
 const accessibility = getDistrictAccessibility(city.key, district.adcode);
 const cityAccessibility = CITY_ACCESSIBILITY_TOTALS[city.key];
+const library = getDistrictLibrary(city.key, district.adcode);
+const cityLibrary = CITY_LIBRARY_TOTALS[city.key];
+const funeral = getDistrictFuneral(city.key, district.adcode);
+const cityFuneral = CITY_FUNERAL_TOTALS[city.key];
+const govService = getDistrictGovService(city.key, district.adcode);
+const cityGovService = CITY_GOV_SERVICE_TOTALS[city.key];
 
 const radarSeries = [
   { name: district.name, color: '#0d9488', values: METRICS.map((m) => district.metrics[m.key].score) },
@@ -3126,6 +3135,160 @@ const jsonLd = {
         {cityAccessibility && (
           <p class="mt-3 text-xs text-ink-soft">
             ♿ {city.name}市级参考：无障碍设施 <strong>{cityAccessibility.totalFacilities}万</strong>个点位，缘石坡道 <strong>{cityAccessibility.curbRamps}万</strong>处，盲道 <strong>{cityAccessibility.tactilePaving}km</strong>，无障碍公厕 <strong>{cityAccessibility.accessibleToilets}</strong>座，导盲犬 <strong>{cityAccessibility.guideDogs}</strong>条，低地板公交 <strong>{cityAccessibility.lowFloorBuses}</strong>辆，家庭改造 <strong>{cityAccessibility.homeRetrofit}万</strong>户
+          </p>
+        )}
+      </div>
+    )}
+
+    {library && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">📚 公共图书馆服务</h3>
+          <span class="text-xs text-ink-soft">{libraryYear(city.key)} · {librarySource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}公共图书馆分馆、藏书量与借阅服务数据。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+            <div class="text-xs text-blue-700">图书馆分馆</div>
+            <div class="mt-1 text-xl font-bold text-blue-900">{library.branches}</div>
+            <div class="text-[10px] text-blue-600">个（含服务点）</div>
+          </div>
+          <div class="rounded-lg border border-teal-100 bg-teal-50 px-4 py-3">
+            <div class="text-xs text-teal-700">总藏书量</div>
+            <div class="mt-1 text-xl font-bold text-teal-900">{library.collections}</div>
+            <div class="text-[10px] text-teal-600">万册</div>
+          </div>
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">年流通人次</div>
+            <div class="mt-1 text-xl font-bold text-ink">{library.annualVisitors}</div>
+            <div class="text-[10px] text-ink-soft">万人次</div>
+          </div>
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">年借阅量</div>
+            <div class="mt-1 text-xl font-bold text-ink">{library.annualLoans}</div>
+            <div class="text-[10px] text-ink-soft">万册次</div>
+          </div>
+          <div class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+            <div class="text-xs text-amber-700">24h自助图书馆</div>
+            <div class="mt-1 text-xl font-bold text-amber-900">{library.selfServiceKiosks}</div>
+            <div class="text-[10px] text-amber-600">台/城市书房</div>
+          </div>
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">阅览座位</div>
+            <div class="mt-1 text-xl font-bold text-ink">{library.readingRooms.toLocaleString()}</div>
+            <div class="text-[10px] text-ink-soft">个</div>
+          </div>
+          {library.digitalAccess !== undefined && (
+            <div class="rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-3">
+              <div class="text-xs text-indigo-700">数字资源访问</div>
+              <div class="mt-1 text-xl font-bold text-indigo-900">{library.digitalAccess}</div>
+              <div class="text-[10px] text-indigo-600">万人次</div>
+            </div>
+          )}
+        </div>
+        {cityLibrary && (
+          <p class="mt-3 text-xs text-ink-soft">
+            📚 {city.name}市级参考：公共图书馆 <strong>{cityLibrary.totalBranches}</strong>座，总藏书 <strong>{cityLibrary.totalCollections}</strong>万册，年流通 <strong>{cityLibrary.annualVisitors}</strong>万人次，分馆/服务点 <strong>{cityLibrary.servicePoints}</strong>个，24h自助 <strong>{cityLibrary.selfServiceKiosks}</strong>台，人均藏书 <strong>{cityLibrary.perCapitaBooks}</strong>册，数字资源访问 <strong>{cityLibrary.digitalAccess}</strong>亿人次
+          </p>
+        )}
+      </div>
+    )}
+
+    {funeral && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">⚱️ 殡葬服务与公墓设施</h3>
+          <span class="text-xs text-ink-soft">{funeralYear(city.key)} · {funeralSource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}殡葬服务设施与公墓分布数据。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-stone-200 bg-stone-50 px-4 py-3">
+            <div class="text-xs text-stone-700">经营性公墓</div>
+            <div class="mt-1 text-xl font-bold text-stone-900">{funeral.cemeteries}</div>
+            <div class="text-[10px] text-stone-600">座</div>
+          </div>
+          <div class="rounded-lg border border-green-100 bg-green-50 px-4 py-3">
+            <div class="text-xs text-green-700">公益性墓地</div>
+            <div class="mt-1 text-xl font-bold text-green-900">{funeral.publicCemeteries}</div>
+            <div class="text-[10px] text-green-600">座</div>
+          </div>
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">殡仪馆</div>
+            <div class="mt-1 text-xl font-bold text-ink">{funeral.funeralHomes}</div>
+            <div class="text-[10px] text-ink-soft">座</div>
+          </div>
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">骨灰堂</div>
+            <div class="mt-1 text-xl font-bold text-ink">{funeral.columbariums}</div>
+            <div class="text-[10px] text-ink-soft">座</div>
+          </div>
+          <div class="rounded-lg border border-teal-100 bg-teal-50 px-4 py-3">
+            <div class="text-xs text-teal-700">节地生态安葬率</div>
+            <div class="mt-1 text-xl font-bold text-teal-900">{funeral.ecoBurialRate}%</div>
+            <div class="text-[10px] text-teal-600">（含海葬/树葬等）</div>
+          </div>
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">年火化量</div>
+            <div class="mt-1 text-xl font-bold text-ink">{funeral.annualCremations.toLocaleString()}</div>
+            <div class="text-[10px] text-ink-soft">具</div>
+          </div>
+        </div>
+        {cityFuneral && (
+          <p class="mt-3 text-xs text-ink-soft">
+            ⚱️ {city.name}市级参考：经营性公墓 <strong>{cityFuneral.commercialCemeteries}</strong>座，公益性墓地 <strong>{cityFuneral.publicCemeteries}</strong>座，殡仪馆 <strong>{cityFuneral.funeralHomes}</strong>座，骨灰堂 <strong>{cityFuneral.columbariums}</strong>座，年火化 <strong>{cityFuneral.annualCremations}</strong>万具，生态葬率 <strong>{cityFuneral.ecoBurialRate}%</strong>{cityFuneral.seaBurials > 0 ? `，海葬累计 ${cityFuneral.seaBurials.toLocaleString()}具` : ''}，公墓存量 <strong>{cityFuneral.remainingArea}</strong>万㎡
+          </p>
+        )}
+      </div>
+    )}
+
+    {govService && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">🖥️ 互联网+政务服务</h3>
+          <span class="text-xs text-ink-soft">{govServiceYear(city.key)} · {govServiceSource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}「{city.key === 'shanghai' ? '一网通办' : 'i银川'}」政务服务办理数据。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+            <div class="text-xs text-blue-700">政务服务中心</div>
+            <div class="mt-1 text-xl font-bold text-blue-900">{govService.serviceCenters}</div>
+            <div class="text-[10px] text-blue-600">个（区级+社区）</div>
+          </div>
+          <div class="rounded-lg border border-teal-100 bg-teal-50 px-4 py-3">
+            <div class="text-xs text-teal-700">年办件量</div>
+            <div class="mt-1 text-xl font-bold text-teal-900">{govService.annualTransactions.toLocaleString()}</div>
+            <div class="text-[10px] text-teal-600">万件</div>
+          </div>
+          <div class="rounded-lg border border-green-100 bg-green-50 px-4 py-3">
+            <div class="text-xs text-green-700">全程网办率</div>
+            <div class="mt-1 text-xl font-bold text-green-900">{govService.onlineRate}%</div>
+            <div class="text-[10px] text-green-600">（线上办理）</div>
+          </div>
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">“一件事”集成</div>
+            <div class="mt-1 text-xl font-bold text-ink">{govService.integratedServices}</div>
+            <div class="text-[10px] text-ink-soft">项</div>
+          </div>
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">跨省通办</div>
+            <div class="mt-1 text-xl font-bold text-ink">{govService.crossProvinceItems}</div>
+            <div class="text-[10px] text-ink-soft">项</div>
+          </div>
+          <div class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+            <div class="text-xs text-amber-700">好评率</div>
+            <div class="mt-1 text-xl font-bold text-amber-900">{govService.satisfaction}%</div>
+            <div class="text-[10px] text-amber-600">（“好差评”）</div>
+          </div>
+        </div>
+        {cityGovService && (
+          <p class="mt-3 text-xs text-ink-soft">
+            🖥️ {city.name}市级参考：注册用户 <strong>{cityGovService.registeredUsers}</strong>万，接入事项 <strong>{cityGovService.totalItems}</strong>项，网办率 <strong>{cityGovService.onlineRate}%</strong>，年办件 <strong>{cityGovService.annualTransactions}</strong>亿件{city.key === 'shanghai' ? `，“随申办”月活 ${cityGovService.appMonthlyActive}万` : `，“i银川”月活 ${cityGovService.appMonthlyActive}万`}，电子证照 <strong>{cityGovService.eLicenseTypes}</strong>类/调用 <strong>{cityGovService.eLicenseCalls}</strong>亿次，“一件事” <strong>{cityGovService.integratedServices}</strong>项，跨省通办 <strong>{cityGovService.crossProvinceItems}</strong>项
           </p>
         )}
       </div>

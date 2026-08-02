@@ -51,6 +51,9 @@ import { CITY_AGRICULTURE_TOTALS } from '../../data/agriculture';
 import { CITY_EMP_SERVICE_TOTALS } from '../../data/employmentService';
 import { CITY_DISASTER_TOTALS } from '../../data/disasterRisk';
 import { CITY_ACCESSIBILITY_TOTALS } from '../../data/accessibility';
+import { CITY_LIBRARY_TOTALS } from '../../data/libraryService';
+import { CITY_FUNERAL_TOTALS } from '../../data/funeralService';
+import { CITY_GOV_SERVICE_TOTALS } from '../../data/govService';
 import { SITE } from '../../consts';
 
 export function getStaticPaths() {
@@ -110,6 +113,9 @@ const cityAgriculture = CITY_AGRICULTURE_TOTALS[city.key];
 const cityEmpService = CITY_EMP_SERVICE_TOTALS[city.key];
 const cityDisaster = CITY_DISASTER_TOTALS[city.key];
 const cityAccessibility = CITY_ACCESSIBILITY_TOTALS[city.key];
+const cityLibrary = CITY_LIBRARY_TOTALS[city.key];
+const cityFuneral = CITY_FUNERAL_TOTALS[city.key];
+const cityGovService = CITY_GOV_SERVICE_TOTALS[city.key];
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -723,6 +729,52 @@ const jsonLd = {
         ，家庭无障碍改造 <strong>{cityAccessibility.homeRetrofit}万</strong>户
         ，网站无障碍达标率 <strong>{cityAccessibility.webAccessibilityRate}%</strong>
         <span class="text-xs text-indigo-600">（市级数据，来源：<a href={cityAccessibility.sourceUrl} class="underline">{cityAccessibility.source}</a>）</span>
+      </div>
+    )}
+
+    {cityGovService && (
+      <div class="mt-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+        🖥️ {city.name}{cityGovService.year}年互联网+政务服务（{city.key === 'shanghai' ? '一网通办' : 'i银川'}）：
+        注册用户 <strong>{cityGovService.registeredUsers}</strong>万人
+        ，接入事项 <strong>{cityGovService.totalItems}</strong>项
+        ，全程网办率 <strong>{cityGovService.onlineRate}%</strong>
+        ，年办件 <strong>{cityGovService.annualTransactions}</strong>亿件
+        ，{city.key === 'shanghai' ? `“随申办”月活 <strong>${cityGovService.appMonthlyActive}</strong>万` : `“i银川”月活 <strong>${cityGovService.appMonthlyActive}</strong>万`}
+        ，电子证照 <strong>{cityGovService.eLicenseTypes}</strong>类
+        ，“一件事”集成 <strong>{cityGovService.integratedServices}</strong>项
+        ，跨省通办 <strong>{cityGovService.crossProvinceItems}</strong>项
+        ，好评率 <strong>{cityGovService.satisfaction}%</strong>
+        <span class="text-xs text-blue-600">（市级数据，来源：<a href={cityGovService.sourceUrl} class="underline">{cityGovService.source}</a>）</span>
+      </div>
+    )}
+
+    {cityLibrary && (
+      <div class="mt-3 rounded-lg border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-800">
+        📚 {city.name}{cityLibrary.year}年公共图书馆服务：
+        公共图书馆 <strong>{cityLibrary.totalBranches}</strong>座
+        ，总藏书 <strong>{cityLibrary.totalCollections}</strong>万册
+        ，年流通 <strong>{cityLibrary.annualVisitors}</strong>万人次
+        ，年借阅 <strong>{cityLibrary.annualLoans}</strong>万册次
+        ，分馆/服务点 <strong>{cityLibrary.servicePoints}</strong>个
+        ，24h自助图书馆 <strong>{cityLibrary.selfServiceKiosks}</strong>台
+        ，人均藏书 <strong>{cityLibrary.perCapitaBooks}</strong>册
+        ，数字资源访问 <strong>{cityLibrary.digitalAccess}</strong>亿人次
+        <span class="text-xs text-teal-600">（市级数据，来源：<a href={cityLibrary.sourceUrl} class="underline">{cityLibrary.source}</a>）</span>
+      </div>
+    )}
+
+    {cityFuneral && (
+      <div class="mt-3 rounded-lg border border-stone-300 bg-stone-50 px-4 py-3 text-sm text-stone-800">
+        ⚱️ {city.name}{cityFuneral.year}年殡葬服务与公墓设施：
+        经营性公墓 <strong>{cityFuneral.commercialCemeteries}</strong>座
+        ，公益性墓地 <strong>{cityFuneral.publicCemeteries}</strong>座
+        ，殡仪馆 <strong>{cityFuneral.funeralHomes}</strong>座
+        ，骨灰堂 <strong>{cityFuneral.columbariums}</strong>座
+        ，年火化 <strong>{cityFuneral.annualCremations}</strong>万具
+        ，节地生态安葬率 <strong>{cityFuneral.ecoBurialRate}%</strong>
+        {cityFuneral.seaBurials > 0 ? `，海葬累计 <strong>${cityFuneral.seaBurials.toLocaleString()}</strong>具` : ''}
+        ，公墓存量面积 <strong>{cityFuneral.remainingArea}</strong>万㎡
+        <span class="text-xs text-stone-600">（市级数据，来源：<a href={cityFuneral.sourceUrl} class="underline">{cityFuneral.source}</a>）</span>
       </div>
     )}
 
