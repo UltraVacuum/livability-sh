@@ -54,6 +54,9 @@ import { CITY_ACCESSIBILITY_TOTALS } from '../../data/accessibility';
 import { CITY_LIBRARY_TOTALS } from '../../data/libraryService';
 import { CITY_FUNERAL_TOTALS } from '../../data/funeralService';
 import { CITY_GOV_SERVICE_TOTALS } from '../../data/govService';
+import { CITY_YOUTH_TOTALS } from '../../data/youthActivity';
+import { CITY_MASS_SPORTS_TOTALS } from '../../data/massSports';
+import { CITY_MARRIAGE_TOTALS } from '../../data/marriage';
 import { SITE } from '../../consts';
 
 export function getStaticPaths() {
@@ -116,6 +119,9 @@ const cityAccessibility = CITY_ACCESSIBILITY_TOTALS[city.key];
 const cityLibrary = CITY_LIBRARY_TOTALS[city.key];
 const cityFuneral = CITY_FUNERAL_TOTALS[city.key];
 const cityGovService = CITY_GOV_SERVICE_TOTALS[city.key];
+const cityYouth = CITY_YOUTH_TOTALS[city.key];
+const cityMassSports = CITY_MASS_SPORTS_TOTALS[city.key];
+const cityMarriage = CITY_MARRIAGE_TOTALS[city.key];
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -775,6 +781,47 @@ const jsonLd = {
         {cityFuneral.seaBurials > 0 ? `，海葬累计 <strong>${cityFuneral.seaBurials.toLocaleString()}</strong>具` : ''}
         ，公墓存量面积 <strong>{cityFuneral.remainingArea}</strong>万㎡
         <span class="text-xs text-stone-600">（市级数据，来源：<a href={cityFuneral.sourceUrl} class="underline">{cityFuneral.source}</a>）</span>
+      </div>
+    )}
+
+    {cityYouth && (
+      <div class="mt-3 rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-800">
+        🔬 {city.name}{cityYouth.year}年青少年校外活动与科普基地：
+        校外活动场所 <strong>{cityYouth.totalCenters}</strong>个
+        ，科普教育基地 <strong>{cityYouth.scienceBases}</strong>个
+        ，研学实践基地 <strong>{cityYouth.studyCamps}</strong>个
+        ，社会实践指导站 <strong>{cityYouth.practiceStations}</strong>个
+        ，年均参与青少年 <strong>{cityYouth.annualParticipants}</strong>万人次
+        ，科技竞赛参与 <strong>{cityYouth.techCompetitions}</strong>万人次
+        <span class="text-xs text-indigo-600">（市级数据，来源：<a href={cityYouth.sourceUrl} class="underline">{cityYouth.source}</a>）</span>
+      </div>
+    )}
+
+    {cityMassSports && (
+      <div class="mt-3 rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-800">
+        🏃 {city.name}{cityMassSports.year}年群众体育赛事与健身活动：
+        群众赛事 <strong>{cityMassSports.totalEvents}</strong>场/年
+        ，社会体育指导员 <strong>{cityMassSports.instructors.toLocaleString()}</strong>人
+        ，健身辅导站 <strong>{cityMassSports.fitnessStations}</strong>个
+        ，业余联赛 <strong>{cityMassSports.leagueEvents}</strong>场
+        ，经常锻炼比例 <strong>{cityMassSports.participationRate}%</strong>
+        ，体质合格率 <strong>{cityMassSports.fitnessIndex}%</strong>
+        ，全民健身日参与 <strong>{cityMassSports.annualParticipants}</strong>万人次
+        <span class="text-xs text-orange-600">（市级数据，来源：<a href={cityMassSports.sourceUrl} class="underline">{cityMassSports.source}</a>）</span>
+      </div>
+    )}
+
+    {cityMarriage && (
+      <div class="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+        💑 {city.name}{cityMarriage.year}年婚姻登记与家庭服务：
+        婚姻登记 <strong>{cityMarriage.totalRegistrations}</strong>万对（结婚 <strong>{cityMarriage.marriages}</strong>万/离婚 <strong>{cityMarriage.divorces}</strong>万）
+        ，婚前检查率 <strong>{cityMarriage.premaritalCheckRate}%</strong>
+        ，登记处 <strong>{cityMarriage.registrationOffices}</strong>个
+        ，辅导室 <strong>{cityMarriage.counselingRooms}</strong>个
+        ，家庭教育站 <strong>{cityMarriage.familyEduStations}</strong>个
+        ，年讲座 <strong>{cityMarriage.annualLectures}</strong>场
+        ，调解成功率 <strong>{cityMarriage.mediationRate}%</strong>
+        <span class="text-xs text-rose-600">（市级数据，来源：<a href={cityMarriage.sourceUrl} class="underline">{cityMarriage.source}</a>）</span>
       </div>
     )}
 
