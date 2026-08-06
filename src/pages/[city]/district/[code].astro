@@ -68,6 +68,9 @@ import { getDistrictMarriage, marriageSource, marriageYear, CITY_MARRIAGE_TOTALS
 import { getDistrictChildFriendly, childFriendlySource, childFriendlyYear, CITY_CHILD_TOTALS } from '../../../data/childFriendly';
 import { getDistrictUrbanRenewal, urbanRenewalSource, urbanRenewalYear, CITY_RENEWAL_TOTALS } from '../../../data/urbanRenewal';
 import { getDistrictCulturalService, culturalServiceSource, culturalServiceYear, CITY_CULTURAL_SVC_TOTALS } from '../../../data/culturalService';
+import { getDistrictPharmacy, pharmacySource, pharmacyYear, CITY_PHARMACY_TOTALS } from '../../../data/pharmacy';
+import { getDistrictDisability, disabilitySource, disabilityYear, CITY_DISABILITY_TOTALS } from '../../../data/disabilityService';
+import { getDistrictFinancialService, financialServiceSource, financialServiceYear, CITY_FIN_SVC_TOTALS } from '../../../data/financialService';
 
 export function getStaticPaths() {
   const paths = [];
@@ -309,6 +312,12 @@ const urbanRenewal = getDistrictUrbanRenewal(city.key, district.adcode);
 const cityRenewal = CITY_RENEWAL_TOTALS[city.key];
 const culturalSvc = getDistrictCulturalService(city.key, district.adcode);
 const cityCulturalSvc = CITY_CULTURAL_SVC_TOTALS[city.key];
+const pharmacy = getDistrictPharmacy(city.key, district.adcode);
+const cityPharmacy = CITY_PHARMACY_TOTALS[city.key];
+const disability = getDistrictDisability(city.key, district.adcode);
+const cityDisability = CITY_DISABILITY_TOTALS[city.key];
+const financialSvc = getDistrictFinancialService(city.key, district.adcode);
+const cityFinSvc = CITY_FIN_SVC_TOTALS[city.key];
 
 const radarSeries = [
   { name: district.name, color: '#0d9488', values: METRICS.map((m) => district.metrics[m.key].score) },
@@ -3611,6 +3620,168 @@ const jsonLd = {
         {cityCulturalSvc && (
           <p class="mt-3 text-xs text-ink-soft">
             🎭 {city.name}市级参考：文化馆 <strong>{cityCulturalSvc.totalCulturalCenters}</strong> 个，阅读活动 <strong>{cityCulturalSvc.totalReadingEvents.toLocaleString()}</strong> 场/年，国家级非遗 <strong>{cityCulturalSvc.nationalHeritage}</strong> 项，市级非遗 <strong>{cityCulturalSvc.cityHeritage}</strong> 项，传承人 <strong>{cityCulturalSvc.totalInheritors}</strong> 名，传习所 <strong>{cityCulturalSvc.totalVenues}</strong> 个，演出 <strong>{cityCulturalSvc.totalPerformances.toLocaleString()}</strong> 场/年，数字资源 <strong>{cityCulturalSvc.totalDigitalResources}</strong> TB
+          </p>
+        )}
+      </div>
+    )}
+
+    {pharmacy && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">💊 药店与基层医疗网点</h3>
+          <span class="text-xs text-ink-soft">{pharmacyYear(city.key)} · {pharmacySource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}药店分布、医保定点药店、24小时药店及社区卫生服务站点覆盖情况。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+            <div class="text-xs text-emerald-700">药店总数</div>
+            <div class="mt-1 text-xl font-bold text-emerald-900">{pharmacy.totalPharmacies}</div>
+            <div class="text-[10px] text-emerald-600">家</div>
+          </div>
+          <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+            <div class="text-xs text-blue-700">医保定点药店</div>
+            <div class="mt-1 text-xl font-bold text-blue-900">{pharmacy.insuredPharmacies}</div>
+            <div class="text-[10px] text-blue-600">家</div>
+          </div>
+          <div class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+            <div class="text-xs text-amber-700">24小时药店</div>
+            <div class="mt-1 text-xl font-bold text-amber-900">{pharmacy.hourly24Pharmacies}</div>
+            <div class="text-[10px] text-amber-600">家</div>
+          </div>
+          <div class="rounded-lg border border-purple-100 bg-purple-50 px-4 py-3">
+            <div class="text-xs text-purple-700">连锁药店</div>
+            <div class="mt-1 text-xl font-bold text-purple-900">{pharmacy.chainPharmacies}</div>
+            <div class="text-[10px] text-purple-600">家</div>
+          </div>
+          <div class="rounded-lg border border-teal-100 bg-teal-50 px-4 py-3">
+            <div class="text-xs text-teal-700">社区卫生服务站</div>
+            <div class="mt-1 text-xl font-bold text-teal-900">{pharmacy.communityHealthStations}</div>
+            <div class="text-[10px] text-teal-600">个</div>
+          </div>
+          <div class="rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-3">
+            <div class="text-xs text-indigo-700">药店密度</div>
+            <div class="mt-1 text-xl font-bold text-indigo-900">{pharmacy.pharmacyDensity}</div>
+            <div class="text-[10px] text-indigo-600">家/万人</div>
+          </div>
+          <div class="rounded-lg border border-green-100 bg-green-50 px-4 py-3">
+            <div class="text-xs text-green-700">社区药品覆盖率</div>
+            <div class="mt-1 text-xl font-bold text-green-900">{pharmacy.coverageRate}%</div>
+            <div class="text-[10px] text-green-600">%</div>
+          </div>
+        </div>
+        {cityPharmacy && (
+          <p class="mt-3 text-xs text-ink-soft">
+            💊 {city.name}市级参考：药店 <strong>{cityPharmacy.totalPharmacies.toLocaleString()}</strong> 家，医保定点 <strong>{cityPharmacy.insuredPharmacies.toLocaleString()}</strong> 家，24h药店 <strong>{cityPharmacy.hourly24Pharmacies}</strong> 家，连锁企业 <strong>{cityPharmacy.chainEnterprises}</strong> 家，社区卫生站 <strong>{cityPharmacy.communityHealthStations.toLocaleString()}</strong> 个，每万人 <strong>{cityPharmacy.pharmacyDensity}</strong> 家药店
+          </p>
+        )}
+      </div>
+    )}
+
+    {disability && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">♿ 残疾人服务与无障碍</h3>
+          <span class="text-xs text-ink-soft">{disabilityYear(city.key)} · {disabilitySource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}残疾人康复、就业、辅助器具适配及无障碍设施改造分布数据。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+            <div class="text-xs text-blue-700">持证残疾人</div>
+            <div class="mt-1 text-xl font-bold text-blue-900">{disability.disabledPopulation.toLocaleString()}</div>
+            <div class="text-[10px] text-blue-600">人</div>
+          </div>
+          <div class="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+            <div class="text-xs text-emerald-700">残疾人就业</div>
+            <div class="mt-1 text-xl font-bold text-emerald-900">{disability.employedDisabled.toLocaleString()}</div>
+            <div class="text-[10px] text-emerald-600">人</div>
+          </div>
+          <div class="rounded-lg border border-purple-100 bg-purple-50 px-4 py-3">
+            <div class="text-xs text-purple-700">康复机构</div>
+            <div class="mt-1 text-xl font-bold text-purple-900">{disability.rehabInstitutions}</div>
+            <div class="text-[10px] text-purple-600">个</div>
+          </div>
+          <div class="rounded-lg border border-teal-100 bg-teal-50 px-4 py-3">
+            <div class="text-xs text-teal-700">辅助器具适配</div>
+            <div class="mt-1 text-xl font-bold text-teal-900">{disability.assistiveDevices.toLocaleString()}</div>
+            <div class="text-[10px] text-teal-600">件/年</div>
+          </div>
+          <div class="rounded-lg border border-orange-100 bg-orange-50 px-4 py-3">
+            <div class="text-xs text-orange-700">无障碍改造楼栋</div>
+            <div class="mt-1 text-xl font-bold text-orange-900">{disability.barrierFreeBuildings}</div>
+            <div class="text-[10px] text-orange-600">栋（累计）</div>
+          </div>
+          <div class="rounded-lg border border-rose-100 bg-rose-50 px-4 py-3">
+            <div class="text-xs text-rose-700">家庭无障碍改造</div>
+            <div class="mt-1 text-xl font-bold text-rose-900">{disability.barrierFreeHomes.toLocaleString()}</div>
+            <div class="text-[10px] text-rose-600">户（累计）</div>
+          </div>
+          <div class="rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-3">
+            <div class="text-xs text-indigo-700">手语翻译服务点</div>
+            <div class="mt-1 text-xl font-bold text-indigo-900">{disability.signLanguagePoints}</div>
+            <div class="text-[10px] text-indigo-600">个</div>
+          </div>
+          <div class="rounded-lg border border-cyan-100 bg-cyan-50 px-4 py-3">
+            <div class="text-xs text-cyan-700">政务网站无障碍</div>
+            <div class="mt-1 text-xl font-bold text-cyan-900">{disability.webAccessibilityRate}%</div>
+            <div class="text-[10px] text-cyan-600">达标率</div>
+          </div>
+        </div>
+        {cityDisability && (
+          <p class="mt-3 text-xs text-ink-soft">
+            ♿ {city.name}市级参考：持证残疾人 <strong>{cityDisability.totalDisabled.toLocaleString()}</strong> 人，就业 <strong>{cityDisability.totalEmployed.toLocaleString()}</strong> 人（按比例{cityDisability.proportionEmployed.toLocaleString()}+集中{cityDisability.concentratedEmployed.toLocaleString()}+灵活{cityDisability.flexibleEmployed.toLocaleString()}），康复机构 <strong>{cityDisability.rehabInstitutions}</strong> 家，辅具 <strong>{cityDisability.assistiveDevicesAnnual.toLocaleString()}</strong> 件/年，无障碍改造 <strong>{cityDisability.barrierFreeBuildings.toLocaleString()}</strong> 栋+家庭 <strong>{cityDisability.barrierFreeHomes.toLocaleString()}</strong> 户，手语服务点 <strong>{cityDisability.signLanguagePoints}</strong> 个，政务网站无障碍 <strong>{cityDisability.webAccessibilityRate}%</strong>
+          </p>
+        )}
+      </div>
+    )}
+
+    {financialSvc && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">🏦 金融便民服务</h3>
+          <span class="text-xs text-ink-soft">{financialServiceYear(city.key)} · {financialServiceSource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}银行网点、ATM分布、社区金融服务站及数字人民币试点商户分布数据。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+            <div class="text-xs text-blue-700">银行网点</div>
+            <div class="mt-1 text-xl font-bold text-blue-900">{financialSvc.bankBranches}</div>
+            <div class="text-[10px] text-blue-600">个</div>
+          </div>
+          <div class="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+            <div class="text-xs text-emerald-700">ATM总数</div>
+            <div class="mt-1 text-xl font-bold text-emerald-900">{financialSvc.atms.toLocaleString()}</div>
+            <div class="text-[10px] text-emerald-600">台</div>
+          </div>
+          <div class="rounded-lg border border-purple-100 bg-purple-50 px-4 py-3">
+            <div class="text-xs text-purple-700">社区金融服务站</div>
+            <div class="mt-1 text-xl font-bold text-purple-900">{financialSvc.communityFinStations}</div>
+            <div class="text-[10px] text-purple-600">个</div>
+          </div>
+          <div class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+            <div class="text-xs text-amber-700">数字人民币商户</div>
+            <div class="mt-1 text-xl font-bold text-amber-900">{financialSvc.digitalRmbMerchants.toLocaleString()}</div>
+            <div class="text-[10px] text-amber-600">家</div>
+          </div>
+          <div class="rounded-lg border border-teal-100 bg-teal-50 px-4 py-3">
+            <div class="text-xs text-teal-700">小微企业贷款</div>
+            <div class="mt-1 text-xl font-bold text-teal-900">{financialSvc.microLoans}</div>
+            <div class="text-[10px] text-teal-600">亿元</div>
+          </div>
+          <div class="rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-3">
+            <div class="text-xs text-indigo-700">银行网点密度</div>
+            <div class="mt-1 text-xl font-bold text-indigo-900">{financialSvc.bankDensity}</div>
+            <div class="text-[10px] text-indigo-600">个/万人</div>
+          </div>
+        </div>
+        {cityFinSvc && (
+          <p class="mt-3 text-xs text-ink-soft">
+            🏦 {city.name}市级参考：银行网点 <strong>{cityFinSvc.totalBankBranches.toLocaleString()}</strong> 个，ATM <strong>{cityFinSvc.totalAtms.toLocaleString()}</strong> 台，社区金融站 <strong>{cityFinSvc.communityFinStations}</strong> 个，数字人民币商户 <strong>{cityFinSvc.digitalRmbMerchants.toLocaleString()}</strong> 家，累计交易 <strong>{cityFinSvc.digitalRmbTransactions.toLocaleString()}</strong> 亿元，小微贷款 <strong>{cityFinSvc.microLoanBalance.toLocaleString()}</strong> 亿元，金融业增加值 <strong>{cityFinSvc.financialGdp.toLocaleString()}</strong> 亿（占GDP {cityFinSvc.financialGdpShare}%）
           </p>
         )}
       </div>
