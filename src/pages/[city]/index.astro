@@ -57,6 +57,9 @@ import { CITY_GOV_SERVICE_TOTALS } from '../../data/govService';
 import { CITY_YOUTH_TOTALS } from '../../data/youthActivity';
 import { CITY_MASS_SPORTS_TOTALS } from '../../data/massSports';
 import { CITY_MARRIAGE_TOTALS } from '../../data/marriage';
+import { CITY_CHILD_TOTALS } from '../../data/childFriendly';
+import { CITY_RENEWAL_TOTALS } from '../../data/urbanRenewal';
+import { CITY_CULTURAL_SVC_TOTALS } from '../../data/culturalService';
 import { SITE } from '../../consts';
 
 export function getStaticPaths() {
@@ -122,6 +125,9 @@ const cityGovService = CITY_GOV_SERVICE_TOTALS[city.key];
 const cityYouth = CITY_YOUTH_TOTALS[city.key];
 const cityMassSports = CITY_MASS_SPORTS_TOTALS[city.key];
 const cityMarriage = CITY_MARRIAGE_TOTALS[city.key];
+const cityChild = CITY_CHILD_TOTALS[city.key];
+const cityRenewal = CITY_RENEWAL_TOTALS[city.key];
+const cityCulturalSvc = CITY_CULTURAL_SVC_TOTALS[city.key];
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -822,6 +828,47 @@ const jsonLd = {
         ，年讲座 <strong>{cityMarriage.annualLectures}</strong>场
         ，调解成功率 <strong>{cityMarriage.mediationRate}%</strong>
         <span class="text-xs text-rose-600">（市级数据，来源：<a href={cityMarriage.sourceUrl} class="underline">{cityMarriage.source}</a>）</span>
+      </div>
+    )}
+
+    {cityChild && (
+      <div class="mt-3 rounded-lg border border-pink-200 bg-pink-50 px-4 py-3 text-sm text-pink-800">
+        🧒 {city.name}{cityChild.year}年儿童友好度：
+        托育机构 <strong>{cityChild.totalNurseries}</strong> 个
+        ，托位 <strong>{cityChild.totalSlots.toLocaleString()}</strong> 个
+        ，儿童公园 <strong>{cityChild.totalChildParks}</strong> 个
+        ，儿童之家 <strong>{cityChild.totalChildCenters}</strong> 个
+        ，课后服务覆盖率 <strong>{cityChild.afterSchoolCoverage}%</strong>
+        ，儿科床位 <strong>{cityChild.totalPediatricBeds.toLocaleString()}</strong> 张
+        ，母婴室 <strong>{cityChild.totalNursingRooms}</strong> 个
+        <span class="text-xs text-pink-600">（市级数据，来源：<a href={cityChild.sourceUrl} class="underline">{cityChild.source}</a>）</span>
+      </div>
+    )}
+
+    {cityRenewal && (
+      <div class="mt-3 rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-800">
+        🏗️ {city.name}{cityRenewal.year}年城市更新与旧改：
+        旧区改造 <strong>{cityRenewal.totalOldTown}</strong> 万㎡
+        ，城中村改造 <strong>{cityRenewal.totalUrbanVillage.toLocaleString()}</strong> 户
+        ，老旧小区 <strong>{cityRenewal.totalOldCommunity}</strong> 万㎡
+        ，历史建筑 <strong>{cityRenewal.totalHeritageBuildings}</strong> 处
+        ，风貌区 <strong>{cityRenewal.totalHeritageDistricts}</strong> 片
+        ，更新项目 <strong>{cityRenewal.totalProjects}</strong> 个
+        <span class="text-xs text-orange-600">（市级数据，来源：<a href={cityRenewal.sourceUrl} class="underline">{cityRenewal.source}</a>）</span>
+      </div>
+    )}
+
+    {cityCulturalSvc && (
+      <div class="mt-3 rounded-lg border border-purple-200 bg-purple-50 px-4 py-3 text-sm text-purple-800">
+        🎭 {city.name}{cityCulturalSvc.year}年公共文化服务：
+        文化馆 <strong>{cityCulturalSvc.totalCulturalCenters}</strong> 个
+        ，全民阅读活动 <strong>{cityCulturalSvc.totalReadingEvents.toLocaleString()}</strong> 场/年
+        ，国家级非遗 <strong>{cityCulturalSvc.nationalHeritage}</strong> 项，市级非遗 <strong>{cityCulturalSvc.cityHeritage}</strong> 项
+        ，传承人 <strong>{cityCulturalSvc.totalInheritors}</strong> 名
+        ，传习所 <strong>{cityCulturalSvc.totalVenues}</strong> 个
+        ，演出 <strong>{cityCulturalSvc.totalPerformances.toLocaleString()}</strong> 场/年
+        ，数字资源 <strong>{cityCulturalSvc.totalDigitalResources}</strong> TB
+        <span class="text-xs text-purple-600">（市级数据，来源：<a href={cityCulturalSvc.sourceUrl} class="underline">{cityCulturalSvc.source}</a>）</span>
       </div>
     )}
 

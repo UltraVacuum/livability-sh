@@ -65,6 +65,9 @@ import { getDistrictGovService, govServiceSource, govServiceYear, CITY_GOV_SERVI
 import { getDistrictYouthActivity, youthActivitySource, youthActivityYear, CITY_YOUTH_TOTALS } from '../../../data/youthActivity';
 import { getDistrictMassSports, massSportsSource, massSportsYear, CITY_MASS_SPORTS_TOTALS } from '../../../data/massSports';
 import { getDistrictMarriage, marriageSource, marriageYear, CITY_MARRIAGE_TOTALS } from '../../../data/marriage';
+import { getDistrictChildFriendly, childFriendlySource, childFriendlyYear, CITY_CHILD_TOTALS } from '../../../data/childFriendly';
+import { getDistrictUrbanRenewal, urbanRenewalSource, urbanRenewalYear, CITY_RENEWAL_TOTALS } from '../../../data/urbanRenewal';
+import { getDistrictCulturalService, culturalServiceSource, culturalServiceYear, CITY_CULTURAL_SVC_TOTALS } from '../../../data/culturalService';
 
 export function getStaticPaths() {
   const paths = [];
@@ -300,6 +303,12 @@ const massSports = getDistrictMassSports(city.key, district.adcode);
 const cityMassSports = CITY_MASS_SPORTS_TOTALS[city.key];
 const marriage = getDistrictMarriage(city.key, district.adcode);
 const cityMarriage = CITY_MARRIAGE_TOTALS[city.key];
+const childFriendly = getDistrictChildFriendly(city.key, district.adcode);
+const cityChild = CITY_CHILD_TOTALS[city.key];
+const urbanRenewal = getDistrictUrbanRenewal(city.key, district.adcode);
+const cityRenewal = CITY_RENEWAL_TOTALS[city.key];
+const culturalSvc = getDistrictCulturalService(city.key, district.adcode);
+const cityCulturalSvc = CITY_CULTURAL_SVC_TOTALS[city.key];
 
 const radarSeries = [
   { name: district.name, color: '#0d9488', values: METRICS.map((m) => district.metrics[m.key].score) },
@@ -3445,6 +3454,163 @@ const jsonLd = {
         {cityMarriage && (
           <p class="mt-3 text-xs text-ink-soft">
             💑 {city.name}市级参考：婚姻登记 <strong>{cityMarriage.totalRegistrations}</strong>万对（结婚 <strong>{cityMarriage.marriages}</strong>万/离婚 <strong>{cityMarriage.divorces}</strong>万），婚检率 <strong>{cityMarriage.premaritalCheckRate}%</strong>，登记处 <strong>{cityMarriage.registrationOffices}</strong>个，辅导室 <strong>{cityMarriage.counselingRooms}</strong>个，家庭教育站 <strong>{cityMarriage.familyEduStations}</strong>个，年讲座 <strong>{cityMarriage.annualLectures}</strong>场，调解成功率 <strong>{cityMarriage.mediationRate}%</strong>
+          </p>
+        )}
+      </div>
+    )}
+
+    {childFriendly && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">🧒 儿童友好度</h3>
+          <span class="text-xs text-ink-soft">{childFriendlyYear(city.key)} · {childFriendlySource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}托育机构、儿童公园、课后服务与儿科医疗资源分布数据。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-pink-100 bg-pink-50 px-4 py-3">
+            <div class="text-xs text-pink-700">托育机构</div>
+            <div class="mt-1 text-xl font-bold text-pink-900">{childFriendly.nurseryInstitutions}</div>
+            <div class="text-[10px] text-pink-600">个（含社区托育）</div>
+          </div>
+          <div class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+            <div class="text-xs text-amber-700">托位总数</div>
+            <div class="mt-1 text-xl font-bold text-amber-900">{childFriendly.nurserySlots.toLocaleString()}</div>
+            <div class="text-[10px] text-amber-600">个</div>
+          </div>
+          <div class="rounded-lg border border-green-100 bg-green-50 px-4 py-3">
+            <div class="text-xs text-green-700">儿童公园</div>
+            <div class="mt-1 text-xl font-bold text-green-900">{childFriendly.childParks}</div>
+            <div class="text-[10px] text-green-600">个（儿童友好公园）</div>
+          </div>
+          <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+            <div class="text-xs text-blue-700">儿童之家</div>
+            <div class="mt-1 text-xl font-bold text-blue-900">{childFriendly.childCenters}</div>
+            <div class="text-[10px] text-blue-600">个（服务中心）</div>
+          </div>
+          <div class="rounded-lg border border-teal-100 bg-teal-50 px-4 py-3">
+            <div class="text-xs text-teal-700">课后服务覆盖率</div>
+            <div class="mt-1 text-xl font-bold text-teal-900">{childFriendly.afterSchoolCoverage}%</div>
+            <div class="text-[10px] text-teal-600">（义务教育阶段）</div>
+          </div>
+          <div class="rounded-lg border border-purple-100 bg-purple-50 px-4 py-3">
+            <div class="text-xs text-purple-700">儿科床位</div>
+            <div class="mt-1 text-xl font-bold text-purple-900">{childFriendly.pediatricBeds}</div>
+            <div class="text-[10px] text-purple-600">张</div>
+          </div>
+          <div class="rounded-lg border border-rose-100 bg-rose-50 px-4 py-3">
+            <div class="text-xs text-rose-700">公共场所母婴室</div>
+            <div class="mt-1 text-xl font-bold text-rose-900">{childFriendly.nursingRooms}</div>
+            <div class="text-[10px] text-rose-600">个</div>
+          </div>
+        </div>
+        {cityChild && (
+          <p class="mt-3 text-xs text-ink-soft">
+            🧒 {city.name}市级参考：托育机构 <strong>{cityChild.totalNurseries}</strong> 个，托位 <strong>{cityChild.totalSlots.toLocaleString()}</strong> 个，儿童公园 <strong>{cityChild.totalChildParks}</strong> 个，儿童之家 <strong>{cityChild.totalChildCenters}</strong> 个，课后服务覆盖率 <strong>{cityChild.afterSchoolCoverage}%</strong>，儿科床位 <strong>{cityChild.totalPediatricBeds.toLocaleString()}</strong> 张，母婴室 <strong>{cityChild.totalNursingRooms}</strong> 个
+          </p>
+        )}
+      </div>
+    )}
+
+    {urbanRenewal && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">🏗️ 城市更新与旧改</h3>
+          <span class="text-xs text-ink-soft">{urbanRenewalYear(city.key)} · {urbanRenewalSource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}旧区改造、城中村改造、老旧小区更新与历史风貌保护数据。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-orange-100 bg-orange-50 px-4 py-3">
+            <div class="text-xs text-orange-700">旧区/旧里改造</div>
+            <div class="mt-1 text-xl font-bold text-orange-900">{urbanRenewal.oldTownRenovation}</div>
+            <div class="text-[10px] text-orange-600">万㎡</div>
+          </div>
+          <div class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+            <div class="text-xs text-amber-700">城中村改造</div>
+            <div class="mt-1 text-xl font-bold text-amber-900">{urbanRenewal.urbanVillageRenovation.toLocaleString()}</div>
+            <div class="text-[10px] text-amber-600">户</div>
+          </div>
+          <div class="rounded-lg border border-teal-100 bg-teal-50 px-4 py-3">
+            <div class="text-xs text-teal-700">老旧小区改造</div>
+            <div class="mt-1 text-xl font-bold text-teal-900">{urbanRenewal.oldCommunityUpgrades}</div>
+            <div class="text-[10px] text-teal-600">万㎡</div>
+          </div>
+          <div class="rounded-lg border border-purple-100 bg-purple-50 px-4 py-3">
+            <div class="text-xs text-purple-700">历史建筑/文保单位</div>
+            <div class="mt-1 text-xl font-bold text-purple-900">{urbanRenewal.heritageBuildings}</div>
+            <div class="text-[10px] text-purple-600">处</div>
+          </div>
+          <div class="rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-3">
+            <div class="text-xs text-indigo-700">历史风貌区/街区</div>
+            <div class="mt-1 text-xl font-bold text-indigo-900">{urbanRenewal.heritageDistricts}</div>
+            <div class="text-[10px] text-indigo-600">片</div>
+          </div>
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">城市更新项目</div>
+            <div class="mt-1 text-xl font-bold text-ink">{urbanRenewal.renewalProjects}</div>
+            <div class="text-[10px] text-ink-soft">个</div>
+          </div>
+        </div>
+        {cityRenewal && (
+          <p class="mt-3 text-xs text-ink-soft">
+            🏗️ {city.name}市级参考：旧区改造 <strong>{cityRenewal.totalOldTown}</strong> 万㎡，城中村改造 <strong>{cityRenewal.totalUrbanVillage.toLocaleString()}</strong> 户，老旧小区 <strong>{cityRenewal.totalOldCommunity}</strong> 万㎡，历史建筑 <strong>{cityRenewal.totalHeritageBuildings}</strong> 处，风貌区 <strong>{cityRenewal.totalHeritageDistricts}</strong> 片，更新项目 <strong>{cityRenewal.totalProjects}</strong> 个
+          </p>
+        )}
+      </div>
+    )}
+
+    {culturalSvc && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">🎭 公共文化服务</h3>
+          <span class="text-xs text-ink-soft">{culturalServiceYear(city.key)} · {culturalServiceSource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}文化馆、全民阅读推广、非遗保护与演出活动分布数据。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-purple-100 bg-purple-50 px-4 py-3">
+            <div class="text-xs text-purple-700">文化馆/群艺馆</div>
+            <div class="mt-1 text-xl font-bold text-purple-900">{culturalSvc.culturalCenters}</div>
+            <div class="text-[10px] text-purple-600">个</div>
+          </div>
+          <div class="rounded-lg border border-teal-100 bg-teal-50 px-4 py-3">
+            <div class="text-xs text-teal-700">全民阅读活动</div>
+            <div class="mt-1 text-xl font-bold text-teal-900">{culturalSvc.readingEvents}</div>
+            <div class="text-[10px] text-teal-600">场/年</div>
+          </div>
+          <div class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+            <div class="text-xs text-amber-700">非遗代表性项目</div>
+            <div class="mt-1 text-xl font-bold text-amber-900">{culturalSvc.heritageItems}</div>
+            <div class="text-[10px] text-amber-600">项</div>
+          </div>
+          <div class="rounded-lg border border-rose-100 bg-rose-50 px-4 py-3">
+            <div class="text-xs text-rose-700">非遗传承人</div>
+            <div class="mt-1 text-xl font-bold text-rose-900">{culturalSvc.heritageInheritors}</div>
+            <div class="text-[10px] text-rose-600">名</div>
+          </div>
+          <div class="rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-3">
+            <div class="text-xs text-indigo-700">非遗展示馆/传习所</div>
+            <div class="mt-1 text-xl font-bold text-indigo-900">{culturalSvc.heritageVenues}</div>
+            <div class="text-[10px] text-indigo-600">个</div>
+          </div>
+          <div class="rounded-lg border border-green-100 bg-green-50 px-4 py-3">
+            <div class="text-xs text-green-700">演出场次</div>
+            <div class="mt-1 text-xl font-bold text-green-900">{culturalSvc.performanceEvents.toLocaleString()}</div>
+            <div class="text-[10px] text-green-600">场/年</div>
+          </div>
+          <div class="rounded-lg border border-line bg-surface px-4 py-3">
+            <div class="text-xs text-ink-soft">数字文化资源</div>
+            <div class="mt-1 text-xl font-bold text-ink">{culturalSvc.digitalResources}</div>
+            <div class="text-[10px] text-ink-soft">TB</div>
+          </div>
+        </div>
+        {cityCulturalSvc && (
+          <p class="mt-3 text-xs text-ink-soft">
+            🎭 {city.name}市级参考：文化馆 <strong>{cityCulturalSvc.totalCulturalCenters}</strong> 个，阅读活动 <strong>{cityCulturalSvc.totalReadingEvents.toLocaleString()}</strong> 场/年，国家级非遗 <strong>{cityCulturalSvc.nationalHeritage}</strong> 项，市级非遗 <strong>{cityCulturalSvc.cityHeritage}</strong> 项，传承人 <strong>{cityCulturalSvc.totalInheritors}</strong> 名，传习所 <strong>{cityCulturalSvc.totalVenues}</strong> 个，演出 <strong>{cityCulturalSvc.totalPerformances.toLocaleString()}</strong> 场/年，数字资源 <strong>{cityCulturalSvc.totalDigitalResources}</strong> TB
           </p>
         )}
       </div>
