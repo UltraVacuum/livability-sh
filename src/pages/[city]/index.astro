@@ -63,6 +63,9 @@ import { CITY_CULTURAL_SVC_TOTALS } from '../../data/culturalService';
 import { CITY_PHARMACY_TOTALS } from '../../data/pharmacy';
 import { CITY_DISABILITY_TOTALS } from '../../data/disabilityService';
 import { CITY_FIN_SVC_TOTALS } from '../../data/financialService';
+import { CITY_VETERAN_TOTALS } from '../../data/veteranService';
+import { CITY_CANTEEN_TOTALS } from '../../data/communityCanteen';
+import { CITY_WIFI_TOTALS } from '../../data/publicWifi';
 import { SITE } from '../../consts';
 
 export function getStaticPaths() {
@@ -134,6 +137,9 @@ const cityCulturalSvc = CITY_CULTURAL_SVC_TOTALS[city.key];
 const cityPharmacyTotal = CITY_PHARMACY_TOTALS[city.key];
 const cityDisabilityTotal = CITY_DISABILITY_TOTALS[city.key];
 const cityFinSvcTotal = CITY_FIN_SVC_TOTALS[city.key];
+const cityVeteranTotal = CITY_VETERAN_TOTALS[city.key];
+const cityCanteenTotal = CITY_CANTEEN_TOTALS[city.key];
+const cityWifiTotal = CITY_WIFI_TOTALS[city.key];
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -919,6 +925,45 @@ const jsonLd = {
         ，小微贷款 <strong>{cityFinSvcTotal.microLoanBalance.toLocaleString()}</strong> 亿元
         ，金融业增加值 <strong>{cityFinSvcTotal.financialGdp.toLocaleString()}</strong> 亿（占GDP {cityFinSvcTotal.financialGdpShare}%）
         <span class="text-xs text-amber-600">（市级数据，来源：<a href={cityFinSvcTotal.sourceUrl} class="underline">{cityFinSvcTotal.source}</a>）</span>
+      </div>
+    )}
+
+    {cityVeteranTotal && (
+      <div class="mt-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+        🎖️ {city.name}{cityVeteranTotal.year}年退役军人服务保障：
+        退役军人 <strong>{cityVeteranTotal.totalVeterans.toLocaleString()}</strong> 人
+        ，重点优抚对象 <strong>{cityVeteranTotal.totalKeyBeneficiaries.toLocaleString()}</strong> 人
+        ，服务中心(站) <strong>{cityVeteranTotal.totalServiceStations.toLocaleString()}</strong> 个
+        ，年发优抚金 <strong>{cityVeteranTotal.totalAnnualPension}</strong> 亿元
+        ，就业帮扶 <strong>{cityVeteranTotal.totalJobAssisted.toLocaleString()}</strong> 人次
+        ，退役军人企业 <strong>{cityVeteranTotal.totalVeteranBusinesses.toLocaleString()}</strong> 家
+        ，医疗优先覆盖 <strong>{cityVeteranTotal.medicalPriorityRate}%</strong>
+        <span class="text-xs text-red-600">（市级数据，来源：<a href={cityVeteranTotal.sourceUrl} class="underline">{cityVeteranTotal.source}</a>）</span>
+      </div>
+    )}
+
+    {cityCanteenTotal && (
+      <div class="mt-3 rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-800">
+        🍚 {city.name}{cityCanteenTotal.year}年社区食堂与老年人助餐：
+        社区食堂 <strong>{cityCanteenTotal.totalCanteens.toLocaleString()}</strong> 家
+        ，日均服务 <strong>{cityCanteenTotal.totalDailyService}</strong> 万人次
+        ，年补贴 <strong>{cityCanteenTotal.totalAnnualSubsidy}</strong> 亿元
+        ，街镇覆盖率 <strong>{cityCanteenTotal.coverageRate}%</strong>
+        ，平均一餐 <strong>{cityCanteenTotal.avgPrice}</strong> 元
+        ，志愿厨师 <strong>{cityCanteenTotal.totalVolunteerCooks.toLocaleString()}</strong> 人
+        <span class="text-xs text-orange-600">（市级数据，来源：<a href={cityCanteenTotal.sourceUrl} class="underline">{cityCanteenTotal.source}</a>）</span>
+      </div>
+    )}
+
+    {cityWifiTotal && (
+      <div class="mt-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+        📶 {city.name}{cityWifiTotal.year}年公共WiFi与数字便民：
+        公共WiFi热点 <strong>{cityWifiTotal.totalHotspots.toLocaleString()}</strong> 个
+        ，5G小基站 <strong>{cityWifiTotal.totalSmallCell5G.toLocaleString()}</strong> 个
+        ，公共数字终端 <strong>{cityWifiTotal.totalTerminals.toLocaleString()}</strong> 台
+        ，智慧社区 <strong>{cityWifiTotal.totalSmartCommunities}</strong> 个
+        ，平均速度 <strong>{cityWifiTotal.avgSpeed}</strong> Mbps
+        <span class="text-xs text-blue-600">（市级数据，来源：<a href={cityWifiTotal.sourceUrl} class="underline">{cityWifiTotal.source}</a>）</span>
       </div>
     )}
 

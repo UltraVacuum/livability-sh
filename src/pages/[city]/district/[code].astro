@@ -71,6 +71,9 @@ import { getDistrictCulturalService, culturalServiceSource, culturalServiceYear,
 import { getDistrictPharmacy, pharmacySource, pharmacyYear, CITY_PHARMACY_TOTALS } from '../../../data/pharmacy';
 import { getDistrictDisability, disabilitySource, disabilityYear, CITY_DISABILITY_TOTALS } from '../../../data/disabilityService';
 import { getDistrictFinancialService, financialServiceSource, financialServiceYear, CITY_FIN_SVC_TOTALS } from '../../../data/financialService';
+import { getDistrictVeteran, veteranSource, veteranYear, CITY_VETERAN_TOTALS } from '../../../data/veteranService';
+import { getDistrictCanteen, canteenSource, canteenYear, CITY_CANTEEN_TOTALS } from '../../../data/communityCanteen';
+import { getDistrictWifi, wifiSource, wifiYear, CITY_WIFI_TOTALS } from '../../../data/publicWifi';
 
 export function getStaticPaths() {
   const paths = [];
@@ -318,6 +321,12 @@ const disability = getDistrictDisability(city.key, district.adcode);
 const cityDisability = CITY_DISABILITY_TOTALS[city.key];
 const financialSvc = getDistrictFinancialService(city.key, district.adcode);
 const cityFinSvc = CITY_FIN_SVC_TOTALS[city.key];
+const veteran = getDistrictVeteran(city.key, district.adcode);
+const cityVeteran = CITY_VETERAN_TOTALS[city.key];
+const canteen = getDistrictCanteen(city.key, district.adcode);
+const cityCanteen = CITY_CANTEEN_TOTALS[city.key];
+const wifi = getDistrictWifi(city.key, district.adcode);
+const cityWifi = CITY_WIFI_TOTALS[city.key];
 
 const radarSeries = [
   { name: district.name, color: '#0d9488', values: METRICS.map((m) => district.metrics[m.key].score) },
@@ -3782,6 +3791,158 @@ const jsonLd = {
         {cityFinSvc && (
           <p class="mt-3 text-xs text-ink-soft">
             🏦 {city.name}市级参考：银行网点 <strong>{cityFinSvc.totalBankBranches.toLocaleString()}</strong> 个，ATM <strong>{cityFinSvc.totalAtms.toLocaleString()}</strong> 台，社区金融站 <strong>{cityFinSvc.communityFinStations}</strong> 个，数字人民币商户 <strong>{cityFinSvc.digitalRmbMerchants.toLocaleString()}</strong> 家，累计交易 <strong>{cityFinSvc.digitalRmbTransactions.toLocaleString()}</strong> 亿元，小微贷款 <strong>{cityFinSvc.microLoanBalance.toLocaleString()}</strong> 亿元，金融业增加值 <strong>{cityFinSvc.financialGdp.toLocaleString()}</strong> 亿（占GDP {cityFinSvc.financialGdpShare}%）
+          </p>
+        )}
+      </div>
+    )}
+
+    {veteran && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">🎖️ 退役军人服务保障</h3>
+          <span class="text-xs text-ink-soft">{veteranYear(city.key)} · {veteranSource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}退役军人服务保障体系，包括退役军人服务中心(站)、优抚金发放、就业帮扶及创业支持。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-red-100 bg-red-50 px-4 py-3">
+            <div class="text-xs text-red-700">退役军人</div>
+            <div class="mt-1 text-xl font-bold text-red-900">{veteran.veteranPopulation?.toLocaleString()}</div>
+            <div class="text-[10px] text-red-600">人</div>
+          </div>
+          <div class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+            <div class="text-xs text-amber-700">重点优抚对象</div>
+            <div class="mt-1 text-xl font-bold text-amber-900">{veteran.keyBeneficiaries?.toLocaleString()}</div>
+            <div class="text-[10px] text-amber-600">人</div>
+          </div>
+          <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+            <div class="text-xs text-blue-700">服务中心(站)</div>
+            <div class="mt-1 text-xl font-bold text-blue-900">{veteran.serviceStations}</div>
+            <div class="text-[10px] text-blue-600">个</div>
+          </div>
+          <div class="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+            <div class="text-xs text-emerald-700">年发优抚金</div>
+            <div class="mt-1 text-xl font-bold text-emerald-900">{veteran.annualPension?.toLocaleString()}</div>
+            <div class="text-[10px] text-emerald-600">万元</div>
+          </div>
+          <div class="rounded-lg border border-purple-100 bg-purple-50 px-4 py-3">
+            <div class="text-xs text-purple-700">就业帮扶</div>
+            <div class="mt-1 text-xl font-bold text-purple-900">{veteran.jobAssisted?.toLocaleString()}</div>
+            <div class="text-[10px] text-purple-600">人次/年</div>
+          </div>
+          <div class="rounded-lg border border-teal-100 bg-teal-50 px-4 py-3">
+            <div class="text-xs text-teal-700">退役军人企业</div>
+            <div class="mt-1 text-xl font-bold text-teal-900">{veteran.veteranBusinesses?.toLocaleString()}</div>
+            <div class="text-[10px] text-teal-600">家</div>
+          </div>
+          <div class="rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-3">
+            <div class="text-xs text-indigo-700">医疗优先覆盖</div>
+            <div class="mt-1 text-xl font-bold text-indigo-900">{veteran.medicalPriorityRate}%</div>
+            <div class="text-[10px] text-indigo-600">医疗机构优先窗口</div>
+          </div>
+        </div>
+        {cityVeteran && (
+          <p class="mt-3 text-xs text-ink-soft">
+            🎖️ {city.name}市级参考：退役军人 <strong>{cityVeteran.totalVeterans.toLocaleString()}</strong> 人，重点优抚对象 <strong>{cityVeteran.totalKeyBeneficiaries.toLocaleString()}</strong> 人，服务中心(站) <strong>{cityVeteran.totalServiceStations.toLocaleString()}</strong> 个，年发优抚金 <strong>{cityVeteran.totalAnnualPension}</strong> 亿元，就业帮扶 <strong>{cityVeteran.totalJobAssisted.toLocaleString()}</strong> 人次，退役军人企业 <strong>{cityVeteran.totalVeteranBusinesses.toLocaleString()}</strong> 家
+          </p>
+        )}
+      </div>
+    )}
+
+    {canteen && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">🍚 社区食堂与老年人助餐</h3>
+          <span class="text-xs text-ink-soft">{canteenYear(city.key)} · {canteenSource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}社区老年食堂、长者饭堂数量及日均助餐服务情况。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-orange-100 bg-orange-50 px-4 py-3">
+            <div class="text-xs text-orange-700">社区食堂</div>
+            <div class="mt-1 text-xl font-bold text-orange-900">{canteen.canteens}</div>
+            <div class="text-[10px] text-orange-600">家</div>
+          </div>
+          <div class="rounded-lg border border-rose-100 bg-rose-50 px-4 py-3">
+            <div class="text-xs text-rose-700">日均服务</div>
+            <div class="mt-1 text-xl font-bold text-rose-900">{canteen.dailyService?.toLocaleString()}</div>
+            <div class="text-[10px] text-rose-600">人次</div>
+          </div>
+          <div class="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+            <div class="text-xs text-emerald-700">年补贴资金</div>
+            <div class="mt-1 text-xl font-bold text-emerald-900">{canteen.annualSubsidy?.toLocaleString()}</div>
+            <div class="text-[10px] text-emerald-600">万元</div>
+          </div>
+          <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+            <div class="text-xs text-blue-700">街镇覆盖率</div>
+            <div class="mt-1 text-xl font-bold text-blue-900">{canteen.coverageRate}%</div>
+            <div class="text-[10px] text-blue-600">老年人助餐服务</div>
+          </div>
+          <div class="rounded-lg border border-purple-100 bg-purple-50 px-4 py-3">
+            <div class="text-xs text-purple-700">平均一餐</div>
+            <div class="mt-1 text-xl font-bold text-purple-900">{canteen.avgPrice}</div>
+            <div class="text-[10px] text-purple-600">元（政府补贴后）</div>
+          </div>
+          <div class="rounded-lg border border-teal-100 bg-teal-50 px-4 py-3">
+            <div class="text-xs text-teal-700">志愿厨师</div>
+            <div class="mt-1 text-xl font-bold text-teal-900">{canteen.volunteerCooks}</div>
+            <div class="text-[10px] text-teal-600">人</div>
+          </div>
+        </div>
+        {cityCanteen && (
+          <p class="mt-3 text-xs text-ink-soft">
+            🍚 {city.name}市级参考：社区食堂 <strong>{cityCanteen.totalCanteens.toLocaleString()}</strong> 家，日均服务 <strong>{cityCanteen.totalDailyService}</strong> 万人次，年补贴 <strong>{cityCanteen.totalAnnualSubsidy}</strong> 亿元，街镇覆盖率 <strong>{cityCanteen.coverageRate}%</strong>，平均一餐 <strong>{cityCanteen.avgPrice}</strong> 元，志愿厨师 <strong>{cityCanteen.totalVolunteerCooks.toLocaleString()}</strong> 人
+          </p>
+        )}
+      </div>
+    )}
+
+    {wifi && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">📶 公共WiFi与数字便民</h3>
+          <span class="text-xs text-ink-soft">{wifiYear(city.key)} · {wifiSource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}公共WiFi热点、5G微站、智慧社区及公共数字终端分布。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+            <div class="text-xs text-blue-700">公共WiFi热点</div>
+            <div class="mt-1 text-xl font-bold text-blue-900">{wifi.wifiHotspots?.toLocaleString()}</div>
+            <div class="text-[10px] text-blue-600">个</div>
+          </div>
+          <div class="rounded-lg border border-purple-100 bg-purple-50 px-4 py-3">
+            <div class="text-xs text-purple-700">5G小基站</div>
+            <div class="mt-1 text-xl font-bold text-purple-900">{wifi.smallCell5G?.toLocaleString()}</div>
+            <div class="text-[10px] text-purple-600">个</div>
+          </div>
+          <div class="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+            <div class="text-xs text-emerald-700">公共数字终端</div>
+            <div class="mt-1 text-xl font-bold text-emerald-900">{wifi.publicTerminals?.toLocaleString()}</div>
+            <div class="text-[10px] text-emerald-600">台</div>
+          </div>
+          <div class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+            <div class="text-xs text-amber-700">智慧社区</div>
+            <div class="mt-1 text-xl font-bold text-amber-900">{wifi.smartCommunities}</div>
+            <div class="text-[10px] text-amber-600">个</div>
+          </div>
+          <div class="rounded-lg border border-teal-100 bg-teal-50 px-4 py-3">
+            <div class="text-xs text-teal-700">平均下载速度</div>
+            <div class="mt-1 text-xl font-bold text-teal-900">{wifi.avgDownloadSpeed}</div>
+            <div class="text-[10px] text-teal-600">Mbps</div>
+          </div>
+          <div class="rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-3">
+            <div class="text-xs text-indigo-700">免费时长</div>
+            <div class="mt-1 text-xl font-bold text-indigo-900">{wifi.freeWifiDuration}</div>
+            <div class="text-[10px] text-indigo-600">小时/天</div>
+          </div>
+        </div>
+        {cityWifi && (
+          <p class="mt-3 text-xs text-ink-soft">
+            📶 {city.name}市级参考：公共WiFi热点 <strong>{cityWifi.totalHotspots.toLocaleString()}</strong> 个，5G小基站 <strong>{cityWifi.totalSmallCell5G.toLocaleString()}</strong> 个，公共数字终端 <strong>{cityWifi.totalTerminals.toLocaleString()}</strong> 台，智慧社区 <strong>{cityWifi.totalSmartCommunities}</strong> 个，平均速度 <strong>{cityWifi.avgSpeed}</strong> Mbps
           </p>
         )}
       </div>
