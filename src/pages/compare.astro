@@ -2,7 +2,8 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { CITIES } from '../data/cities';
 import { getDistricts, METRICS, type MetricKey } from '../data/districts';
-import { computeCity, compositeScore, DEFAULT_WEIGHTS, type ScoredDistrict } from '../lib/scoring';
+import { computeCity, compositeScore, type ScoredDistrict } from '../lib/scoring';
+import { DEFAULT_WEIGHTS } from '../data/districts';
 
 // Build all districts data for client-side selection
 interface DistrictOption {
