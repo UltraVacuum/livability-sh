@@ -66,6 +66,9 @@ import { CITY_FIN_SVC_TOTALS } from '../../data/financialService';
 import { CITY_VETERAN_TOTALS } from '../../data/veteranService';
 import { CITY_CANTEEN_TOTALS } from '../../data/communityCanteen';
 import { CITY_WIFI_TOTALS } from '../../data/publicWifi';
+import { CITY_CULTURAL_CONS_TOTALS } from '../../data/culturalConsumption';
+import { CITY_TRADE_TOTALS } from '../../data/foreignTrade';
+import { CITY_WATER_FAC_TOTALS } from '../../data/waterFacility';
 import { SITE } from '../../consts';
 
 export function getStaticPaths() {
@@ -140,6 +143,9 @@ const cityFinSvcTotal = CITY_FIN_SVC_TOTALS[city.key];
 const cityVeteranTotal = CITY_VETERAN_TOTALS[city.key];
 const cityCanteenTotal = CITY_CANTEEN_TOTALS[city.key];
 const cityWifiTotal = CITY_WIFI_TOTALS[city.key];
+const cityCulturalConsTotal = CITY_CULTURAL_CONS_TOTALS[city.key];
+const cityTradeTotal = CITY_TRADE_TOTALS[city.key];
+const cityWaterFacTotal = CITY_WATER_FAC_TOTALS[city.key];
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -964,6 +970,47 @@ const jsonLd = {
         ，智慧社区 <strong>{cityWifiTotal.totalSmartCommunities}</strong> 个
         ，平均速度 <strong>{cityWifiTotal.avgSpeed}</strong> Mbps
         <span class="text-xs text-blue-600">（市级数据，来源：<a href={cityWifiTotal.sourceUrl} class="underline">{cityWifiTotal.source}</a>）</span>
+      </div>
+    )}
+
+    {cityCulturalConsTotal && (
+      <div class="mt-2 rounded-lg border border-pink-200 bg-pink-50 px-4 py-3 text-sm text-pink-800">
+        🎬 {city.name}{cityCulturalConsTotal.year}年文化消费与娱乐：
+        电影院 <strong>{cityCulturalConsTotal.totalCinemas}</strong> 家
+        ，银幕 <strong>{cityCulturalConsTotal.totalScreens}</strong> 块
+        ，年票房 <strong>{cityCulturalConsTotal.totalBoxOffice}</strong> 亿元
+        ，演出场馆 <strong>{cityCulturalConsTotal.totalVenues}</strong> 个
+        ，年演出 <strong>{cityCulturalConsTotal.totalShows.toLocaleString()}</strong> 场
+        ，观众 <strong>{cityCulturalConsTotal.totalAudience}</strong> 万人次
+        ，实体书店 <strong>{cityCulturalConsTotal.totalBookstores}</strong> 家
+        ，人均文化娱乐消费 <strong>{cityCulturalConsTotal.perCapitaConsumption}</strong> 元
+        <span class="text-xs text-pink-600">（市级数据，来源：<a href={cityCulturalConsTotal.sourceUrl} class="underline">{cityCulturalConsTotal.source}</a>）</span>
+      </div>
+    )}
+
+    {cityTradeTotal && (
+      <div class="mt-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+        🌐 {city.name}{cityTradeTotal.year}年对外贸易与跨境电商：
+        进出口总额 <strong>{cityTradeTotal.totalImportExport}</strong> 万亿元
+        ，口岸进出口 <strong>{cityTradeTotal.portTotal}</strong> 万亿元
+        ，跨境电商 <strong>{cityTradeTotal.crossBorderTotal}</strong> 亿元
+        ，实际使用外资 <strong>{cityTradeTotal.totalForeignInvestment}</strong> 亿美元
+        ，外贸企业 <strong>{cityTradeTotal.totalTradeCompanies.toLocaleString()}</strong> 家
+        <span class="text-xs text-emerald-600">（市级数据，来源：<a href={cityTradeTotal.sourceUrl} class="underline">{cityTradeTotal.source}</a>）</span>
+      </div>
+    )}
+
+    {cityWaterFacTotal && (
+      <div class="mt-2 rounded-lg border border-cyan-200 bg-cyan-50 px-4 py-3 text-sm text-cyan-800">
+        💧 {city.name}{cityWaterFacTotal.year}年水利设施：
+        水库 <strong>{cityWaterFacTotal.totalReservoirs}</strong> 座
+        ，堤防 <strong>{cityWaterFacTotal.totalEmbankment}</strong> km
+        ，水闸 <strong>{cityWaterFacTotal.totalSluices.toLocaleString()}</strong> 座
+        ，排涝泵站 <strong>{cityWaterFacTotal.totalPumpStations.toLocaleString()}</strong> 座
+        ，有效灌溉 <strong>{cityWaterFacTotal.totalIrrigation}</strong> 万亩
+        ，渠道 <strong>{cityWaterFacTotal.totalCanal}</strong> km
+        ，年供水 <strong>{cityWaterFacTotal.waterSupply}</strong> 亿m³
+        <span class="text-xs text-cyan-600">（市级数据，来源：<a href={cityWaterFacTotal.sourceUrl} class="underline">{cityWaterFacTotal.source}</a>）</span>
       </div>
     )}
 

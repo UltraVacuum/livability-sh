@@ -74,6 +74,9 @@ import { getDistrictFinancialService, financialServiceSource, financialServiceYe
 import { getDistrictVeteran, veteranSource, veteranYear, CITY_VETERAN_TOTALS } from '../../../data/veteranService';
 import { getDistrictCanteen, canteenSource, canteenYear, CITY_CANTEEN_TOTALS } from '../../../data/communityCanteen';
 import { getDistrictWifi, wifiSource, wifiYear, CITY_WIFI_TOTALS } from '../../../data/publicWifi';
+import { getDistrictCulturalConsumption, culturalConsumptionSource, culturalConsumptionYear, CITY_CULTURAL_CONS_TOTALS } from '../../../data/culturalConsumption';
+import { getDistrictForeignTrade, foreignTradeSource, foreignTradeYear, CITY_TRADE_TOTALS } from '../../../data/foreignTrade';
+import { getDistrictWaterFacility, waterFacilitySource, waterFacilityYear, CITY_WATER_FAC_TOTALS } from '../../../data/waterFacility';
 
 export function getStaticPaths() {
   const paths = [];
@@ -327,6 +330,12 @@ const canteen = getDistrictCanteen(city.key, district.adcode);
 const cityCanteen = CITY_CANTEEN_TOTALS[city.key];
 const wifi = getDistrictWifi(city.key, district.adcode);
 const cityWifi = CITY_WIFI_TOTALS[city.key];
+const culturalCons = getDistrictCulturalConsumption(city.key, district.adcode);
+const cityCulturalCons = CITY_CULTURAL_CONS_TOTALS[city.key];
+const foreignTrade = getDistrictForeignTrade(city.key, district.adcode);
+const cityTrade = CITY_TRADE_TOTALS[city.key];
+const waterFacility = getDistrictWaterFacility(city.key, district.adcode);
+const cityWaterFac = CITY_WATER_FAC_TOTALS[city.key];
 
 const radarSeries = [
   { name: district.name, color: '#0d9488', values: METRICS.map((m) => district.metrics[m.key].score) },
@@ -3943,6 +3952,155 @@ const jsonLd = {
         {cityWifi && (
           <p class="mt-3 text-xs text-ink-soft">
             📶 {city.name}市级参考：公共WiFi热点 <strong>{cityWifi.totalHotspots.toLocaleString()}</strong> 个，5G小基站 <strong>{cityWifi.totalSmallCell5G.toLocaleString()}</strong> 个，公共数字终端 <strong>{cityWifi.totalTerminals.toLocaleString()}</strong> 台，智慧社区 <strong>{cityWifi.totalSmartCommunities}</strong> 个，平均速度 <strong>{cityWifi.avgSpeed}</strong> Mbps
+          </p>
+        )}
+      </div>
+    )}
+
+    {culturalCons && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">🎬 文化消费与娱乐</h3>
+          <span class="text-xs text-ink-soft">{culturalConsumptionYear(city.key)} · {culturalConsumptionSource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}电影院、演出场馆、实体书店分布及消费数据。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-pink-100 bg-pink-50 px-4 py-3">
+            <div class="text-xs text-pink-700">电影院</div>
+            <div class="mt-1 text-xl font-bold text-pink-900">{culturalCons.cinemas}</div>
+            <div class="text-[10px] text-pink-600">家</div>
+          </div>
+          <div class="rounded-lg border border-violet-100 bg-violet-50 px-4 py-3">
+            <div class="text-xs text-violet-700">银幕数</div>
+            <div class="mt-1 text-xl font-bold text-violet-900">{culturalCons.screens}</div>
+            <div class="text-[10px] text-violet-600">块</div>
+          </div>
+          <div class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+            <div class="text-xs text-amber-700">年票房</div>
+            <div class="mt-1 text-xl font-bold text-amber-900">{culturalCons.annualBoxOffice?.toLocaleString()}</div>
+            <div class="text-[10px] text-amber-600">万元</div>
+          </div>
+          <div class="rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-3">
+            <div class="text-xs text-indigo-700">演出场馆</div>
+            <div class="mt-1 text-xl font-bold text-indigo-900">{culturalCons.performanceVenues}</div>
+            <div class="text-[10px] text-indigo-600">个</div>
+          </div>
+          <div class="rounded-lg border border-teal-100 bg-teal-50 px-4 py-3">
+            <div class="text-xs text-teal-700">年演出场次</div>
+            <div class="mt-1 text-xl font-bold text-teal-900">{culturalCons.annualShows?.toLocaleString()}</div>
+            <div class="text-[10px] text-teal-600">场</div>
+          </div>
+          <div class="rounded-lg border border-rose-100 bg-rose-50 px-4 py-3">
+            <div class="text-xs text-rose-700">演出观众</div>
+            <div class="mt-1 text-xl font-bold text-rose-900">{culturalCons.showAudience}</div>
+            <div class="text-[10px] text-rose-600">万人次</div>
+          </div>
+          <div class="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+            <div class="text-xs text-emerald-700">实体书店</div>
+            <div class="mt-1 text-xl font-bold text-emerald-900">{culturalCons.bookstores}</div>
+            <div class="text-[10px] text-emerald-600">家</div>
+          </div>
+        </div>
+        {cityCulturalCons && (
+          <p class="mt-3 text-xs text-ink-soft">
+            🎬 {city.name}市级参考：电影院 <strong>{cityCulturalCons.totalCinemas}</strong> 家，银幕 <strong>{cityCulturalCons.totalScreens}</strong> 块，年票房 <strong>{cityCulturalCons.totalBoxOffice}</strong> 亿元，演出场馆 <strong>{cityCulturalCons.totalVenues}</strong> 个，年演出 <strong>{cityCulturalCons.totalShows.toLocaleString()}</strong> 场，人均文化娱乐消费 <strong>{cityCulturalCons.perCapitaConsumption}</strong> 元
+          </p>
+        )}
+      </div>
+    )}
+
+    {foreignTrade && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">🌐 对外贸易与跨境电商</h3>
+          <span class="text-xs text-ink-soft">{foreignTradeYear(city.key)} · {foreignTradeSource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}外贸企业、进出口额、跨境电商及外资使用情况。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+            <div class="text-xs text-blue-700">外贸企业</div>
+            <div class="mt-1 text-xl font-bold text-blue-900">{foreignTrade.tradeCompanies?.toLocaleString()}</div>
+            <div class="text-[10px] text-blue-600">家</div>
+          </div>
+          <div class="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+            <div class="text-xs text-emerald-700">进出口额</div>
+            <div class="mt-1 text-xl font-bold text-emerald-900">{foreignTrade.importExport?.toLocaleString()}</div>
+            <div class="text-[10px] text-emerald-600">亿元</div>
+          </div>
+          <div class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+            <div class="text-xs text-amber-700">跨境电商</div>
+            <div class="mt-1 text-xl font-bold text-amber-900">{foreignTrade.crossBorderEcommerce}</div>
+            <div class="text-[10px] text-amber-600">亿元</div>
+          </div>
+          <div class="rounded-lg border border-purple-100 bg-purple-50 px-4 py-3">
+            <div class="text-xs text-purple-700">实际使用外资</div>
+            <div class="mt-1 text-xl font-bold text-purple-900">{foreignTrade.foreignInvestment?.toLocaleString()}</div>
+            <div class="text-[10px] text-purple-600">万美元</div>
+          </div>
+          {foreignTrade.bondedZones && foreignTrade.bondedZones > 0 && (
+            <div class="rounded-lg border border-rose-100 bg-rose-50 px-4 py-3">
+              <div class="text-xs text-rose-700">保税区/综保区</div>
+              <div class="mt-1 text-xl font-bold text-rose-900">{foreignTrade.bondedZones}</div>
+              <div class="text-[10px] text-rose-600">个</div>
+            </div>
+          )}
+        </div>
+        {cityTrade && (
+          <p class="mt-3 text-xs text-ink-soft">
+            🌐 {city.name}市级参考：进出口总额 <strong>{cityTrade.totalImportExport}</strong> 万亿元，口岸进出口 <strong>{cityTrade.portTotal}</strong> 万亿元，跨境电商 <strong>{cityTrade.crossBorderTotal}</strong> 亿元，实际使用外资 <strong>{cityTrade.totalForeignInvestment}</strong> 亿美元
+          </p>
+        )}
+      </div>
+    )}
+
+    {waterFacility && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">💧 水利设施与灌溉</h3>
+          <span class="text-xs text-ink-soft">{waterFacilityYear(city.key)} · {waterFacilitySource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}水库、堤防、水闸、渠道及灌溉面积分布。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+            <div class="text-xs text-blue-700">水库</div>
+            <div class="mt-1 text-xl font-bold text-blue-900">{waterFacility.reservoirs}</div>
+            <div class="text-[10px] text-blue-600">座</div>
+          </div>
+          <div class="rounded-lg border border-teal-100 bg-teal-50 px-4 py-3">
+            <div class="text-xs text-teal-700">堤防长度</div>
+            <div class="mt-1 text-xl font-bold text-teal-900">{waterFacility.embankmentLength}</div>
+            <div class="text-[10px] text-teal-600">km</div>
+          </div>
+          <div class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+            <div class="text-xs text-amber-700">水闸</div>
+            <div class="mt-1 text-xl font-bold text-amber-900">{waterFacility.sluices}</div>
+            <div class="text-[10px] text-amber-600">座</div>
+          </div>
+          <div class="rounded-lg border border-purple-100 bg-purple-50 px-4 py-3">
+            <div class="text-xs text-purple-700">排涝泵站</div>
+            <div class="mt-1 text-xl font-bold text-purple-900">{waterFacility.pumpStations}</div>
+            <div class="text-[10px] text-purple-600">座</div>
+          </div>
+          <div class="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+            <div class="text-xs text-emerald-700">有效灌溉面积</div>
+            <div class="mt-1 text-xl font-bold text-emerald-900">{waterFacility.irrigationArea}</div>
+            <div class="text-[10px] text-emerald-600">万亩</div>
+          </div>
+          <div class="rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-3">
+            <div class="text-xs text-indigo-700">渠道长度</div>
+            <div class="mt-1 text-xl font-bold text-indigo-900">{waterFacility.canalLength}</div>
+            <div class="text-[10px] text-indigo-600">km</div>
+          </div>
+        </div>
+        {cityWaterFac && (
+          <p class="mt-3 text-xs text-ink-soft">
+            💧 {city.name}市级参考：水库 <strong>{cityWaterFac.totalReservoirs}</strong> 座，堤防 <strong>{cityWaterFac.totalEmbankment}</strong> km，水闸 <strong>{cityWaterFac.totalSluices.toLocaleString()}</strong> 座，泵站 <strong>{cityWaterFac.totalPumpStations.toLocaleString()}</strong> 座，灌溉 <strong>{cityWaterFac.totalIrrigation}</strong> 万亩，年供水 <strong>{cityWaterFac.waterSupply}</strong> 亿m³
           </p>
         )}
       </div>
