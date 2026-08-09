@@ -98,8 +98,32 @@ const jsonLd = {
       </div>
     </div>
 
+    {/* ── 全局工具入口 ── */}
+    <div class="mt-14 grid gap-4 sm:grid-cols-2">
+      <a href="/rankings" class="card group block p-6 transition hover:-translate-y-0.5 hover:shadow-lg">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-2xl">🏆</div>
+            <h2 class="mt-2 text-lg font-bold">区县排行榜</h2>
+            <p class="mt-1 text-sm text-ink-soft">教育、医疗、经济等多维度横向排名，CSS 条形图可视化</p>
+          </div>
+          <span class="text-2xl opacity-40 transition group-hover:opacity-70">→</span>
+        </div>
+      </a>
+      <a href="/compare" class="card group block p-6 transition hover:-translate-y-0.5 hover:shadow-lg">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-2xl">📊</div>
+            <h2 class="mt-2 text-lg font-bold">区县对比</h2>
+            <p class="mt-1 text-sm text-ink-soft">选择两个区县，六维雷达图直观对比差异</p>
+          </div>
+          <span class="text-2xl opacity-40 transition group-hover:opacity-70">→</span>
+        </div>
+      </a>
+    </div>
+
     {/* ── 全球对标入口 ── */}
-    <div class="mt-14 card overflow-hidden p-0">
+    <div class="mt-8 card overflow-hidden p-0">
       <div class="bg-gradient-to-r from-blue-50 to-emerald-50 p-6 sm:p-8">
         <div class="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
