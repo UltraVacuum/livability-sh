@@ -47,6 +47,55 @@ const dimensionRankings: DimensionRanking[] = METRICS.map((metric) => {
 // Featured dimensions: education, healthcare, economy (task requirement)
 const featuredKeys: MetricKey[] = ['education', 'healthcare', 'economy'];
 
+// ── Build heatmap data: district × dimension score matrix ──
+interface HeatCell {
+  districtName: string;
+  cityKey: string;
+  cityName: string;
+  adcode: string;
+  scores: Record<string, number>;
+  composite: number;
+}
+
+const allDistricts: HeatCell[] = [];
+for (const city of CITIES) {
+  const scored = computeCity(getDistricts(city.key));
+  for (const d of scored) {
+    const scores: Record<string, number> = {};
+    let comp = 0;
+    for (const m of METRICS) {
+      scores[m.key] = d.metrics[m.key as MetricKey].score;
+      comp += d.metrics[m.key as MetricKey].score;
+    }
+    allDistricts.push({
+      districtName: d.name,
+      cityKey: city.key,
+      cityName: city.name,
+      adcode: d.adcode,
+      scores,
+      composite: comp / METRICS.length,
+    });
+  }
+}
+// Sort by composite score descending
+allDistricts.sort((a, b) => b.composite - a.composite);
+
+// Heatmap color: 0-100 score → background color
+function heatColor(score: number): string {
+  if (score >= 80) return '#15803d'; // green-700
+  if (score >= 65) return '#16a34a'; // green-600
+  if (score >= 50) return '#ca8a04'; // yellow-600
+  if (score >= 35) return '#ea580c'; // orange-600
+  return '#dc2626'; // red-600
+}
+function heatBg(score: number): string {
+  if (score >= 80) return '#dcfce7';
+  if (score >= 65) return '#ecfdf5';
+  if (score >= 50) return '#fef9c3';
+  if (score >= 35) return '#fed7aa';
+  return '#fee2e2';
+}
+
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'ItemList',
@@ -83,6 +132,65 @@ const pageDesc = '上海与银川全部区县按教育、医疗、经济等维�
       上海 {CITIES.find(c => c.key === 'shanghai')?.name ?? '' }16区 + 银川6区县，按六个维度横向排名。
       切换维度查看不同视角下的区域实力排序。数据来源：高德POI密度 + 统计年鉴。
     </p>
+
+    {/* ── 城市维度热力图 ── */}
+    <div class="card mt-8 overflow-x-auto p-0">
+      <div class="border-b border-line bg-surface-muted px-5 py-3">
+        <h2 class="text-base font-bold text-ink">🔥 区县维度热力图</h2>
+        <p class="mt-0.5 text-xs text-ink-soft">颜色越深=评分越高，横向对比每个区县在各维度的强弱项</p>
+      </div>
+      <div class="min-w-[640px]">
+        <table class="w-full text-xs">
+          <thead>
+            <tr class="border-b border-line">
+              <th class="sticky left-0 z-10 bg-surface px-3 py-2 text-left font-medium text-ink-soft">区县</th>
+              {METRICS.map((m) => (
+                <th class="px-2 py-2 text-center font-medium text-ink-soft" title={m.description}>{m.shortLabel}</th>
+              ))}
+              <th class="px-3 py-2 text-center font-medium text-ink-soft">综合</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-line">
+            {allDistricts.map((d) => (
+              <tr class="transition hover:bg-surface-muted">
+                <td class="sticky left-0 z-10 bg-surface px-3 py-1.5">
+                  <a href={`/${d.cityKey}/district/${d.adcode}`} class="font-medium text-ink hover:text-accent">
+                    {d.districtName}
+                  </a>
+                  <span class="ml-1 text-[10px] text-ink-soft">{d.cityName}</span>
+                </td>
+                {METRICS.map((m) => {
+                  const s = d.scores[m.key];
+                  return (
+                    <td class="px-1 py-1 text-center">
+                      <div
+                        class="mx-auto flex h-8 w-10 items-center justify-center rounded text-[10px] font-bold"
+                        style={`background:${heatBg(s)}; color:${heatColor(s)}`}
+                        title={`${m.label}: ${s.toFixed(1)}`}
+                      >
+                        {s.toFixed(0)}
+                      </div>
+                    </td>
+                  );
+                })}
+                <td class="px-2 py-1 text-center">
+                  <span class="font-bold text-ink">{d.composite.toFixed(1)}</span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {/* Legend */}
+      <div class="flex items-center gap-3 border-t border-line px-5 py-2.5 text-[10px] text-ink-soft">
+        <span>评分：</span>
+        <span class="flex items-center gap-1"><span class="inline-block h-3 w-3 rounded" style="background:#dcfce7"></span>≥80</span>
+        <span class="flex items-center gap-1"><span class="inline-block h-3 w-3 rounded" style="background:#ecfdf5"></span>65-80</span>
+        <span class="flex items-center gap-1"><span class="inline-block h-3 w-3 rounded" style="background:#fef9c3"></span>50-65</span>
+        <span class="flex items-center gap-1"><span class="inline-block h-3 w-3 rounded" style="background:#fed7aa"></span>35-50</span>
+        <span class="flex items-center gap-1"><span class="inline-block h-3 w-3 rounded" style="background:#fee2e2"></span><35</span>
+      </div>
+    </div>
 
     {/* Dimension switcher */}
     <div class="mt-8 flex flex-wrap gap-2" id="dim-switcher">
