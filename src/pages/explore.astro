@@ -1,0 +1,425 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { CITIES } from '../data/cities';
+import { getDistricts, METRICS, type MetricKey } from '../data/districts';
+import { computeCity } from '../lib/scoring';
+
+// Build cross-city ranking data for all metrics
+interface ExploreRow {
+  cityName: string;
+  cityKey: string;
+  districtName: string;
+  adcode: string;
+  rawValue: number;
+  score: number;
+  unit: string;
+}
+
+interface DimensionData {
+  metricKey: string;
+  metricLabel: string;
+  metricUnit: string;
+  metricDescription: string;
+  rows: ExploreRow[];
+  stats: {
+    mean: number;
+    median: number;
+    std: number;
+    min: { name: string; value: number; cityKey: string; adcode: string };
+    max: { name: string; value: number; cityKey: string; adcode: string };
+    range: number;
+    cv: number; // coefficient of variation
+  };
+}
+
+// Compute all dimension data
+const allDimensions: DimensionData[] = METRICS.map((metric) => {
+  const rows: ExploreRow[] = [];
+  for (const city of CITIES) {
+    const scored = computeCity(getDistricts(city.key));
+    for (const d of scored) {
+      rows.push({
+        cityName: city.name,
+        cityKey: city.key,
+        districtName: d.name,
+        adcode: d.adcode,
+        rawValue: d.metrics[metric.key as MetricKey].rawValue,
+        score: d.metrics[metric.key as MetricKey].score,
+        unit: metric.unit,
+      });
+    }
+  }
+  rows.sort((a, b) => b.score - a.score);
+
+  const scores = rows.map((r) => r.score);
+  const sorted = [...scores].sort((a, b) => a - b);
+  const mean = scores.reduce((a, b) => a + b, 0) / scores.length;
+  const median = sorted.length % 2 === 0
+    ? (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2
+    : sorted[Math.floor(sorted.length / 2)];
+  const std = Math.sqrt(scores.reduce((a, b) => a + (b - mean) ** 2, 0) / scores.length);
+  const maxRow = rows[0];
+  const minRow = rows[rows.length - 1];
+
+  return {
+    metricKey: metric.key,
+    metricLabel: metric.label,
+    metricUnit: metric.unit,
+    metricDescription: metric.description,
+    rows,
+    stats: {
+      mean,
+      median,
+      std,
+      min: { name: minRow.districtName, value: minRow.score, cityKey: minRow.cityKey, adcode: minRow.adcode },
+      max: { name: maxRow.districtName, value: maxRow.score, cityKey: maxRow.cityKey, adcode: maxRow.adcode },
+      range: maxRow.score - minRow.score,
+      cv: mean > 0 ? std / mean : 0,
+    },
+  };
+});
+
+const totalDistricts = allDimensions[0]?.rows.length ?? 0;
+const totalDimensions = METRICS.length;
+const totalCities = CITIES.length;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Dataset',
+  name: '区县维度深探分析',
+  description: `${totalCities}个城市 ${totalDistricts}个区县 在 ${totalDimensions} 个宜居维度的排名分布与统计摘要`,
+  creator: { '@type': 'Organization', name: '宜居度' },
+  keywords: ['区县排名', '维度分析', '宜居度', '城市数据'],
+};
+
+const pageTitle = '维度深探 · 跨城市区县宜居度深度分析';
+const pageDesc = `选择维度（教育/医疗/经济/人口/交通/生活），查看${totalCities}个城市${totalDistricts}个区县的排名分布、CSS柱状图、统计摘要（均值/中位数/标准差/极值），一键切换维度深入对比。`;
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={pageDesc}
+  path="/explore"
+  keywords={[
+    '维度分析',
+    '区县排名',
+    '教育排名',
+    '医疗排名',
+    '经济排名',
+    '宜居度分析',
+    '区县对比',
+    '城市数据可视化',
+    '上海区县排名',
+    '银川区县排名',
+  ]}
+  jsonLd={jsonLd}
+>
+  <section class="container-page py-10 sm:py-14">
+    <a href="/" class="text-sm text-ink-soft hover:text-accent">← 返回首页</a>
+    <h1 class="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">维度深探</h1>
+    <p class="mt-3 max-w-2xl text-ink-soft">
+      选择一个维度，深入查看 {totalCities} 个城市 {totalDistricts} 个区县的排名分布、统计摘要与可视化对比。
+    </p>
+
+    {/* ── 维度选择器 ── */}
+    <div class="mt-8 flex flex-wrap gap-2" id="explore-tabs">
+      {allDimensions.map((dim, idx) => (
+        <button
+          type="button"
+          class={`explore-tab rounded-full border px-5 py-2.5 text-sm font-medium transition ${idx === 0 ? 'border-accent bg-accent-soft text-accent' : 'border-line bg-surface text-ink-soft hover:text-ink hover:border-accent'}`}
+          data-dim={dim.metricKey}
+        >
+          {dim.metricLabel}
+        </button>
+      ))}
+    </div>
+
+    {/* ── 维度面板 ── */}
+    {allDimensions.map((dim, idx) => {
+      const top10 = dim.rows.slice(0, 10);
+      const bottom5 = dim.rows.slice(-5).reverse();
+      const maxBarScore = dim.rows[0]?.score ?? 100;
+      const cityGroups = CITIES.map((city) => {
+        const cityRows = dim.rows.filter((r) => r.cityKey === city.key);
+        const cityScores = cityRows.map((r) => r.score);
+        return {
+          city,
+          rows: cityRows,
+          avg: cityScores.reduce((a, b) => a + b, 0) / (cityScores.length || 1),
+          best: cityRows[0],
+          worst: cityRows[cityRows.length - 1],
+        };
+      });
+
+      return (
+        <div class={`explore-panel mt-8 ${idx > 0 ? 'hidden' : ''}`} data-dim={dim.metricKey}>
+          {/* ── 统计摘要卡片 ── */}
+          <div class="grid gap-4 sm:grid-cols-3 lg:grid-cols-6">
+            <div class="card p-4 text-center">
+              <div class="text-xs text-ink-soft">均值</div>
+              <div class="mt-1 text-xl font-bold text-ink">{dim.stats.mean.toFixed(1)}</div>
+            </div>
+            <div class="card p-4 text-center">
+              <div class="text-xs text-ink-soft">中位数</div>
+              <div class="mt-1 text-xl font-bold text-ink">{dim.stats.median.toFixed(1)}</div>
+            </div>
+            <div class="card p-4 text-center">
+              <div class="text-xs text-ink-soft">标准差</div>
+              <div class="mt-1 text-xl font-bold text-ink">{dim.stats.std.toFixed(1)}</div>
+            </div>
+            <div class="card p-4 text-center">
+              <div class="text-xs text-ink-soft">极差</div>
+              <div class="mt-1 text-xl font-bold text-ink">{dim.stats.range.toFixed(1)}</div>
+            </div>
+            <div class="card p-4 text-center">
+              <div class="text-xs text-ink-soft">变异系数</div>
+              <div class="mt-1 text-xl font-bold text-ink">{(dim.stats.cv * 100).toFixed(0)}%</div>
+            </div>
+            <div class="card p-4 text-center">
+              <div class="text-xs text-ink-soft">区县数</div>
+              <div class="mt-1 text-xl font-bold text-ink">{dim.rows.length}</div>
+            </div>
+          </div>
+
+          {/* ── 极值高亮 ── */}
+          <div class="mt-4 grid gap-4 sm:grid-cols-2">
+            <div class="card border-l-4 border-l-grade-a p-5">
+              <div class="flex items-center gap-2">
+                <span class="text-lg">🏆</span>
+                <span class="text-xs font-medium uppercase tracking-wide text-ink-soft">最高分</span>
+              </div>
+              <div class="mt-2 flex items-baseline justify-between">
+                <a href={`/${dim.stats.max.cityKey}/district/${dim.stats.max.adcode}`} class="text-lg font-bold text-accent hover:underline">
+                  {dim.stats.max.name}
+                </a>
+                <span class="text-2xl font-bold text-grade-a">{dim.stats.max.value.toFixed(1)}</span>
+              </div>
+            </div>
+            <div class="card border-l-4 border-l-grade-d p-5">
+              <div class="flex items-center gap-2">
+                <span class="text-lg">📉</span>
+                <span class="text-xs font-medium uppercase tracking-wide text-ink-soft">最低分</span>
+              </div>
+              <div class="mt-2 flex items-baseline justify-between">
+                <a href={`/${dim.stats.min.cityKey}/district/${dim.stats.min.adcode}`} class="text-lg font-bold text-ink-soft hover:text-accent">
+                  {dim.stats.min.name}
+                </a>
+                <span class="text-2xl font-bold text-grade-d">{dim.stats.min.value.toFixed(1)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Top 10 CSS 柱状图 ── */}
+          <div class="card mt-6 overflow-hidden p-0">
+            <div class="border-b border-line bg-surface-muted px-4 py-2.5 text-xs font-medium text-ink-soft">
+              Top 10 — {dim.metricLabel}标准化评分
+            </div>
+            <div class="space-y-1 p-4">
+              {top10.map((row, i) => {
+                const barWidth = maxBarScore > 0 ? (row.score / maxBarScore) * 100 : 0;
+                const isTop3 = i < 3;
+                const colors = ['#0d9488', '#0f766e', '#115e59', '#14b8a6', '#2dd4bf', '#5eead4', '#99f6e4', '#ccfbf1', '#94a3b8', '#94a3b8'];
+                return (
+                  <div class="group flex items-center gap-3 rounded-lg px-2 py-1.5 transition hover:bg-surface-muted">
+                    <span class={`w-7 shrink-0 text-center text-sm font-bold ${isTop3 ? 'text-accent' : 'text-ink-soft'}`}>
+                      {i + 1}
+                    </span>
+                    <div class="w-24 shrink-0 truncate text-sm">
+                      <a href={`/${row.cityKey}/district/${row.adcode}`} class="font-medium text-ink hover:text-accent">
+                        {row.districtName}
+                      </a>
+                      <span class="ml-1 text-[10px] text-ink-soft">{row.cityName}</span>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <div class="h-6 overflow-hidden rounded-md bg-surface-muted">
+                        <div
+                          class="flex h-full items-center justify-end rounded-md transition-all duration-700"
+                          style={`width:${barWidth}%; background:${colors[i]}`}
+                        >
+                          <span class="pr-2 text-[10px] font-bold text-white">{row.score.toFixed(0)}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="w-28 shrink-0 text-right text-xs text-ink-soft">
+                      {row.rawValue.toLocaleString()} {row.unit}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ── 分布直方图 (CSS) ── */}
+          <div class="card mt-6 p-5">
+            <h3 class="text-sm font-semibold text-ink-soft">📊 分数分布</h3>
+            <div class="mt-4 flex items-end gap-1" style="height:80px">
+              {(() => {
+                const bins = [0, 20, 40, 60, 80, 100];
+                const binLabels = ['0-20', '20-40', '40-60', '60-80', '80-100'];
+                const binCounts = binLabels.map((_, i) =>
+                  dim.rows.filter((r) => r.score >= bins[i] && r.score < bins[i + 1]).length
+                );
+                const maxCount = Math.max(...binCounts, 1);
+                const binColors = ['#dc2626', '#ea580c', '#ca8a04', '#16a34a', '#15803d'];
+                return binLabels.map((label, i) => (
+                  <div class="flex flex-1 flex-col items-center gap-1">
+                    <span class="text-[10px] text-ink-soft">{binCounts[i]}</span>
+                    <div
+                      class="w-full rounded-t transition-all duration-700"
+                      style={`height:${(binCounts[i] / maxCount) * 60}px; background:${binColors[i]}; min-height:2px`}
+                    />
+                    <span class="text-[10px] text-ink-soft">{label}</span>
+                  </div>
+                ));
+              })()}
+            </div>
+          </div>
+
+          {/* ── 城市对比分析 ── */}
+          <div class="mt-6 grid gap-4 lg:grid-cols-2">
+            {cityGroups.map((cg) => (
+              <div class="card p-5">
+                <h3 class="font-semibold text-ink">
+                  {cg.city.name} · {dim.metricLabel}
+                </h3>
+                <div class="mt-3 flex items-center gap-4 text-sm">
+                  <div>
+                    <span class="text-ink-soft">平均分：</span>
+                    <span class="font-bold">{cg.avg.toFixed(1)}</span>
+                  </div>
+                  <div>
+                    <span class="text-ink-soft">区县数：</span>
+                    <span class="font-bold">{cg.rows.length}</span>
+                  </div>
+                </div>
+                {/* Inline mini bar chart for this city */}
+                <div class="mt-4 space-y-1">
+                  {cg.rows.map((r) => {
+                    const w = maxBarScore > 0 ? (r.score / maxBarScore) * 100 : 0;
+                    return (
+                      <div class="flex items-center gap-2 text-xs">
+                        <a href={`/${r.cityKey}/district/${r.adcode}`} class="w-16 shrink-0 truncate text-ink-soft hover:text-accent">
+                          {r.districtName}
+                        </a>
+                        <div class="h-4 flex-1 overflow-hidden rounded bg-surface-muted">
+                          <div class="h-full rounded bg-accent transition-all duration-500" style={`width:${w}%`} />
+                        </div>
+                        <span class="w-8 shrink-0 text-right font-medium">{r.score.toFixed(0)}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* ── Bottom 5 待提升 ── */}
+          <details class="mt-6">
+            <summary class="cursor-pointer text-sm font-medium text-ink-soft hover:text-accent">
+              ⚠️ 查看排名后 5 位（待提升区域）
+            </summary>
+            <div class="card mt-3 p-4">
+              <div class="space-y-2">
+                {bottom5.map((row, i) => (
+                  <div class="flex items-center gap-3 text-sm">
+                    <span class="w-7 text-center font-bold text-grade-d">{dim.rows.length - i}</span>
+                    <a href={`/${row.cityKey}/district/${row.adcode}`} class="font-medium text-ink-soft hover:text-accent">
+                      {row.districtName}
+                    </a>
+                    <span class="text-xs text-ink-soft">{row.cityName}</span>
+                    <span class="ml-auto font-bold text-grade-d">{row.score.toFixed(1)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </details>
+
+          {/* ── 全量排名表 ── */}
+          <details class="mt-4">
+            <summary class="cursor-pointer text-sm font-medium text-accent hover:underline">
+              查看全部 {dim.rows.length} 个区县完整排名
+            </summary>
+            <div class="card mt-3 overflow-x-auto p-0">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="border-b border-line">
+                    <th class="px-4 py-2.5 text-left text-xs font-medium text-ink-soft">排名</th>
+                    <th class="px-4 py-2.5 text-left text-xs font-medium text-ink-soft">区县</th>
+                    <th class="px-4 py-2.5 text-left text-xs font-medium text-ink-soft">城市</th>
+                    <th class="px-4 py-2.5 text-right text-xs font-medium text-ink-soft">原始值</th>
+                    <th class="px-4 py-2.5 text-right text-xs font-medium text-ink-soft">评分</th>
+                    <th class="px-4 py-2.5 text-left text-xs font-medium text-ink-soft">分布</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-line">
+                  {dim.rows.map((row, i) => {
+                    const w = maxBarScore > 0 ? (row.score / maxBarScore) * 100 : 0;
+                    return (
+                      <tr class="transition hover:bg-surface-muted">
+                        <td class="px-4 py-2 font-medium text-ink-soft">{i + 1}</td>
+                        <td class="px-4 py-2">
+                          <a href={`/${row.cityKey}/district/${row.adcode}`} class="font-medium text-ink hover:text-accent">
+                            {row.districtName}
+                          </a>
+                        </td>
+                        <td class="px-4 py-2 text-ink-soft">{row.cityName}</td>
+                        <td class="px-4 py-2 text-right text-ink-soft">{row.rawValue.toLocaleString()} {row.unit}</td>
+                        <td class="px-4 py-2 text-right font-semibold">{row.score.toFixed(1)}</td>
+                        <td class="px-4 py-2">
+                          <div class="h-2 w-20 overflow-hidden rounded-full bg-surface-muted">
+                            <div class="h-full rounded-full bg-accent" style={`width:${w}%`} />
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </details>
+        </div>
+      );
+    })}
+
+    {/* ── 维度切换 JS ── */}
+    <script is:inline>
+      (function () {
+        const tabs = document.querySelectorAll('.explore-tab');
+        const panels = document.querySelectorAll('.explore-panel');
+        tabs.forEach((tab) => {
+          tab.addEventListener('click', function () {
+            const dim = this.getAttribute('data-dim');
+            tabs.forEach((t) => {
+              t.classList.remove('border-accent', 'bg-accent-soft', 'text-accent');
+              t.classList.add('border-line', 'bg-surface', 'text-ink-soft');
+            });
+            this.classList.remove('border-line', 'bg-surface', 'text-ink-soft');
+            this.classList.add('border-accent', 'bg-accent-soft', 'text-accent');
+            panels.forEach((p) => {
+              if (p.getAttribute('data-dim') === dim) {
+                p.classList.remove('hidden');
+              } else {
+                p.classList.add('hidden');
+              }
+            });
+            // Scroll to top of results
+            window.scrollTo({ top: tabs[0].offsetTop - 100, behavior: 'smooth' });
+          });
+        });
+      })();
+    </script>
+
+    {/* ── 底部导航 ── */}
+    <div class="mt-10 flex flex-wrap gap-3">
+      <a href="/rankings" class="rounded-xl bg-accent px-5 py-2.5 text-sm font-medium text-white transition hover:opacity-90">
+        🏆 查看排行榜 →
+      </a>
+      <a href="/compare" class="rounded-xl border border-line bg-surface px-5 py-2.5 text-sm font-medium text-ink-soft transition hover:text-ink">
+        📊 去对比区县
+      </a>
+      <a href="/" class="rounded-xl border border-line bg-surface px-5 py-2.5 text-sm font-medium text-ink-soft transition hover:text-ink">
+        回首页
+      </a>
+    </div>
+  </section>
+</BaseLayout>
