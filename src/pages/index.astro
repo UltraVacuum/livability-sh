@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { CITIES } from '../data/cities';
-import { getDistricts } from '../data/districts';
+import { getDistricts, METRICS, type MetricKey } from '../data/districts';
 import { computeCity, rankWithWeights } from '../lib/scoring';
 import { SITE } from '../consts';
 
@@ -10,6 +10,30 @@ const cards = CITIES.map((c) => {
   const top = rankWithWeights(d)[0];
   return { city: c, count: d.length, top };
 });
+
+// ── Data dashboard stats ──
+const totalDistricts = CITIES.reduce((sum, c) => sum + getDistricts(c.key).length, 0);
+const totalDimensions = METRICS.length;
+const totalCities = CITIES.length;
+const totalDataPoints = totalDistricts * totalDimensions;
+
+// Average scores per city for radar comparison
+const cityAverages = CITIES.map((c) => {
+  const scored = computeCity(getDistricts(c.key));
+  const avgs: Record<string, number> = {};
+  for (const m of METRICS) {
+    const scores = scored.map((d) => d.metrics[m.key as MetricKey].score);
+    avgs[m.key] = scores.reduce((a: number, b: number) => a + b, 0) / (scores.length || 1);
+  }
+  return { city: c, avgs, districtCount: scored.length };
+});
+
+// Max average for radar scaling
+const maxAvg = Math.max(...cityAverages.flatMap((ca) => Object.values(ca.avgs)));
+
+// Data source counts
+const realDimensions = METRICS.filter((m) => m.real).length;
+const sampleDimensions = totalDimensions - realDimensions;
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -57,6 +81,75 @@ const jsonLd = {
       </p>
     </div>
 
+    {/* ── 数据看板 ── */}
+    <div class="mt-12 card overflow-hidden p-0">
+      <div class="bg-gradient-to-r from-accent-soft to-surface-muted px-6 py-5 sm:px-8">
+        <h2 class="text-lg font-bold text-ink">📈 数据看板</h2>
+        <p class="mt-1 text-sm text-ink-soft">基于平台真实数据自动统计，实时反映覆盖规模</p>
+      </div>
+      <div class="grid gap-px bg-line sm:grid-cols-2 lg:grid-cols-4">
+        <div class="bg-surface p-6 text-center">
+          <div class="text-3xl font-bold text-accent">{totalCities}</div>
+          <div class="mt-1 text-xs text-ink-soft">已覆盖城市</div>
+        </div>
+        <div class="bg-surface p-6 text-center">
+          <div class="text-3xl font-bold text-accent">{totalDistricts}</div>
+          <div class="mt-1 text-xs text-ink-soft">区县总数</div>
+        </div>
+        <div class="bg-surface p-6 text-center">
+          <div class="text-3xl font-bold text-accent">{totalDimensions}</div>
+          <div class="mt-1 text-xs text-ink-soft">评分维度</div>
+        </div>
+        <div class="bg-surface p-6 text-center">
+          <div class="text-3xl font-bold text-accent">{totalDataPoints.toLocaleString()}</div>
+          <div class="mt-1 text-xs text-ink-soft">数据点</div>
+        </div>
+      </div>
+      {/* Data coverage bar */}
+      <div class="border-t border-line px-6 py-4 sm:px-8">
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-ink-soft">数据来源比例</span>
+          <span class="text-ink-soft">真实数据 {realDimensions}/{totalDimensions} 维度 ({Math.round(realDimensions / totalDimensions * 100)}%)</span>
+        </div>
+        <div class="mt-2 flex h-3 overflow-hidden rounded-full">
+          <div class="h-full bg-grade-a" style={`width:${(realDimensions / totalDimensions) * 100}%`} title="真实公开数据" />
+          {sampleDimensions > 0 && (
+            <div class="h-full bg-grade-c" style={`width:${(sampleDimensions / totalDimensions) * 100}%`} title="估算/示例数据" />
+          )}
+        </div>
+      </div>
+    </div>
+
+    {/* ── 城市维度雷达对比 (CSS) ── */}
+    <div class="mt-8 grid gap-4 lg:grid-cols-2">
+      {cityAverages.map((ca) => (
+        <div class="card p-6">
+          <h3 class="font-bold text-ink">{ca.city.name} · 六维平均分</h3>
+          <p class="mt-0.5 text-xs text-ink-soft">{ca.districtCount} 个区县的维度均值</p>
+          {/* CSS horizontal bar comparison */}
+          <div class="mt-4 space-y-2">
+            {METRICS.map((m) => {
+              const val = ca.avgs[m.key];
+              const barWidth = maxAvg > 0 ? (val / maxAvg) * 100 : 0;
+              return (
+                <div class="flex items-center gap-2 text-xs">
+                  <span class="w-12 shrink-0 text-ink-soft">{m.shortLabel}</span>
+                  <div class="h-5 flex-1 overflow-hidden rounded bg-surface-muted">
+                    <div
+                      class="flex h-full items-center justify-end rounded transition-all duration-700"
+                      style={`width:${barWidth}%; background: linear-gradient(90deg, #0d9488, #14b8a6)`}
+                    >
+                      <span class="pr-2 text-[10px] font-bold text-white">{val.toFixed(1)}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+
     <h2 class="mt-12 text-sm font-semibold uppercase tracking-wide text-ink-soft">选择城市</h2>
     <div class="mt-4 grid gap-5 sm:grid-cols-2">
       {
@@ -99,7 +192,17 @@ const jsonLd = {
     </div>
 
     {/* ── 全局工具入口 ── */}
-    <div class="mt-14 grid gap-4 sm:grid-cols-2">
+    <div class="mt-14 grid gap-4 sm:grid-cols-3">
+      <a href="/explore" class="card group block p-6 transition hover:-translate-y-0.5 hover:shadow-lg">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-2xl">🔬</div>
+            <h2 class="mt-2 text-lg font-bold">维度深探</h2>
+            <p class="mt-1 text-sm text-ink-soft">选择维度，深入分析跨城市区县排名分布与统计摘要</p>
+          </div>
+          <span class="text-2xl opacity-40 transition group-hover:opacity-70">→</span>
+        </div>
+      </a>
       <a href="/rankings" class="card group block p-6 transition hover:-translate-y-0.5 hover:shadow-lg">
         <div class="flex items-center justify-between">
           <div>
