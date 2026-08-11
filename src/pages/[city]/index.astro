@@ -69,6 +69,8 @@ import { CITY_WIFI_TOTALS } from '../../data/publicWifi';
 import { CITY_CULTURAL_CONS_TOTALS } from '../../data/culturalConsumption';
 import { CITY_TRADE_TOTALS } from '../../data/foreignTrade';
 import { CITY_WATER_FAC_TOTALS } from '../../data/waterFacility';
+import { CITY_INCUBATOR_TOTALS } from '../../data/techIncubator';
+import { CITY_TALENT_TOTALS } from '../../data/talentPolicy';
 import { SITE } from '../../consts';
 
 export function getStaticPaths() {
@@ -146,6 +148,8 @@ const cityWifiTotal = CITY_WIFI_TOTALS[city.key];
 const cityCulturalConsTotal = CITY_CULTURAL_CONS_TOTALS[city.key];
 const cityTradeTotal = CITY_TRADE_TOTALS[city.key];
 const cityWaterFacTotal = CITY_WATER_FAC_TOTALS[city.key];
+const cityIncubatorTotal = CITY_INCUBATOR_TOTALS[city.key];
+const cityTalentTotal = CITY_TALENT_TOTALS[city.key];
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -1011,6 +1015,35 @@ const jsonLd = {
         ，渠道 <strong>{cityWaterFacTotal.totalCanal}</strong> km
         ，年供水 <strong>{cityWaterFacTotal.waterSupply}</strong> 亿m³
         <span class="text-xs text-cyan-600">（市级数据，来源：<a href={cityWaterFacTotal.sourceUrl} class="underline">{cityWaterFacTotal.source}</a>）</span>
+      </div>
+    )}
+
+    {cityIncubatorTotal && (
+      <div class="mt-2 rounded-lg border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-800">
+        🔬 {city.name}{cityIncubatorTotal.year}年科技孵化器：
+        国家级孵化器 <strong>{cityIncubatorTotal.totalNationalIncubators}</strong> 家
+        ，市级孵化器 <strong>{cityIncubatorTotal.totalProvincialIncubators}</strong> 家
+        ，众创空间 <strong>{cityIncubatorTotal.totalMakerspaces}</strong> 家
+        ，大学科技园 <strong>{cityIncubatorTotal.totalUniversityTechParks}</strong> 个
+        ，研发机构 <strong>{cityIncubatorTotal.totalRdInstitutions.toLocaleString()}</strong> 个
+        ，在孵企业 <strong>{cityIncubatorTotal.totalIncubated.toLocaleString()}</strong> 家
+        ，累计毕业企业 <strong>{cityIncubatorTotal.totalGraduated.toLocaleString()}</strong> 家
+        ，孵化基金 <strong>{cityIncubatorTotal.totalFunding}</strong> 亿元
+        <span class="text-xs text-teal-600">（市级数据，来源：<a href={cityIncubatorTotal.sourceUrl} class="underline">{cityIncubatorTotal.source}</a>）</span>
+      </div>
+    )}
+
+    {cityTalentTotal && (
+      <div class="mt-2 rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-800">
+        🎓 {city.name}{cityTalentTotal.year}年人才引进：
+        居住证持有人 <strong>{cityTalentTotal.totalPermitHolders.toLocaleString()}</strong> 人
+        ，年人才落户 <strong>{cityTalentTotal.annualTalentSettlement.toLocaleString()}</strong> 人
+        ，留学回国 <strong>{cityTalentTotal.totalReturnOverseas.toLocaleString()}</strong> 人
+        ，高层次人才 <strong>{cityTalentTotal.totalHighLevelTalents.toLocaleString()}</strong> 人
+        ，人才公寓 <strong>{cityTalentTotal.totalTalentApartments.toLocaleString()}</strong> 套
+        ，年人才补贴 <strong>{cityTalentTotal.annualTalentSubsidy}</strong> 亿元
+        ，居转户 <strong>{cityTalentTotal.annualHousingConversion.toLocaleString()}</strong> 人
+        <span class="text-xs text-indigo-600">（市级数据，来源：<a href={cityTalentTotal.sourceUrl} class="underline">{cityTalentTotal.source}</a>）</span>
       </div>
     )}
 

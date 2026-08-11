@@ -393,6 +393,21 @@ const pageDesc = `${totalDimensions}个宜居维度的皮尔逊相关系数矩�
       const statStrength = document.getElementById('stat-strength');
       const tooltip = document.getElementById('scatter-tooltip');
       const tooltipContent = document.getElementById('tooltip-content');
+      const cityFilterBtns = document.querySelectorAll('.city-filter-btn');
+      let activeCity = 'all';
+
+      cityFilterBtns.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          activeCity = this.getAttribute('data-city');
+          cityFilterBtns.forEach(function (b) {
+            b.classList.remove('border-accent', 'bg-accent-soft', 'text-accent');
+            b.classList.add('border-line', 'bg-surface', 'text-ink-soft');
+          });
+          this.classList.remove('border-line', 'bg-surface', 'text-ink-soft');
+          this.classList.add('border-accent', 'bg-accent-soft', 'text-accent');
+          renderScatter();
+        });
+      });
 
       const W = 520, H = 420;
       const margin = { top: 20, right: 20, bottom: 50, left: 50 };
@@ -447,8 +462,11 @@ const pageDesc = `${totalDimensions}个宜居维度的皮尔逊相关系数矩�
           data = data.map(d => ({ ...d, x: d.y, y: d.x }));
         }
 
-        const xs = data.map(d => d.x);
-        const ys = data.map(d => d.y);
+        // Filter by city selection
+        const visibleData = activeCity === 'all' ? data : data.filter(d => d.cityKey === activeCity);
+
+        const xs = visibleData.map(d => d.x);
+        const ys = visibleData.map(d => d.y);
         const r = pearson(xs, ys);
         const r2 = r * r;
 
@@ -495,7 +513,7 @@ const pageDesc = `${totalDimensions}个宜居维度的皮尔逊相关系数矩�
         }
 
         // ── Regression line ──
-        const reg = linearRegression(data);
+        const reg = linearRegression(visibleData);
         const x1 = xMin, x2 = xMax;
         const y1 = reg.slope * x1 + reg.intercept;
         const y2 = reg.slope * x2 + reg.intercept;
@@ -523,7 +541,7 @@ const pageDesc = `${totalDimensions}个宜居维度的皮尔逊相关系数矩�
         svg.appendChild(meanH);
 
         // ── Data points ──
-        data.forEach((d) => {
+        visibleData.forEach((d) => {
           const circle = document.createElementNS(ns, 'circle');
           circle.setAttribute('cx', sx(d.x));
           circle.setAttribute('cy', sy(d.y));
@@ -570,7 +588,7 @@ const pageDesc = `${totalDimensions}个宜居维度的皮尔逊相关系数矩�
         svg.appendChild(yTitle);
 
         // ── Legend ──
-        const cities = [...new Set(data.map(d => d.cityKey))];
+        const cities = [...new Set(visibleData.map(d => d.cityKey))];;
         cities.forEach((ck, i) => {
           const cName = ck === 'shanghai' ? '上海' : '银川';
           const lx = margin.left + plotW - 80;

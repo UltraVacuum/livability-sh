@@ -77,6 +77,8 @@ import { getDistrictWifi, wifiSource, wifiYear, CITY_WIFI_TOTALS } from '../../.
 import { getDistrictCulturalConsumption, culturalConsumptionSource, culturalConsumptionYear, CITY_CULTURAL_CONS_TOTALS } from '../../../data/culturalConsumption';
 import { getDistrictForeignTrade, foreignTradeSource, foreignTradeYear, CITY_TRADE_TOTALS } from '../../../data/foreignTrade';
 import { getDistrictWaterFacility, waterFacilitySource, waterFacilityYear, CITY_WATER_FAC_TOTALS } from '../../../data/waterFacility';
+import { getDistrictTechIncubator, techIncubatorSource, techIncubatorYear, CITY_INCUBATOR_TOTALS } from '../../../data/techIncubator';
+import { getDistrictTalent, talentSource, talentYear, CITY_TALENT_TOTALS } from '../../../data/talentPolicy';
 
 export function getStaticPaths() {
   const paths = [];
@@ -336,6 +338,10 @@ const foreignTrade = getDistrictForeignTrade(city.key, district.adcode);
 const cityTrade = CITY_TRADE_TOTALS[city.key];
 const waterFacility = getDistrictWaterFacility(city.key, district.adcode);
 const cityWaterFac = CITY_WATER_FAC_TOTALS[city.key];
+const techIncubator = getDistrictTechIncubator(city.key, district.adcode);
+const cityIncubator = CITY_INCUBATOR_TOTALS[city.key];
+const talent = getDistrictTalent(city.key, district.adcode);
+const cityTalent = CITY_TALENT_TOTALS[city.key];
 
 const radarSeries = [
   { name: district.name, color: '#0d9488', values: METRICS.map((m) => district.metrics[m.key].score) },
@@ -4101,6 +4107,119 @@ const jsonLd = {
         {cityWaterFac && (
           <p class="mt-3 text-xs text-ink-soft">
             💧 {city.name}市级参考：水库 <strong>{cityWaterFac.totalReservoirs}</strong> 座，堤防 <strong>{cityWaterFac.totalEmbankment}</strong> km，水闸 <strong>{cityWaterFac.totalSluices.toLocaleString()}</strong> 座，泵站 <strong>{cityWaterFac.totalPumpStations.toLocaleString()}</strong> 座，灌溉 <strong>{cityWaterFac.totalIrrigation}</strong> 万亩，年供水 <strong>{cityWaterFac.waterSupply}</strong> 亿m³
+          </p>
+        )}
+      </div>
+    )}
+
+    {techIncubator && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">🔬 科技孵化器与创新园区</h3>
+          <span class="text-xs text-ink-soft">{techIncubatorYear(city.key)} · {techIncubatorSource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}科技企业孵化器、众创空间、大学科技园及研发机构分布。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-teal-100 bg-teal-50 px-4 py-3">
+            <div class="text-xs text-teal-700">国家级孵化器</div>
+            <div class="mt-1 text-xl font-bold text-teal-900">{techIncubator.nationalIncubators}</div>
+            <div class="text-[10px] text-teal-600">家</div>
+          </div>
+          <div class="rounded-lg border border-cyan-100 bg-cyan-50 px-4 py-3">
+            <div class="text-xs text-cyan-700">市级孵化器</div>
+            <div class="mt-1 text-xl font-bold text-cyan-900">{techIncubator.provincialIncubators}</div>
+            <div class="text-[10px] text-cyan-600">家</div>
+          </div>
+          <div class="rounded-lg border border-purple-100 bg-purple-50 px-4 py-3">
+            <div class="text-xs text-purple-700">众创空间</div>
+            <div class="mt-1 text-xl font-bold text-purple-900">{techIncubator.makerspaces}</div>
+            <div class="text-[10px] text-purple-600">家</div>
+          </div>
+          <div class="rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-3">
+            <div class="text-xs text-indigo-700">大学科技园</div>
+            <div class="mt-1 text-xl font-bold text-indigo-900">{techIncubator.universityTechParks}</div>
+            <div class="text-[10px] text-indigo-600">个</div>
+          </div>
+          <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+            <div class="text-xs text-blue-700">研发机构</div>
+            <div class="mt-1 text-xl font-bold text-blue-900">{techIncubator.rdInstitutions}</div>
+            <div class="text-[10px] text-blue-600">个（规上企业）</div>
+          </div>
+          <div class="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+            <div class="text-xs text-emerald-700">在孵企业</div>
+            <div class="mt-1 text-xl font-bold text-emerald-900">{techIncubator.incubatedCompanies?.toLocaleString()}</div>
+            <div class="text-[10px] text-emerald-600">家</div>
+          </div>
+          <div class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+            <div class="text-xs text-amber-700">累计毕业</div>
+            <div class="mt-1 text-xl font-bold text-amber-900">{techIncubator.graduatedCompanies?.toLocaleString()}</div>
+            <div class="text-[10px] text-amber-600">家</div>
+          </div>
+          <div class="rounded-lg border border-rose-100 bg-rose-50 px-4 py-3">
+            <div class="text-xs text-rose-700">孵化基金</div>
+            <div class="mt-1 text-xl font-bold text-rose-900">{techIncubator.fundingAmount}</div>
+            <div class="text-[10px] text-rose-600">亿元</div>
+          </div>
+        </div>
+        {cityIncubator && (
+          <p class="mt-3 text-xs text-ink-soft">
+            🔬 {city.name}市级参考：国家级孵化器 <strong>{cityIncubator.totalNationalIncubators}</strong> 家，市级孵化器 <strong>{cityIncubator.totalProvincialIncubators}</strong> 家，众创空间 <strong>{cityIncubator.totalMakerspaces}</strong> 家，大学科技园 <strong>{cityIncubator.totalUniversityTechParks}</strong> 个，研发机构 <strong>{cityIncubator.totalRdInstitutions.toLocaleString()}</strong> 个，在孵企业 <strong>{cityIncubator.totalIncubated.toLocaleString()}</strong> 家，累计毕业 <strong>{cityIncubator.totalGraduated.toLocaleString()}</strong> 家，孵化基金 <strong>{cityIncubator.totalFunding}</strong> 亿元
+          </p>
+        )}
+      </div>
+    )}
+
+    {talent && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">🎓 人才引进与居住证</h3>
+          <span class="text-xs text-ink-soft">{talentYear(city.key)} · {talentSource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}居住证持有人数、人才引进落户、留学回国人员及人才公寓分布。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+            <div class="text-xs text-blue-700">居住证持有人</div>
+            <div class="mt-1 text-xl font-bold text-blue-900">{talent.residencePermitHolders?.toLocaleString()}</div>
+            <div class="text-[10px] text-blue-600">人</div>
+          </div>
+          <div class="rounded-lg border border-teal-100 bg-teal-50 px-4 py-3">
+            <div class="text-xs text-teal-700">年人才落户</div>
+            <div class="mt-1 text-xl font-bold text-teal-900">{talent.talentSettlement?.toLocaleString()}</div>
+            <div class="text-[10px] text-teal-600">人</div>
+          </div>
+          <div class="rounded-lg border border-purple-100 bg-purple-50 px-4 py-3">
+            <div class="text-xs text-purple-700">留学回国人员</div>
+            <div class="mt-1 text-xl font-bold text-purple-900">{talent.returnOverseas?.toLocaleString()}</div>
+            <div class="text-[10px] text-purple-600">人（累计）</div>
+          </div>
+          <div class="rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-3">
+            <div class="text-xs text-indigo-700">高层次人才</div>
+            <div class="mt-1 text-xl font-bold text-indigo-900">{talent.highLevelTalents}</div>
+            <div class="text-[10px] text-indigo-600">人（国家级/市级）</div>
+          </div>
+          <div class="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+            <div class="text-xs text-emerald-700">人才公寓</div>
+            <div class="mt-1 text-xl font-bold text-emerald-900">{talent.talentApartments?.toLocaleString()}</div>
+            <div class="text-[10px] text-emerald-600">套</div>
+          </div>
+          <div class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+            <div class="text-xs text-amber-700">年人才补贴</div>
+            <div class="mt-1 text-xl font-bold text-amber-900">{talent.talentSubsidy?.toLocaleString()}</div>
+            <div class="text-[10px] text-amber-600">万元</div>
+          </div>
+          <div class="rounded-lg border border-rose-100 bg-rose-50 px-4 py-3">
+            <div class="text-xs text-rose-700">居转户年办理</div>
+            <div class="mt-1 text-xl font-bold text-rose-900">{talent.housingToHouseholdRatio?.toLocaleString()}</div>
+            <div class="text-[10px] text-rose-600">人</div>
+          </div>
+        </div>
+        {cityTalent && (
+          <p class="mt-3 text-xs text-ink-soft">
+            🎓 {city.name}市级参考：居住证持有人 <strong>{cityTalent.totalPermitHolders.toLocaleString()}</strong> 人，年人才落户 <strong>{cityTalent.annualTalentSettlement.toLocaleString()}</strong> 人，留学回国 <strong>{cityTalent.totalReturnOverseas.toLocaleString()}</strong> 人，高层次人才 <strong>{cityTalent.totalHighLevelTalents.toLocaleString()}</strong> 人，人才公寓 <strong>{cityTalent.totalTalentApartments.toLocaleString()}</strong> 套，年补贴 <strong>{cityTalent.annualTalentSubsidy}</strong> 亿元，居转户 <strong>{cityTalent.annualHousingConversion.toLocaleString()}</strong> 人
           </p>
         )}
       </div>

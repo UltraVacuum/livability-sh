@@ -11,7 +11,7 @@ interface DistrictOption {
   cityName: string;
   adcode: string;
   name: string;
-  scores: Record<string, number>; // metric key → score
+  scores: Record<string, number>;
   rawValues: Record<string, number>;
   composite: number;
 }
@@ -42,8 +42,8 @@ const metricKeys = METRICS.map(m => m.key);
 const metricLabels = METRICS.map(m => m.shortLabel);
 const metricFullLabels = METRICS.map(m => m.label);
 
-const pageTitle = '区县横向对比 · 六维雷达图';
-const pageDesc = '选择任意两个区县进行教育、医疗、经济、交通、生活、人口六维雷达图对比，数值表格并列展示，一目了然看清差异。基于公开数据的城市宜居度分析。';
+const pageTitle = '区县横向对比 · 多区叠加雷达图';
+const pageDesc = '选择 2-4 个区县进行教育、医疗、经济、交通、生活、人口六维雷达图叠加对比，数值表格并列展示，一目了然看清差异。基于公开数据的城市宜居度分析。';
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -69,6 +69,8 @@ const jsonLd = {
     '哪个区好',
     '上海宜居度',
     '银川宜居度',
+    '多区县对比',
+    '叠加雷达图',
   ]}
   jsonLd={jsonLd}
 >
@@ -76,75 +78,55 @@ const jsonLd = {
     <a href="/" class="text-sm text-ink-soft hover:text-accent">← 返回首页</a>
     <h1 class="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">区县横向对比</h1>
     <p class="mt-3 max-w-2xl text-ink-soft">
-      选择两个区县，通过六维雷达图直观对比教育、医疗、经济、交通、生活、人口——
+      选择 2-4 个区县，通过六维雷达图叠加对比教育、医疗、经济、交通、生活、人口——
       支持跨城市对比（如上海黄浦 vs 银川兴庆）。
     </p>
 
     <div id="compare-root" class="mt-8">
-      {/* District selectors */}
+      {/* District selectors (up to 4) */}
       <div class="card p-5">
-        <div class="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label class="block text-sm font-semibold text-ink">
-              <span class="inline-block h-3 w-3 rounded-full align-middle" style="background:#0d9488"></span>
-              区域 A
-            </label>
-            <select id="select-a" class="mt-2 w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none">
-              {allDistricts.map((d) => (
-                <option value={d.adcode} selected={d.adcode === '310101'}>
-                  {d.cityName} · {d.name}（综合 {d.composite.toFixed(0)}）
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label class="block text-sm font-semibold text-ink">
-              <span class="inline-block h-3 w-3 rounded-full align-middle" style="background:#dc2626"></span>
-              区域 B
-            </label>
-            <select id="select-b" class="mt-2 w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none">
-              {allDistricts.map((d) => (
-                <option value={d.adcode} selected={d.adcode === '640104'}>
-                  {d.cityName} · {d.name}（综合 {d.composite.toFixed(0)}）
-                </option>
-              ))}
-            </select>
-          </div>
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-semibold text-ink">选择对比区域（2-4 个）</h3>
+          <button type="button" id="add-slot" class="rounded-lg border border-accent bg-accent-soft px-3 py-1.5 text-xs font-medium text-accent transition hover:bg-accent hover:text-white">
+            ➕ 添加区域
+          </button>
+        </div>
+        <div id="slots-container" class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Slots rendered client-side */}
+        </div>
+        <div class="mt-3 text-xs text-ink-soft">
+          <span id="active-count">2</span> / 4 个区域已选择
         </div>
       </div>
 
       {/* Radar chart + comparison table */}
-      <div id="compare-result" class="mt-6 grid gap-6 lg:grid-cols-[360px_1fr]">
-        {/* SVG Radar Chart (client-side rendered) */}
+      <div id="compare-result" class="mt-6 grid gap-6 lg:grid-cols-[400px_1fr]">
+        {/* SVG Radar Chart (overlaid) */}
         <div class="card flex flex-col items-center p-5">
-          <h3 class="mb-3 text-sm font-semibold text-ink-soft">六维雷达图对比</h3>
-          <svg id="radar-svg" width="320" height="320" viewBox="0 0 320 320" role="img" aria-label="六维雷达图对比">
-            {/* Will be rendered client-side */}
+          <h3 class="mb-3 text-sm font-semibold text-ink-soft">六维雷达图叠加对比</h3>
+          <svg id="radar-svg" width="360" height="360" viewBox="0 0 360 360" role="img" aria-label="六维雷达图叠加对比">
           </svg>
-          <div id="radar-legend" class="mt-3 flex flex-wrap justify-center gap-4 text-xs"></div>
+          <div id="radar-legend" class="mt-3 flex flex-wrap justify-center gap-3 text-xs"></div>
         </div>
 
         {/* Comparison table */}
         <div class="card overflow-x-auto p-0">
           <table class="w-full text-sm">
             <thead>
-              <tr class="border-b border-line">
-                <th class="px-4 py-3 text-left text-xs font-medium text-ink-soft">维度</th>
-                <th id="th-a" class="px-4 py-3 text-left">
-                  <span class="inline-block h-3 w-3 rounded-full align-middle" style="background:#0d9488"></span>
-                  <span id="name-a" class="ml-1 font-semibold text-ink">—</span>
-                </th>
-                <th id="th-b" class="px-4 py-3 text-left">
-                  <span class="inline-block h-3 w-3 rounded-full align-middle" style="background:#dc2626"></span>
-                  <span id="name-b" class="ml-1 font-semibold text-ink">—</span>
-                </th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-ink-soft">差异</th>
+              <tr class="border-b border-line" id="compare-header">
               </tr>
             </thead>
             <tbody id="compare-body" class="divide-y divide-line">
-              {/* Filled client-side */}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      {/* Score gap visualization */}
+      <div id="gap-viz" class="card mt-6 p-5">
+        <h3 class="text-sm font-semibold text-ink-soft">📊 维度差异可视化</h3>
+        <p class="mt-1 text-xs text-ink-soft">每个维度各区域得分对比（CSS 柱状图）</p>
+        <div id="gap-bars" class="mt-4 space-y-4">
         </div>
       </div>
     </div>
@@ -167,24 +149,32 @@ const jsonLd = {
   allDistricts,
   metricKeys,
   metricLabels,
+  metricFullLabels,
 }}>
   (function () {
     var data = {};
     allDistricts.forEach(function (d) { data[d.adcode] = d; });
 
-    var selectA = document.getElementById('select-a');
-    var selectB = document.getElementById('select-b');
+    var COLORS = ['#0d9488', '#dc2626', '#7c3aed', '#ea580c'];
+    var MAX_SLOTS = 4;
+    var MIN_SLOTS = 2;
+
+    // Default selections
+    var selected = ['310101', '640104']; // 黄浦, 兴庆
+
+    var slotsContainer = document.getElementById('slots-container');
+    var addSlotBtn = document.getElementById('add-slot');
+    var activeCountEl = document.getElementById('active-count');
     var svg = document.getElementById('radar-svg');
     var legend = document.getElementById('radar-legend');
-    var nameA = document.getElementById('name-a');
-    var nameB = document.getElementById('name-b');
+    var header = document.getElementById('compare-header');
     var body = document.getElementById('compare-body');
+    var gapBars = document.getElementById('gap-bars');
 
-    var COLORS = ['#0d9488', '#dc2626'];
-    var SIZE = 320;
+    var SIZE = 360;
     var cx = SIZE / 2;
     var cy = SIZE / 2;
-    var R = SIZE / 2 - 42;
+    var R = SIZE / 2 - 48;
     var n = metricKeys.length;
 
     function pointAt(i, r) {
@@ -192,7 +182,61 @@ const jsonLd = {
       return [cx + r * Math.cos(angle), cy + r * Math.sin(angle)];
     }
 
-    function renderRadar(scoresA, scoresB) {
+    function renderSlots() {
+      var html = '';
+      selected.forEach(function (adcode, idx) {
+        var d = data[adcode];
+        var color = COLORS[idx];
+        html += '<div class="rounded-lg border border-line p-3" style="border-left:3px solid ' + color + '">';
+        html += '<div class="flex items-center justify-between">';
+        html += '<span class="text-xs font-medium" style="color:' + color + '">区域 ' + String.fromCharCode(65 + idx) + '</span>';
+        if (selected.length > MIN_SLOTS) {
+          html += '<button type="button" class="text-xs text-ink-soft hover:text-red-500" onclick="window.__compareRemove(' + idx + ')">✕ 移除</button>';
+        }
+        html += '</div>';
+        html += '<select class="mt-2 w-full rounded-lg border border-line bg-surface px-2 py-1.5 text-xs text-ink focus:border-accent focus:outline-none" data-slot="' + idx + '">';
+        allDistricts.forEach(function (opt) {
+          var sel = opt.adcode === adcode ? ' selected' : '';
+          html += '<option value="' + opt.adcode + '"' + sel + '>' + opt.cityName + ' · ' + opt.name + '（综合 ' + opt.composite.toFixed(0) + '）</option>';
+        });
+        html += '</select>';
+        html += '</div>';
+      });
+      slotsContainer.innerHTML = html;
+
+      // Bind change events
+      slotsContainer.querySelectorAll('select[data-slot]').forEach(function (sel) {
+        sel.addEventListener('change', function () {
+          var idx = parseInt(this.getAttribute('data-slot'));
+          selected[idx] = this.value;
+          renderAll();
+        });
+      });
+
+      activeCountEl.textContent = selected.length;
+      addSlotBtn.style.display = selected.length >= MAX_SLOTS ? 'none' : '';
+    }
+
+    window.__compareRemove = function (idx) {
+      if (selected.length <= MIN_SLOTS) return;
+      selected.splice(idx, 1);
+      renderSlots();
+      renderAll();
+    };
+
+    addSlotBtn.addEventListener('click', function () {
+      if (selected.length >= MAX_SLOTS) return;
+      // Pick a district not already selected
+      var used = {}; selected.forEach(function (a) { used[a] = true; });
+      var next = allDistricts.find(function (d) { return !used[d.adcode]; });
+      if (next) {
+        selected.push(next.adcode);
+        renderSlots();
+        renderAll();
+      }
+    });
+
+    function renderRadar() {
       var rings = [0.25, 0.5, 0.75, 1];
       var html = '';
 
@@ -208,99 +252,134 @@ const jsonLd = {
       // Axis lines + labels
       metricLabels.forEach(function (label, i) {
         var p = pointAt(i, R);
-        var lp = pointAt(i, R + 20);
+        var lp = pointAt(i, R + 22);
         html += '<line x1="' + cx + '" y1="' + cy + '" x2="' + p[0] + '" y2="' + p[1] + '" stroke="#e2e8f0" stroke-width="1"/>';
-        html += '<text x="' + lp[0] + '" y="' + lp[1] + '" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#475569">' + label + '</text>';
+        html += '<text x="' + lp[0] + '" y="' + lp[1] + '" text-anchor="middle" dominant-baseline="middle" font-size="12" fill="#475569" font-weight="500">' + label + '</text>';
       });
 
-      // Series A
-      if (scoresA) {
-        var ptsA = metricKeys.map(function (k, i) {
-          var v = Math.max(0, Math.min(100, scoresA[k] || 0));
-          var p = pointAt(i, (v / 100) * R);
-          return p[0] + ',' + p[1];
-        }).join(' ');
-        html += '<polygon points="' + ptsA + '" fill="' + COLORS[0] + '" fill-opacity="0.18" stroke="' + COLORS[0] + '" stroke-width="2" stroke-linejoin="round"/>';
-        metricKeys.forEach(function (k, i) {
-          var v = Math.max(0, Math.min(100, scoresA[k] || 0));
-          var p = pointAt(i, (v / 100) * R);
-          html += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="2.5" fill="' + COLORS[0] + '"/>';
-        });
-      }
+      // Each series
+      selected.forEach(function (adcode, idx) {
+        var d = data[adcode];
+        if (!d) return;
+        var color = COLORS[idx];
+        var opacity = selected.length === 3 ? 0.15 : selected.length === 4 ? 0.12 : 0.18;
 
-      // Series B
-      if (scoresB) {
-        var ptsB = metricKeys.map(function (k, i) {
-          var v = Math.max(0, Math.min(100, scoresB[k] || 0));
+        var pts = metricKeys.map(function (k, i) {
+          var v = Math.max(0, Math.min(100, d.scores[k] || 0));
           var p = pointAt(i, (v / 100) * R);
           return p[0] + ',' + p[1];
         }).join(' ');
-        html += '<polygon points="' + ptsB + '" fill="' + COLORS[1] + '" fill-opacity="0.18" stroke="' + COLORS[1] + '" stroke-width="2" stroke-linejoin="round"/>';
+        html += '<polygon points="' + pts + '" fill="' + color + '" fill-opacity="' + opacity + '" stroke="' + color + '" stroke-width="2" stroke-linejoin="round"/>';
         metricKeys.forEach(function (k, i) {
-          var v = Math.max(0, Math.min(100, scoresB[k] || 0));
+          var v = Math.max(0, Math.min(100, d.scores[k] || 0));
           var p = pointAt(i, (v / 100) * R);
-          html += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="2.5" fill="' + COLORS[1] + '"/>';
-        }
-      );
-      }
+          html += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="3" fill="' + color + '" stroke="#fff" stroke-width="1"/>';
+        });
+      });
 
       svg.innerHTML = html;
     }
 
-    function renderTable(dA, dB) {
-      nameA.textContent = dA.cityName + ' · ' + dA.name;
-      nameB.textContent = dB.cityName + ' · ' + dB.name;
-
+    function renderLegend() {
       var html = '';
+      selected.forEach(function (adcode, idx) {
+        var d = data[adcode];
+        if (!d) return;
+        html += '<span class="flex items-center gap-1.5"><span class="inline-block h-3 w-3 rounded-full" style="background:' + COLORS[idx] + '"></span>' + d.cityName + ' · ' + d.name + '</span>';
+      });
+      legend.innerHTML = html;
+    }
+
+    function renderTable() {
+      // Header
+      var hh = '<th class="px-4 py-3 text-left text-xs font-medium text-ink-soft">维度</th>';
+      selected.forEach(function (adcode, idx) {
+        var d = data[adcode];
+        if (!d) return;
+        hh += '<th class="px-4 py-3 text-left">';
+        hh += '<span class="inline-block h-3 w-3 rounded-full align-middle" style="background:' + COLORS[idx] + '"></span>';
+        hh += '<span class="ml-1 font-semibold text-ink">' + d.cityName + ' · ' + d.name + '</span>';
+        hh += '</th>';
+      });
+      hh += '<th class="px-4 py-3 text-left text-xs font-medium text-ink-soft">差异</th>';
+      header.innerHTML = hh;
+
+      // Body
+      var html = '';
+
       // Composite row
-      var compDiff = dA.composite - dB.composite;
-      var compSign = compDiff > 0 ? '+' : '';
-      var compColor = compDiff > 0 ? COLORS[0] : compDiff < 0 ? COLORS[1] : '#64748b';
+      var scores = selected.map(function (a) { return data[a] ? data[a].composite : 0; });
+      var maxScore = Math.max.apply(null, scores);
+      var minScore = Math.min.apply(null, scores);
+      var diff = maxScore - minScore;
       html += '<tr class="bg-surface-muted/50">';
       html += '<td class="px-4 py-3 font-medium">综合宜居度</td>';
-      html += '<td class="px-4 py-3"><span class="text-lg font-bold" style="color:' + COLORS[0] + '">' + dA.composite.toFixed(0) + '</span><span class="text-xs text-ink-soft"> /100</span></td>';
-      html += '<td class="px-4 py-3"><span class="text-lg font-bold" style="color:' + COLORS[1] + '">' + dB.composite.toFixed(0) + '</span><span class="text-xs text-ink-soft"> /100</span></td>';
-      html += '<td class="px-4 py-3 text-sm font-medium" style="color:' + compColor + '">' + compSign + compDiff.toFixed(1) + '</td>';
+      selected.forEach(function (adcode, idx) {
+        var d = data[adcode];
+        if (!d) return;
+        var isMax = d.composite === maxScore;
+        html += '<td class="px-4 py-3"><span class="text-lg font-bold" style="color:' + COLORS[idx] + '">' + d.composite.toFixed(0) + '</span><span class="text-xs text-ink-soft"> /100</span>' + (isMax ? ' <span class="text-xs">👑</span>' : '') + '</td>';
+      });
+      html += '<td class="px-4 py-3 text-sm font-medium text-ink-soft">极差 ' + diff.toFixed(1) + '</td>';
       html += '</tr>';
 
       // Metric rows
       metricKeys.forEach(function (k, i) {
-        var sA = dA.scores[k] || 0;
-        var sB = dB.scores[k] || 0;
-        var rA = dA.rawValues[k] || 0;
-        var rB = dB.rawValues[k] || 0;
-        var diff = sA - sB;
-        var sign = diff > 0 ? '+' : '';
-        var color = diff > 0 ? COLORS[0] : diff < 0 ? COLORS[1] : '#64748b';
-
         html += '<tr>';
         html += '<td class="px-4 py-3"><div class="font-medium text-ink">' + metricLabels[i] + '</div></td>';
-        html += '<td class="px-4 py-3"><div class="font-medium text-ink">' + rA.toLocaleString() + '</div><div class="text-xs text-ink-soft">评分 ' + sA.toFixed(0) + '</div></td>';
-        html += '<td class="px-4 py-3"><div class="font-medium text-ink">' + rB.toLocaleString() + '</div><div class="text-xs text-ink-soft">评分 ' + sB.toFixed(0) + '</div></td>';
-        html += '<td class="px-4 py-3 text-sm font-medium" style="color:' + color + '">' + sign + diff.toFixed(1) + '</td>';
+        var rowScores = selected.map(function (a) { return data[a] ? data[a].scores[k] || 0 : 0; });
+        var rowMax = Math.max.apply(null, rowScores);
+        var rowMin = Math.min.apply(null, rowScores);
+        var rowDiff = rowMax - rowMin;
+
+        selected.forEach(function (adcode, idx) {
+          var d = data[adcode];
+          if (!d) return;
+          var s = d.scores[k] || 0;
+          var r = d.rawValues[k] || 0;
+          var isMax = s === rowMax && rowDiff > 0.1;
+          html += '<td class="px-4 py-3"><div class="font-medium text-ink">' + r.toLocaleString() + '</div><div class="text-xs text-ink-soft">评分 ' + s.toFixed(0) + (isMax ? ' ⬆️' : '') + '</div></td>';
+        });
+
+        var diffColor = rowDiff > 30 ? '#dc2626' : rowDiff > 15 ? '#ea580c' : '#64748b';
+        html += '<td class="px-4 py-3 text-sm font-medium" style="color:' + diffColor + '">差 ' + rowDiff.toFixed(1) + '</td>';
         html += '</tr>';
       });
 
       body.innerHTML = html;
     }
 
-    function renderLegend(dA, dB) {
-      legend.innerHTML =
-        '<span class="flex items-center gap-1.5"><span class="inline-block h-3 w-3 rounded-full" style="background:' + COLORS[0] + '"></span>' + dA.cityName + ' · ' + dA.name + '</span>' +
-        '<span class="flex items-center gap-1.5"><span class="inline-block h-3 w-3 rounded-full" style="background:' + COLORS[1] + '"></span>' + dB.cityName + ' · ' + dB.name + '</span>';
+    function renderGapBars() {
+      var html = '';
+      metricKeys.forEach(function (k, i) {
+        html += '<div>';
+        html += '<div class="mb-1 text-xs font-medium text-ink-soft">' + metricFullLabels[i] + '</div>';
+        html += '<div class="space-y-1.5">';
+        selected.forEach(function (adcode, idx) {
+          var d = data[adcode];
+          if (!d) return;
+          var s = d.scores[k] || 0;
+          var barWidth = Math.max(2, s);
+          html += '<div class="flex items-center gap-2">';
+          html += '<span class="w-20 shrink-0 truncate text-[10px] text-ink-soft">' + d.name + '</span>';
+          html += '<div class="h-5 flex-1 overflow-hidden rounded bg-surface-muted">';
+          html += '<div class="flex h-full items-center justify-end rounded transition-all duration-500" style="width:' + barWidth + '%; background:' + COLORS[idx] + '">';
+          html += '<span class="pr-2 text-[9px] font-bold text-white">' + s.toFixed(0) + '</span>';
+          html += '</div></div></div>';
+        });
+        html += '</div></div>';
+      });
+      gapBars.innerHTML = html;
     }
 
-    function update() {
-      var dA = data[selectA.value];
-      var dB = data[selectB.value];
-      if (!dA || !dB) return;
-      renderRadar(dA.scores, dB.scores);
-      renderTable(dA, dB);
-      renderLegend(dA, dB);
+    function renderAll() {
+      renderRadar();
+      renderLegend();
+      renderTable();
+      renderGapBars();
     }
 
-    selectA.addEventListener('change', update);
-    selectB.addEventListener('change', update);
-    update();
+    renderSlots();
+    renderAll();
   })();
 </script>
