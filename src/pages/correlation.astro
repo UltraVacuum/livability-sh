@@ -1,0 +1,604 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { CITIES } from '../data/cities';
+import { getDistricts, METRICS, type MetricKey } from '../data/districts';
+import { computeCity } from '../lib/scoring';
+
+// ── Collect all district raw values across cities ──
+interface DistrictData {
+  adcode: string;
+  name: string;
+  cityKey: string;
+  cityName: string;
+  rawValues: Record<MetricKey, number>;
+  scores: Record<MetricKey, number>;
+}
+
+const allDistricts: DistrictData[] = [];
+for (const city of CITIES) {
+  const scored = computeCity(getDistricts(city.key));
+  for (const d of scored) {
+    const rawValues = {} as Record<MetricKey, number>;
+    const scores = {} as Record<MetricKey, number>;
+    for (const m of METRICS) {
+      rawValues[m.key] = d.metrics[m.key].rawValue;
+      scores[m.key] = d.metrics[m.key].score;
+    }
+    allDistricts.push({
+      adcode: d.adcode,
+      name: d.name,
+      cityKey: city.key,
+      cityName: city.name,
+      rawValues,
+      scores,
+    });
+  }
+}
+
+// ── Pearson correlation ──
+function pearson(xs: number[], ys: number[]): number {
+  const n = xs.length;
+  if (n === 0) return 0;
+  const mx = xs.reduce((a, b) => a + b, 0) / n;
+  const my = ys.reduce((a, b) => a + b, 0) / n;
+  let num = 0, dx = 0, dy = 0;
+  for (let i = 0; i < n; i++) {
+    num += (xs[i] - mx) * (ys[i] - my);
+    dx += (xs[i] - mx) ** 2;
+    dy += (ys[i] - my) ** 2;
+  }
+  const den = Math.sqrt(dx * dy);
+  return den === 0 ? 0 : num / den;
+}
+
+// ── Build correlation matrix (using scores, not raw values, for comparability) ──
+const metricKeys = METRICS.map((m) => m.key);
+const matrix: number[][] = [];
+for (let i = 0; i < metricKeys.length; i++) {
+  const row: number[] = [];
+  for (let j = 0; j < metricKeys.length; j++) {
+    const xs = allDistricts.map((d) => d.scores[metricKeys[i]]);
+    const ys = allDistricts.map((d) => d.scores[metricKeys[j]]);
+    row.push(pearson(xs, ys));
+  }
+  matrix.push(row);
+}
+
+// ── Find TOP 5 positive and TOP 5 negative pairs ──
+interface CorrPair {
+  a: MetricKey;
+  b: MetricKey;
+  aLabel: string;
+  bLabel: string;
+  r: number;
+  r2: number;
+}
+const pairs: CorrPair[] = [];
+for (let i = 0; i < metricKeys.length; i++) {
+  for (let j = i + 1; j < metricKeys.length; j++) {
+    const defA = METRICS.find((m) => m.key === metricKeys[i])!;
+    const defB = METRICS.find((m) => m.key === metricKeys[j])!;
+    pairs.push({
+      a: metricKeys[i],
+      b: metricKeys[j],
+      aLabel: defA.label,
+      bLabel: defB.label,
+      r: matrix[i][j],
+      r2: matrix[i][j] ** 2,
+    });
+  }
+}
+pairs.sort((a, b) => b.r - a.r);
+const topPositive = pairs.slice(0, 5);
+const topNegative = [...pairs].reverse().slice(0, 5);
+
+// ── Prepare scatter data for default pair (top positive) ──
+const defaultPair = topPositive[0];
+const scatterData = allDistricts.map((d) => ({
+  name: d.name,
+  city: d.cityName,
+  cityKey: d.cityKey,
+  adcode: d.adcode,
+  x: d.scores[defaultPair.a],
+  y: d.scores[defaultPair.b],
+}));
+
+// ── Prepare all-pairs scatter data as a lookup ──
+const allScatterData: Record<string, Array<{ name: string; city: string; cityKey: string; adcode: string; x: number; y: number }>> = {};
+for (const p of pairs) {
+  const key = `${p.a}__${p.b}`;
+  allScatterData[key] = allDistricts.map((d) => ({
+    name: d.name,
+    city: d.cityName,
+    cityKey: d.cityKey,
+    adcode: d.adcode,
+    x: d.scores[p.a],
+    y: d.scores[p.b],
+  }));
+}
+
+// ── Color helper for correlation strength ──
+function corrColor(r: number): string {
+  if (r >= 0.7) return '#15803d'; // strong positive - deep green
+  if (r >= 0.4) return '#65a30d'; // moderate positive - lime
+  if (r >= 0.1) return '#a7f3d0'; // weak positive - light teal
+  if (r > -0.1) return '#e2e8f0'; // near zero - gray
+  if (r > -0.4) return '#fca5a5'; // weak negative - light red
+  if (r > -0.7) return '#ef4444'; // moderate negative - red
+  return '#b91c1c'; // strong negative - deep red
+}
+
+const totalDistricts = allDistricts.length;
+const totalDimensions = METRICS.length;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Dataset',
+  name: '宜居维度相关性分析',
+  description: `${totalDimensions}个宜居维度间的皮尔逊相关系数矩阵，覆盖${totalDistricts}个区县的标准化评分数据`,
+  creator: { '@type': 'Organization', name: '宜居度' },
+  keywords: ['相关性分析', '皮尔逊相关系数', '维度关联', '城市数据', '散点图'],
+};
+
+const pageTitle = '维度相关性分析 · 区县宜居维度关联度深探';
+const pageDesc = `${totalDimensions}个宜居维度的皮尔逊相关系数矩阵热力图 + 交互式散点图，覆盖${totalDistricts}个区县。发现维度间的隐藏关联。`;
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={pageDesc}
+  path="/correlation"
+  keywords={['相关性分析', '皮尔逊相关系数', '维度关联', '散点图', '宜居维度', '区县数据']}
+  jsonLd={jsonLd}
+>
+  <section class="container-page py-10 sm:py-14">
+    <a href="/" class="text-sm text-ink-soft hover:text-accent">← 返回首页</a>
+    <h1 class="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">维度相关性分析</h1>
+    <p class="mt-3 max-w-2xl text-ink-soft">
+      基于 {totalDistricts} 个区县的标准化评分，计算 {totalDimensions} 个宜居维度间的皮尔逊相关系数（r）。探索维度间的隐藏关联。
+    </p>
+
+    {/* ── 相关性矩阵热力图 ── */}
+    <div class="card mt-8 p-6">
+      <h2 class="text-lg font-semibold text-ink">📊 相关性矩阵</h2>
+      <p class="mt-1 text-sm text-ink-soft">颜色越绿 = 正相关越强，越红 = 负相关越强。数值为皮尔逊相关系数（-1 到 1）。</p>
+
+      <div class="mt-6 overflow-x-auto">
+        <table class="border-collapse text-sm">
+          <thead>
+            <tr>
+              <th class="p-2"></th>
+              {METRICS.map((m) => (
+                <th class="p-2 text-center text-xs font-medium text-ink-soft" style="min-width:70px">{m.shortLabel}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {METRICS.map((rowMetric, i) => (
+              <tr>
+                <td class="p-2 text-right text-xs font-medium text-ink-soft whitespace-nowrap">{rowMetric.shortLabel}</td>
+                {METRICS.map((colMetric, j) => {
+                  const r = matrix[i][j];
+                  const bg = corrColor(r);
+                  const isDiag = i === j;
+                  const isUpper = j > i;
+                  return (
+                    <td class="p-1 text-center" style="min-width:70px">
+                      <div
+                        class="flex h-14 items-center justify-center rounded-md text-xs font-bold transition hover:scale-110 hover:shadow-md cursor-default"
+                        style={`background:${isDiag ? '#94a3b8' : isUpper ? bg : '#f8fafc'}; color:${isDiag ? '#fff' : Math.abs(r) > 0.5 ? '#fff' : '#475569'}; opacity:${isDiag ? 0.5 : isUpper ? 1 : 0.3}`}
+                        title={isDiag ? `${rowMetric.label}（自相关 = 1）` : isUpper ? `${rowMetric.label} × ${colMetric.label}\nr = ${r.toFixed(3)}` : ''}
+                      >
+                        {isDiag ? '1.00' : isUpper ? r.toFixed(2) : ''}
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* ── 图例 ── */}
+      <div class="mt-4 flex items-center gap-3 text-xs text-ink-soft">
+        <span>相关强度：</span>
+        <div class="flex items-center gap-1">
+          <span class="inline-block h-4 w-8 rounded" style="background:#b91c1c"></span>
+          <span>强负相关 ≤-0.7</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <span class="inline-block h-4 w-8 rounded" style="background:#ef4444"></span>
+          <span>中度负相关</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <span class="inline-block h-4 w-8 rounded" style="background:#e2e8f0"></span>
+          <span>≈0 无相关</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <span class="inline-block h-4 w-8 rounded" style="background:#65a30d"></span>
+          <span>中度正相关</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <span class="inline-block h-4 w-8 rounded" style="background:#15803d"></span>
+          <span>强正相关 ≥0.7</span>
+        </div>
+      </div>
+    </div>
+
+    {/* ── 散点图 ── */}
+    <div class="card mt-6 p-6">
+      <h2 class="text-lg font-semibold text-ink">🔍 维度散点图</h2>
+      <p class="mt-1 text-sm text-ink-soft">选择两个维度，查看 {totalDistricts} 个区县的分布散点。虚线为线性回归趋势线。</p>
+
+      {/* ── 维度选择器 ── */}
+      <div class="mt-4 flex flex-wrap items-center gap-3">
+        <div class="flex items-center gap-2">
+          <label for="x-axis-select" class="text-sm font-medium text-ink-soft">X轴：</label>
+          <select id="x-axis-select" class="rounded-lg border border-line bg-surface px-3 py-1.5 text-sm text-ink focus:border-accent focus:outline-none">
+            {METRICS.map((m) => (
+              <option value={m.key} selected={m.key === defaultPair.a}>{m.label}</option>
+            ))}
+          </select>
+        </div>
+        <div class="flex items-center gap-2">
+          <label for="y-axis-select" class="text-sm font-medium text-ink-soft">Y轴：</label>
+          <select id="y-axis-select" class="rounded-lg border border-line bg-surface px-3 py-1.5 text-sm text-ink focus:border-accent focus:outline-none">
+            {METRICS.map((m) => (
+              <option value={m.key} selected={m.key === defaultPair.b}>{m.label}</option>
+            ))}
+          </select>
+        </div>
+        <button type="button" id="swap-axes" class="rounded-lg border border-line bg-surface px-3 py-1.5 text-sm text-ink-soft hover:text-accent hover:border-accent transition">
+          🔄 交换
+        </button>
+      </div>
+
+      {/* ── 统计摘要 ── */}
+      <div class="mt-4 grid grid-cols-3 gap-4">
+        <div class="rounded-lg bg-surface-muted px-4 py-3 text-center">
+          <div class="text-xs text-ink-soft">相关系数 r</div>
+          <div id="stat-r" class="mt-1 text-2xl font-bold text-accent">{defaultPair.r.toFixed(3)}</div>
+        </div>
+        <div class="rounded-lg bg-surface-muted px-4 py-3 text-center">
+          <div class="text-xs text-ink-soft">决定系数 R²</div>
+          <div id="stat-r2" class="mt-1 text-2xl font-bold text-accent">{(defaultPair.r2).toFixed(3)}</div>
+        </div>
+        <div class="rounded-lg bg-surface-muted px-4 py-3 text-center">
+          <div class="text-xs text-ink-soft">关联强度</div>
+          <div id="stat-strength" class="mt-1 text-2xl font-bold text-accent">
+            {Math.abs(defaultPair.r) >= 0.7 ? '强' : Math.abs(defaultPair.r) >= 0.4 ? '中等' : Math.abs(defaultPair.r) >= 0.2 ? '弱' : '微弱'}
+          </div>
+        </div>
+      </div>
+
+      {/* ── SVG 散点图 ── */}
+      <div class="mt-6 overflow-x-auto">
+        <svg id="scatter-plot" viewBox="0 0 520 420" class="mx-auto" style="max-width:520px;width:100%">
+          {/* 网格线和坐标轴将由 JS 渲染 */}
+        </svg>
+      </div>
+
+      {/* ── Tooltip ── */}
+      <div id="scatter-tooltip" class="pointer-events-none fixed z-50 hidden rounded-lg bg-ink px-3 py-2 text-xs text-white shadow-lg">
+        <span id="tooltip-content"></span>
+      </div>
+    </div>
+
+    {/* ── TOP 5 正相关 & 负相关 ── */}
+    <div class="mt-6 grid gap-6 lg:grid-cols-2">
+      {/* 正相关 */}
+      <div class="card p-6">
+        <h3 class="font-semibold text-ink">
+          <span class="mr-1 text-grade-a">📈</span>
+          最强正相关 TOP 5
+        </h3>
+        <p class="mt-1 text-xs text-ink-soft">两个维度同向变化——一个高另一个也高</p>
+        <div class="mt-4 space-y-3">
+          {topPositive.map((p, i) => (
+            <div class="flex items-center gap-3">
+              <span class="w-6 text-center text-sm font-bold text-ink-soft">{i + 1}</span>
+              <div class="flex-1">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-ink">{p.aLabel} ↔ {p.bLabel}</span>
+                  <span class="text-sm font-bold text-grade-a">r = {p.r.toFixed(3)}</span>
+                </div>
+                <div class="mt-1 h-2 overflow-hidden rounded-full bg-surface-muted">
+                  <div
+                    class="h-full rounded-full transition-all duration-700"
+                    style={`width:${Math.abs(p.r) * 100}%; background:${corrColor(p.r)}`}
+                  />
+                </div>
+                <div class="mt-0.5 text-[10px] text-ink-soft">R² = {p.r2.toFixed(3)} · {Math.abs(p.r) >= 0.7 ? '强关联' : Math.abs(p.r) >= 0.4 ? '中等关联' : '弱关联'}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 负相关 */}
+      <div class="card p-6">
+        <h3 class="font-semibold text-ink">
+          <span class="mr-1 text-grade-d">📉</span>
+          最强负相关 TOP 5
+        </h3>
+        <p class="mt-1 text-xs text-ink-soft">两个维度反向变化——一个高另一个低</p>
+        <div class="mt-4 space-y-3">
+          {topNegative.map((p, i) => (
+            <div class="flex items-center gap-3">
+              <span class="w-6 text-center text-sm font-bold text-ink-soft">{i + 1}</span>
+              <div class="flex-1">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-ink">{p.aLabel} ↔ {p.bLabel}</span>
+                  <span class="text-sm font-bold text-grade-d">r = {p.r.toFixed(3)}</span>
+                </div>
+                <div class="mt-1 h-2 overflow-hidden rounded-full bg-surface-muted">
+                  <div
+                    class="h-full rounded-full transition-all duration-700"
+                    style={`width:${Math.abs(p.r) * 100}%; background:${corrColor(p.r)}`}
+                  />
+                </div>
+                <div class="mt-0.5 text-[10px] text-ink-soft">R² = {p.r2.toFixed(3)} · {Math.abs(p.r) >= 0.7 ? '强关联' : Math.abs(p.r) >= 0.4 ? '中等关联' : '弱关联'}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    {/* ── 解读说明 ── */}
+    <details class="mt-6">
+      <summary class="cursor-pointer text-sm font-medium text-accent hover:underline">
+        📖 如何理解相关性分析？
+      </summary>
+      <div class="card mt-3 p-5 text-sm leading-relaxed text-ink-soft">
+        <p><strong>皮尔逊相关系数（r）</strong> 衡量两个变量线性关联的程度，范围 -1 到 +1：</p>
+        <ul class="mt-2 space-y-1 pl-4">
+          <li><strong>+0.7 ~ +1</strong>：强正相关——两维度同向高度一致</li>
+          <li><strong>+0.4 ~ +0.7</strong>：中度正相关——存在明显同向趋势</li>
+          <li><strong>-0.4 ~ +0.4</strong>：弱相关或无相关——维度独立</li>
+          <li><strong>-0.7 ~ -0.4</strong>：中度负相关——一升一降</li>
+          <li><strong>-1 ~ -0.7</strong>：强负相关——明显反向</li>
+        </ul>
+        <p class="mt-3"><strong>决定系数（R²）</strong> 表示一个维度的变异中有多少比例可被另一个维度解释。例如 R²=0.5 意味着 50% 的变化可关联。</p>
+        <p class="mt-2"><strong>⚠️ 相关 ≠ 因果</strong>。两个维度相关不代表一个导致另一个，可能受第三个因素共同影响。</p>
+        <p class="mt-2"><strong>数据基础</strong>：所有分数基于区县级标准化评分（z-score → 正态CDF → 0-100），每个城市内部独立评分。</p>
+      </div>
+    </details>
+
+    {/* ── 底部导航 ── */}
+    <div class="mt-10 flex flex-wrap gap-3">
+      <a href="/explore" class="rounded-xl bg-accent px-5 py-2.5 text-sm font-medium text-white transition hover:opacity-90">
+        📊 维度深探 →
+      </a>
+      <a href="/rankings" class="rounded-xl border border-line bg-surface px-5 py-2.5 text-sm font-medium text-ink-soft transition hover:text-ink">
+        🏆 排行榜
+      </a>
+      <a href="/" class="rounded-xl border border-line bg-surface px-5 py-2.5 text-sm font-medium text-ink-soft transition hover:text-ink">
+        回首页
+      </a>
+    </div>
+  </section>
+
+  {/* ── 散点图数据 + 交互逻辑 ── */}
+  <script is:inline define:vars={{ allScatterData, metricKeys, METRICS: METRICS.map(m => ({ key: m.key, label: m.label, shortLabel: m.shortLabel })) }}>
+    (function () {
+      const svg = document.getElementById('scatter-plot');
+      if (!svg) return;
+      const xSelect = document.getElementById('x-axis-select');
+      const ySelect = document.getElementById('y-axis-select');
+      const swapBtn = document.getElementById('swap-axes');
+      const statR = document.getElementById('stat-r');
+      const statR2 = document.getElementById('stat-r2');
+      const statStrength = document.getElementById('stat-strength');
+      const tooltip = document.getElementById('scatter-tooltip');
+      const tooltipContent = document.getElementById('tooltip-content');
+
+      const W = 520, H = 420;
+      const margin = { top: 20, right: 20, bottom: 50, left: 50 };
+      const plotW = W - margin.left - margin.right;
+      const plotH = H - margin.top - margin.bottom;
+
+      function pearson(xs, ys) {
+        const n = xs.length;
+        if (n === 0) return 0;
+        const mx = xs.reduce((a, b) => a + b, 0) / n;
+        const my = ys.reduce((a, b) => a + b, 0) / n;
+        let num = 0, dx = 0, dy = 0;
+        for (let i = 0; i < n; i++) {
+          num += (xs[i] - mx) * (ys[i] - my);
+          dx += (xs[i] - mx) ** 2;
+          dy += (ys[i] - my) ** 2;
+        }
+        const den = Math.sqrt(dx * dy);
+        return den === 0 ? 0 : num / den;
+      }
+
+      function linearRegression(data) {
+        const n = data.length;
+        const mx = data.reduce((a, d) => a + d.x, 0) / n;
+        const my = data.reduce((a, d) => a + d.y, 0) / n;
+        let num = 0, den = 0;
+        for (const d of data) {
+          num += (d.x - mx) * (d.y - my);
+          den += (d.x - mx) ** 2;
+        }
+        const slope = den === 0 ? 0 : num / den;
+        const intercept = my - slope * mx;
+        return { slope, intercept };
+      }
+
+      function cityColor(cityKey) {
+        return cityKey === 'shanghai' ? '#0d9488' : '#7c3aed';
+      }
+
+      function renderScatter() {
+        const xKey = xSelect.value;
+        const yKey = ySelect.value;
+        const dataKey = xKey + '__' + yKey;
+        const reverseKey = yKey + '__' + xKey;
+        let data = allScatterData[dataKey] || allScatterData[reverseKey];
+        if (!data) {
+          // Compute on the fly if not pre-computed
+          return;
+        }
+        // If reversed, swap x/y
+        if (!allScatterData[dataKey] && allScatterData[reverseKey]) {
+          data = data.map(d => ({ ...d, x: d.y, y: d.x }));
+        }
+
+        const xs = data.map(d => d.x);
+        const ys = data.map(d => d.y);
+        const r = pearson(xs, ys);
+        const r2 = r * r;
+
+        // Update stats
+        statR.textContent = r.toFixed(3);
+        statR2.textContent = r2.toFixed(3);
+        const absR = Math.abs(r);
+        statStrength.textContent = absR >= 0.7 ? '强' : absR >= 0.4 ? '中等' : absR >= 0.2 ? '弱' : '微弱';
+
+        // Clear SVG
+        svg.innerHTML = '';
+
+        // Scales (0-100 range with padding)
+        const xMin = 0, xMax = 100, yMin = 0, yMax = 100;
+        const sx = (v) => margin.left + ((v - xMin) / (xMax - xMin)) * plotW;
+        const sy = (v) => margin.top + plotH - ((v - yMin) / (yMax - yMin)) * plotH;
+
+        // ── Grid lines ──
+        const ns = 'http://www.w3.org/2000/svg';
+        for (let g = 0; g <= 100; g += 20) {
+          // Vertical grid
+          const vline = document.createElementNS(ns, 'line');
+          vline.setAttribute('x1', sx(g)); vline.setAttribute('y1', margin.top);
+          vline.setAttribute('x2', sx(g)); vline.setAttribute('y2', margin.top + plotH);
+          vline.setAttribute('stroke', '#e2e8f0'); vline.setAttribute('stroke-width', '1');
+          svg.appendChild(vline);
+          // Horizontal grid
+          const hline = document.createElementNS(ns, 'line');
+          hline.setAttribute('x1', margin.left); hline.setAttribute('y1', sy(g));
+          hline.setAttribute('x2', margin.left + plotW); hline.setAttribute('y2', sy(g));
+          hline.setAttribute('stroke', '#e2e8f0'); hline.setAttribute('stroke-width', '1');
+          svg.appendChild(hline);
+          // Axis labels
+          const xtext = document.createElementNS(ns, 'text');
+          xtext.setAttribute('x', sx(g)); xtext.setAttribute('y', margin.top + plotH + 18);
+          xtext.setAttribute('text-anchor', 'middle'); xtext.setAttribute('fill', '#94a3b8');
+          xtext.setAttribute('font-size', '10'); xtext.textContent = g;
+          svg.appendChild(xtext);
+          const ytext = document.createElementNS(ns, 'text');
+          ytext.setAttribute('x', margin.left - 8); ytext.setAttribute('y', sy(g) + 3);
+          ytext.setAttribute('text-anchor', 'end'); ytext.setAttribute('fill', '#94a3b8');
+          ytext.setAttribute('font-size', '10'); ytext.textContent = g;
+          svg.appendChild(ytext);
+        }
+
+        // ── Regression line ──
+        const reg = linearRegression(data);
+        const x1 = xMin, x2 = xMax;
+        const y1 = reg.slope * x1 + reg.intercept;
+        const y2 = reg.slope * x2 + reg.intercept;
+        const regLine = document.createElementNS(ns, 'line');
+        regLine.setAttribute('x1', sx(x1)); regLine.setAttribute('y1', sy(Math.max(yMin, Math.min(yMax, y1))));
+        regLine.setAttribute('x2', sx(x2)); regLine.setAttribute('y2', sy(Math.max(yMin, Math.min(yMax, y2))));
+        regLine.setAttribute('stroke', '#94a3b8'); regLine.setAttribute('stroke-width', '2');
+        regLine.setAttribute('stroke-dasharray', '6 4'); regLine.setAttribute('opacity', '0.7');
+        svg.appendChild(regLine);
+
+        // ── Mean lines (optional, subtle) ──
+        const mx = xs.reduce((a, b) => a + b, 0) / xs.length;
+        const my = ys.reduce((a, b) => a + b, 0) / ys.length;
+        const meanV = document.createElementNS(ns, 'line');
+        meanV.setAttribute('x1', sx(mx)); meanV.setAttribute('y1', margin.top);
+        meanV.setAttribute('x2', sx(mx)); meanV.setAttribute('y2', margin.top + plotH);
+        meanV.setAttribute('stroke', '#cbd5e1'); meanV.setAttribute('stroke-width', '1');
+        meanV.setAttribute('stroke-dasharray', '3 3'); meanV.setAttribute('opacity', '0.5');
+        svg.appendChild(meanV);
+        const meanH = document.createElementNS(ns, 'line');
+        meanH.setAttribute('x1', margin.left); meanH.setAttribute('y1', sy(my));
+        meanH.setAttribute('x2', margin.left + plotW); meanH.setAttribute('y2', sy(my));
+        meanH.setAttribute('stroke', '#cbd5e1'); meanH.setAttribute('stroke-width', '1');
+        meanH.setAttribute('stroke-dasharray', '3 3'); meanH.setAttribute('opacity', '0.5');
+        svg.appendChild(meanH);
+
+        // ── Data points ──
+        data.forEach((d) => {
+          const circle = document.createElementNS(ns, 'circle');
+          circle.setAttribute('cx', sx(d.x));
+          circle.setAttribute('cy', sy(d.y));
+          circle.setAttribute('r', '5');
+          circle.setAttribute('fill', cityColor(d.cityKey));
+          circle.setAttribute('opacity', '0.7');
+          circle.setAttribute('stroke', '#fff');
+          circle.setAttribute('stroke-width', '1');
+          circle.style.cursor = 'pointer';
+          circle.style.transition = 'r 0.15s';
+
+          circle.addEventListener('mouseenter', function (e) {
+            this.setAttribute('r', '8');
+            tooltip.classList.remove('hidden');
+            tooltipContent.innerHTML = `<strong>${d.name}</strong> · ${d.city}<br>X: ${d.x.toFixed(1)} · Y: ${d.y.toFixed(1)}`;
+          });
+          circle.addEventListener('mousemove', function (e) {
+            tooltip.style.left = (e.clientX + 14) + 'px';
+            tooltip.style.top = (e.clientY - 10) + 'px';
+          });
+          circle.addEventListener('mouseleave', function () {
+            this.setAttribute('r', '5');
+            tooltip.classList.add('hidden');
+          });
+
+          svg.appendChild(circle);
+        });
+
+        // ── Axis titles ──
+        const xLabel = METRICS.find(m => m.key === xKey);
+        const yLabel = METRICS.find(m => m.key === yKey);
+        const xTitle = document.createElementNS(ns, 'text');
+        xTitle.setAttribute('x', margin.left + plotW / 2); xTitle.setAttribute('y', H - 8);
+        xTitle.setAttribute('text-anchor', 'middle'); xTitle.setAttribute('fill', '#475569');
+        xTitle.setAttribute('font-size', '12'); xTitle.setAttribute('font-weight', '600');
+        xTitle.textContent = xLabel ? xLabel.label : xKey;
+        svg.appendChild(xTitle);
+        const yTitle = document.createElementNS(ns, 'text');
+        yTitle.setAttribute('x', -margin.top - plotH / 2); yTitle.setAttribute('y', 14);
+        yTitle.setAttribute('text-anchor', 'middle'); yTitle.setAttribute('fill', '#475569');
+        yTitle.setAttribute('font-size', '12'); yTitle.setAttribute('font-weight', '600');
+        yTitle.setAttribute('transform', 'rotate(-90)');
+        yTitle.textContent = yLabel ? yLabel.label : yKey;
+        svg.appendChild(yTitle);
+
+        // ── Legend ──
+        const cities = [...new Set(data.map(d => d.cityKey))];
+        cities.forEach((ck, i) => {
+          const cName = ck === 'shanghai' ? '上海' : '银川';
+          const lx = margin.left + plotW - 80;
+          const ly = margin.top + 15 + i * 18;
+          const dot = document.createElementNS(ns, 'circle');
+          dot.setAttribute('cx', lx); dot.setAttribute('cy', ly);
+          dot.setAttribute('r', '4'); dot.setAttribute('fill', cityColor(ck));
+          dot.setAttribute('opacity', '0.7');
+          svg.appendChild(dot);
+          const txt = document.createElementNS(ns, 'text');
+          txt.setAttribute('x', lx + 8); txt.setAttribute('y', ly + 3);
+          txt.setAttribute('fill', '#94a3b8'); txt.setAttribute('font-size', '10');
+          txt.textContent = cName;
+          svg.appendChild(txt);
+        });
+      }
+
+      xSelect.addEventListener('change', renderScatter);
+      ySelect.addEventListener('change', renderScatter);
+      swapBtn.addEventListener('click', function () {
+        const tmp = xSelect.value;
+        xSelect.value = ySelect.value;
+        ySelect.value = tmp;
+        renderScatter();
+      });
+
+      // Initial render
+      renderScatter();
+    })();
+  </script>
+</BaseLayout>

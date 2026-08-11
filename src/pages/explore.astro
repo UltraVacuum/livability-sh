@@ -381,30 +381,62 @@ const pageDesc = `选择维度（教育/医疗/经济/人口/交通/生活），
       );
     })}
 
-    {/* ── 维度切换 JS ── */}
+    {/* ── 维度切换 JS (with URL param persistence) ── */}
     <script is:inline>
       (function () {
         const tabs = document.querySelectorAll('.explore-tab');
         const panels = document.querySelectorAll('.explore-panel');
+
+        function activateDim(dim) {
+          tabs.forEach((t) => {
+            if (t.getAttribute('data-dim') === dim) {
+              t.classList.remove('border-line', 'bg-surface', 'text-ink-soft');
+              t.classList.add('border-accent', 'bg-accent-soft', 'text-accent');
+            } else {
+              t.classList.remove('border-accent', 'bg-accent-soft', 'text-accent');
+              t.classList.add('border-line', 'bg-surface', 'text-ink-soft');
+            }
+          });
+          panels.forEach((p) => {
+            if (p.getAttribute('data-dim') === dim) {
+              p.classList.remove('hidden');
+            } else {
+              p.classList.add('hidden');
+            }
+          });
+        }
+
+        function updateUrl(dim) {
+          const url = new URL(window.location);
+          url.searchParams.set('dim', dim);
+          window.history.pushState({ dim }, '', url);
+        }
+
         tabs.forEach((tab) => {
           tab.addEventListener('click', function () {
             const dim = this.getAttribute('data-dim');
-            tabs.forEach((t) => {
-              t.classList.remove('border-accent', 'bg-accent-soft', 'text-accent');
-              t.classList.add('border-line', 'bg-surface', 'text-ink-soft');
-            });
-            this.classList.remove('border-line', 'bg-surface', 'text-ink-soft');
-            this.classList.add('border-accent', 'bg-accent-soft', 'text-accent');
-            panels.forEach((p) => {
-              if (p.getAttribute('data-dim') === dim) {
-                p.classList.remove('hidden');
-              } else {
-                p.classList.add('hidden');
-              }
-            });
-            // Scroll to top of results
+            activateDim(dim);
+            updateUrl(dim);
             window.scrollTo({ top: tabs[0].offsetTop - 100, behavior: 'smooth' });
           });
+        });
+
+        // ── Restore from URL on load ──
+        const params = new URLSearchParams(window.location.search);
+        const urlDim = params.get('dim');
+        if (urlDim) {
+          const validDim = Array.from(tabs).some((t) => t.getAttribute('data-dim') === urlDim);
+          if (validDim) {
+            activateDim(urlDim);
+          }
+        }
+
+        // ── Handle browser back/forward ──
+        window.addEventListener('popstate', function (e) {
+          const dim = (e.state && e.state.dim) || new URLSearchParams(window.location.search).get('dim');
+          if (dim) {
+            activateDim(dim);
+          }
         });
       })();
     </script>

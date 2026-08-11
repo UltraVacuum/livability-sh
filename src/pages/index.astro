@@ -5,6 +5,60 @@ import { getDistricts, METRICS, type MetricKey } from '../data/districts';
 import { computeCity, rankWithWeights } from '../lib/scoring';
 import { SITE } from '../consts';
 
+// ── Hot district rankings (top 5 per metric) ──
+interface HotDistrict {
+  name: string;
+  cityKey: string;
+  cityName: string;
+  adcode: string;
+  score: number;
+  rawValue: number;
+  unit: string;
+}
+const hotRankings: { metricKey: string; metricLabel: string; metricUnit: string; districts: HotDistrict[] }[] = [];
+for (const m of METRICS) {
+  const all: HotDistrict[] = [];
+  for (const city of CITIES) {
+    const scored = computeCity(getDistricts(city.key));
+    for (const d of scored) {
+      all.push({
+        name: d.name,
+        cityKey: city.key,
+        cityName: city.name,
+        adcode: d.adcode,
+        score: d.metrics[m.key as MetricKey].score,
+        rawValue: d.metrics[m.key as MetricKey].rawValue,
+        unit: m.unit,
+      });
+    }
+  }
+  all.sort((a, b) => b.score - a.score);
+  hotRankings.push({
+    metricKey: m.key,
+    metricLabel: m.label,
+    metricUnit: m.unit,
+    districts: all.slice(0, 5),
+  });
+}
+
+// ── Search hot tags ──
+const hotTags = [
+  { label: '上海浦东', query: '浦东' },
+  { label: '上海黄浦', query: '黄浦' },
+  { label: '上海徐汇', query: '徐汇' },
+  { label: '上海静安', query: '静安' },
+  { label: '银川兴庆', query: '兴庆' },
+  { label: '教育最强', query: '教育' },
+  { label: '医疗最好', query: '医疗' },
+  { label: '交通最便利', query: '交通' },
+  { label: '生活最便利', query: '生活' },
+  { label: '经济最高', query: '经济' },
+  { label: '人口最密', query: '人口' },
+  { label: '闵行', query: '闵行' },
+  { label: '长宁', query: '长宁' },
+  { label: '金凤', query: '金凤' },
+];
+
 const cards = CITIES.map((c) => {
   const d = computeCity(getDistricts(c.key));
   const top = rankWithWeights(d)[0];
@@ -191,6 +245,54 @@ const jsonLd = {
       </div>
     </div>
 
+    {/* ── 热门区县排行榜 ── */}
+    <div class="mt-14">
+      <h2 class="text-sm font-semibold uppercase tracking-wide text-ink-soft">🔥 热门区县排行</h2>
+      <p class="mt-1 text-xs text-ink-soft">各维度 TOP 5 区县，覆盖 {totalDistricts} 个区县</p>
+      <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {hotRankings.map((hr) => (
+          <div class="card p-5">
+            <div class="flex items-center justify-between">
+              <h3 class="font-semibold text-ink">{hr.metricLabel}</h3>
+              <span class="text-[10px] text-ink-soft">TOP 5</span>
+            </div>
+            <div class="mt-3 space-y-1.5">
+              {hr.districts.map((d, i) => (
+                <div class="flex items-center gap-2 text-xs">
+                  <span class={`w-5 text-center font-bold ${i < 3 ? 'text-accent' : 'text-ink-soft'}`}>{i + 1}</span>
+                  <a href={`/${d.cityKey}/district/${d.adcode}`} class="font-medium text-ink hover:text-accent">
+                    {d.name}
+                  </a>
+                  <span class="text-[10px] text-ink-soft">{d.cityName}</span>
+                  <div class="ml-auto flex items-center gap-2">
+                    <div class="h-1.5 w-12 overflow-hidden rounded-full bg-surface-muted">
+                      <div class="h-full rounded-full bg-accent" style={`width:${d.score}%`} />
+                    </div>
+                    <span class="w-8 text-right font-semibold">{d.score.toFixed(0)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* ── 搜索热词 ── */}
+    <div class="mt-10">
+      <h2 class="text-sm font-semibold uppercase tracking-wide text-ink-soft">🔎 搜索热词</h2>
+      <div class="mt-3 flex flex-wrap gap-2">
+        {hotTags.map((tag) => (
+          <a
+            href={`/search?q=${encodeURIComponent(tag.query)}`}
+            class="rounded-full border border-line bg-surface px-4 py-2 text-sm text-ink-soft transition hover:border-accent hover:text-accent hover:bg-accent-soft"
+          >
+            {tag.label}
+          </a>
+        ))}
+      </div>
+    </div>
+
     {/* ── 全局工具入口 ── */}
     <div class="mt-14 grid gap-4 sm:grid-cols-3">
       <a href="/explore" class="card group block p-6 transition hover:-translate-y-0.5 hover:shadow-lg">
@@ -203,22 +305,22 @@ const jsonLd = {
           <span class="text-2xl opacity-40 transition group-hover:opacity-70">→</span>
         </div>
       </a>
+      <a href="/correlation" class="card group block p-6 transition hover:-translate-y-0.5 hover:shadow-lg">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-2xl">🔗</div>
+            <h2 class="mt-2 text-lg font-bold">维度相关性</h2>
+            <p class="mt-1 text-sm text-ink-soft">皮尔逊相关系数矩阵热力图 + 交互散点图，发现维度间隐藏关联</p>
+          </div>
+          <span class="text-2xl opacity-40 transition group-hover:opacity-70">→</span>
+        </div>
+      </a>
       <a href="/rankings" class="card group block p-6 transition hover:-translate-y-0.5 hover:shadow-lg">
         <div class="flex items-center justify-between">
           <div>
             <div class="text-2xl">🏆</div>
             <h2 class="mt-2 text-lg font-bold">区县排行榜</h2>
             <p class="mt-1 text-sm text-ink-soft">教育、医疗、经济等多维度横向排名，CSS 条形图可视化</p>
-          </div>
-          <span class="text-2xl opacity-40 transition group-hover:opacity-70">→</span>
-        </div>
-      </a>
-      <a href="/compare" class="card group block p-6 transition hover:-translate-y-0.5 hover:shadow-lg">
-        <div class="flex items-center justify-between">
-          <div>
-            <div class="text-2xl">📊</div>
-            <h2 class="mt-2 text-lg font-bold">区县对比</h2>
-            <p class="mt-1 text-sm text-ink-soft">选择两个区县，六维雷达图直观对比差异</p>
           </div>
           <span class="text-2xl opacity-40 transition group-hover:opacity-70">→</span>
         </div>
