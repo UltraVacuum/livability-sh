@@ -79,6 +79,7 @@ import { getDistrictForeignTrade, foreignTradeSource, foreignTradeYear, CITY_TRA
 import { getDistrictWaterFacility, waterFacilitySource, waterFacilityYear, CITY_WATER_FAC_TOTALS } from '../../../data/waterFacility';
 import { getDistrictTechIncubator, techIncubatorSource, techIncubatorYear, CITY_INCUBATOR_TOTALS } from '../../../data/techIncubator';
 import { getDistrictTalent, talentSource, talentYear, CITY_TALENT_TOTALS } from '../../../data/talentPolicy';
+import { getDigitalEconomy, DIGITAL_ECONOMY_SOURCE } from '../../../data/digitalEconomy';
 
 export function getStaticPaths() {
   const paths = [];
@@ -342,6 +343,7 @@ const techIncubator = getDistrictTechIncubator(city.key, district.adcode);
 const cityIncubator = CITY_INCUBATOR_TOTALS[city.key];
 const talent = getDistrictTalent(city.key, district.adcode);
 const cityTalent = CITY_TALENT_TOTALS[city.key];
+const digitalEcon = getDigitalEconomy(district.adcode);
 
 const radarSeries = [
   { name: district.name, color: '#0d9488', values: METRICS.map((m) => district.metrics[m.key].score) },
@@ -4220,6 +4222,55 @@ const jsonLd = {
         {cityTalent && (
           <p class="mt-3 text-xs text-ink-soft">
             🎓 {city.name}市级参考：居住证持有人 <strong>{cityTalent.totalPermitHolders.toLocaleString()}</strong> 人，年人才落户 <strong>{cityTalent.annualTalentSettlement.toLocaleString()}</strong> 人，留学回国 <strong>{cityTalent.totalReturnOverseas.toLocaleString()}</strong> 人，高层次人才 <strong>{cityTalent.totalHighLevelTalents.toLocaleString()}</strong> 人，人才公寓 <strong>{cityTalent.totalTalentApartments.toLocaleString()}</strong> 套，年补贴 <strong>{cityTalent.annualTalentSubsidy}</strong> 亿元，居转户 <strong>{cityTalent.annualHousingConversion.toLocaleString()}</strong> 人
+          </p>
+        )}
+      </div>
+    )}
+
+    {digitalEcon && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">💻 数字经济就业</h3>
+          <span class="text-xs text-ink-soft">2024-2025 · {DIGITAL_ECONOMY_SOURCE}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}数字经济核心产业就业、企业分布及薪资水平。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div class="rounded-lg border border-teal-100 bg-teal-50 px-4 py-3">
+            <div class="text-xs text-teal-700">核心产业就业</div>
+            <div class="mt-1 text-xl font-bold text-teal-900">{digitalEcon.coreIndustryEmployees?.toLocaleString()}</div>
+            <div class="text-[10px] text-teal-600">人</div>
+          </div>
+          <div class="rounded-lg border border-cyan-100 bg-cyan-50 px-4 py-3">
+            <div class="text-xs text-cyan-700">数字经济企业</div>
+            <div class="mt-1 text-xl font-bold text-cyan-900">{digitalEcon.digitalCompanies?.toLocaleString()}</div>
+            <div class="text-[10px] text-cyan-600">家</div>
+          </div>
+          <div class="rounded-lg border border-purple-100 bg-purple-50 px-4 py-3">
+            <div class="text-xs text-purple-700">电商从业者</div>
+            <div class="mt-1 text-xl font-bold text-purple-900">{digitalEcon.ecommerceEmployees?.toLocaleString()}</div>
+            <div class="text-[10px] text-purple-600">人</div>
+          </div>
+          <div class="rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-3">
+            <div class="text-xs text-indigo-700">软件企业</div>
+            <div class="mt-1 text-xl font-bold text-indigo-900">{digitalEcon.softwareCompanies?.toLocaleString()}</div>
+            <div class="text-[10px] text-indigo-600">家</div>
+          </div>
+          <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+            <div class="text-xs text-blue-700">互联网企业</div>
+            <div class="mt-1 text-xl font-bold text-blue-900">{digitalEcon.internetCompanies?.toLocaleString()}</div>
+            <div class="text-[10px] text-blue-600">家</div>
+          </div>
+          <div class="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+            <div class="text-xs text-emerald-700">数字经济占比</div>
+            <div class="mt-1 text-xl font-bold text-emerald-900">{digitalEcon.digitalGdpShare}%</div>
+            <div class="text-[10px] text-emerald-600">区域GDP</div>
+          </div>
+        </div>
+        {digitalEcon.avgSalary && (
+          <p class="mt-3 text-xs text-ink-soft">
+            💻 数字经济行业平均年薪 <strong>{digitalEcon.avgSalary.toLocaleString()}</strong> 元
           </p>
         )}
       </div>

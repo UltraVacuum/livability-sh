@@ -83,6 +83,19 @@ const jsonLd = {
     </p>
 
     <div id="compare-root" class="mt-8">
+      {/* Preset comparison schemes */}
+      <div class="card p-5">
+        <h3 class="text-sm font-semibold text-ink">⚡ 预设对比方案</h3>
+        <p class="mt-1 text-xs text-ink-soft">点击一键加载经典对比组合</p>
+        <div class="mt-3 flex flex-wrap gap-2" id="preset-schemes">
+          <button type="button" class="preset-btn rounded-lg border border-line bg-surface px-3 py-2 text-xs font-medium text-ink-soft transition hover:border-accent hover:text-accent" data-preset="edu-top">🎓 教育强区 TOP3</button>
+          <button type="button" class="preset-btn rounded-lg border border-line bg-surface px-3 py-2 text-xs font-medium text-ink-soft transition hover:border-accent hover:text-accent" data-preset="eco-top">💰 经济最强区对比</button>
+          <button type="button" class="preset-btn rounded-lg border border-line bg-surface px-3 py-2 text-xs font-medium text-ink-soft transition hover:border-accent hover:text-accent" data-preset="livable">🏠 最宜居区对比</button>
+          <button type="button" class="preset-btn rounded-lg border border-line bg-surface px-3 py-2 text-xs font-medium text-ink-soft transition hover:border-accent hover:text-accent" data-preset="dual-city">🏙️ 上海 vs 银川双城</button>
+          <button type="button" class="preset-btn rounded-lg border border-line bg-surface px-3 py-2 text-xs font-medium text-ink-soft transition hover:border-accent hover:text-accent" data-preset="transit">🚇 交通便利区对比</button>
+        </div>
+      </div>
+
       {/* District selectors (up to 4) */}
       <div class="card p-5">
         <div class="flex items-center justify-between">
@@ -162,6 +175,15 @@ const jsonLd = {
     // Default selections
     var selected = ['310101', '640104']; // 黄浦, 兴庆
 
+    // Preset schemes
+    var PRESETS = {
+      'edu-top': ['310104', '310110', '310101'],      // 徐汇, 杨浦, 黄浦
+      'eco-top': ['310101', '310104', '310105'],       // 黄浦, 徐汇, 长宁
+      'livable': ['310104', '310110', '310112'],      // 徐汇, 杨浦, 闵行
+      'dual-city': ['310101', '640104'],               // 黄浦 vs 兴庆
+      'transit': ['310101', '310104', '310115'],      // 黄浦, 徐汇, 浦东
+    };
+
     var slotsContainer = document.getElementById('slots-container');
     var addSlotBtn = document.getElementById('add-slot');
     var activeCountEl = document.getElementById('active-count');
@@ -234,6 +256,29 @@ const jsonLd = {
         renderSlots();
         renderAll();
       }
+    });
+
+    // Preset scheme handlers
+    document.querySelectorAll('.preset-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var preset = this.getAttribute('data-preset');
+        var codes = PRESETS[preset];
+        if (codes) {
+          selected = codes.slice(0, MAX_SLOTS);
+          renderSlots();
+          renderAll();
+          // Highlight active preset
+          document.querySelectorAll('.preset-btn').forEach(function (b) {
+            b.classList.remove('border-accent', 'bg-accent-soft', 'text-accent');
+            b.classList.add('border-line', 'bg-surface', 'text-ink-soft');
+          });
+          this.classList.remove('border-line', 'bg-surface', 'text-ink-soft');
+          this.classList.add('border-accent', 'bg-accent-soft', 'text-accent');
+          // Scroll to chart
+          var chartEl = document.getElementById('compare-result');
+          if (chartEl) chartEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
     });
 
     function renderRadar() {
