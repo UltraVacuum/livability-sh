@@ -142,6 +142,13 @@ const jsonLd = {
         <div id="gap-bars" class="mt-4 space-y-4">
         </div>
       </div>
+
+      {/* Auto-generated diff summary */}
+      <div id="diff-summary" class="card mt-6 p-5">
+        <h3 class="text-sm font-semibold text-ink">📝 自动差异解读</h3>
+        <p class="mt-1 text-xs text-ink-soft">基于所选区县的六维评分数据自动生成对比摘要</p>
+        <div id="summary-content" class="mt-4 space-y-3 text-sm text-ink-soft"></div>
+      </div>
     </div>
 
     {/* Quick links */}
@@ -417,11 +424,127 @@ const jsonLd = {
       gapBars.innerHTML = html;
     }
 
+    function renderSummary() {
+      var el = document.getElementById('summary-content');
+      if (!el) return;
+      if (selected.length < 2) { el.innerHTML = ''; return; }
+
+      var districts = selected.map(function (a) { return data[a]; }).filter(Boolean);
+      if (districts.length < 2) { el.innerHTML = ''; return; }
+
+      var html = '';
+
+      // 1. Overall ranking
+      var byComp = districts.slice().sort(function (a, b) { return b.composite - a.composite; });
+      var top = byComp[0];
+      var bottom = byComp[byComp.length - 1];
+      var compDiff = top.composite - bottom.composite;
+      html += '<div class="rounded-lg border border-line bg-surface-muted/30 px-4 py-3">';
+      html += '<strong class="text-ink">综合宜居度</strong>：' + top.cityName + ' ' + top.name + ' 领先（' + top.composite.toFixed(0) + ' 分）';
+      if (districts.length > 2) {
+        html += '，其次 ' + byComp[1].cityName + ' ' + byComp[1].name + '（' + byComp[1].composite.toFixed(0) + ' 分）';
+      }
+      html += '，末位 ' + bottom.cityName + ' ' + bottom.name + '（' + bottom.composite.toFixed(0) + ' 分）';
+      html += '，首尾差距 <strong>' + compDiff.toFixed(1) + '</strong> 分';
+      if (compDiff < 5) html += ' <span class="text-xs text-emerald-600">（差距很小，实力接近）</span>';
+      else if (compDiff > 20) html += ' <span class="text-xs text-red-500">（差距显著）</span>';
+      html += '。</div>';
+
+      // 2. Per-dimension analysis
+      var dimInsights = [];
+      metricKeys.forEach(function (k, i) {
+        var scores = districts.map(function (d) { return { name: d.cityName + ' ' + d.name, city: d.cityName, district: d.name, score: d.scores[k] || 0, raw: d.rawValues[k] || 0, adcode: d.adcode }; });
+        scores.sort(function (a, b) { return b.score - a.score; });
+        var dimMax = scores[0];
+        var dimMin = scores[scores.length - 1];
+        var dimDiff = dimMax.score - dimMin.score;
+        if (dimDiff > 0.1) {
+          dimInsights.push({ metric: metricFullLabels[i], maxName: dimMax.name, maxScore: dimMax.score, minName: dimMin.name, minScore: dimMin.score, diff: dimDiff });
+        }
+      });
+
+      // Sort insights by gap descending — biggest gaps first
+      dimInsights.sort(function (a, b) { return b.diff - a.diff; });
+
+      if (dimInsights.length > 0) {
+        html += '<div class="rounded-lg border border-line bg-surface-muted/30 px-4 py-3">';
+        html += '<strong class="text-ink">维度差距 TOP3</strong>：';
+        dimInsights.slice(0, 3).forEach(function (ins, idx) {
+          html += '<div class="mt-1">';
+          html += '<span class="text-xs text-ink-soft">' + ['①', '②', '③'][idx] + '</span> ';
+          html += '<strong>' + ins.metric + '</strong>差距最大（' + ins.diff.toFixed(1) + ' 分）：' + ins.maxName + ' ' + ins.maxScore.toFixed(0) + ' 分 vs ' + ins.minName + ' ' + ins.minScore.toFixed(0) + ' 分';
+          html += '</div>';
+        });
+        html += '</div>';
+      }
+
+      // 3. Each district's strengths
+      html += '<div class="rounded-lg border border-line bg-surface-muted/30 px-4 py-3">';
+      html += '<strong class="text-ink">各区优势维度</strong>：';
+      districts.forEach(function (d) {
+        var bestMetric = metricKeys[0];
+        var bestScore = 0;
+        metricKeys.forEach(function (k, i) {
+          if ((d.scores[k] || 0) > bestScore) {
+            bestScore = d.scores[k] || 0;
+            bestMetric = metricLabels[i];
+          }
+        });
+        var worstMetric = metricKeys[0];
+        var worstScore = 100;
+        metricKeys.forEach(function (k, i) {
+          if ((d.scores[k] || 0) < worstScore) {
+            worstScore = d.scores[k] || 0;
+            worstMetric = metricLabels[i];
+          }
+        });
+        html += '<div class="mt-1">📍 <strong>' + d.cityName + ' ' + d.name + '</strong>：' + bestMetric + '最强（' + bestScore.toFixed(0) + '），' + worstMetric + '待提升（' + worstScore.toFixed(0) + '）</div>';
+      });
+      html += '</div>';
+
+      // 4. Recommendation
+      html += '<div class="rounded-lg border border-accent/30 bg-accent-soft/20 px-4 py-3">';
+      html += '<strong class="text-accent">💡 选购建议</strong>：';
+      var recs = [];
+      // Find district that is most balanced (smallest score range across dims)
+      var balanceScores = districts.map(function (d) {
+        var vals = metricKeys.map(function (k) { return d.scores[k] || 0; });
+        var max = Math.max.apply(null, vals);
+        var min = Math.min.apply(null, vals);
+        return { name: d.cityName + ' ' + d.name, range: max - min, composite: d.composite };
+      });
+      balanceScores.sort(function (a, b) { return a.range - b.range; });
+      var mostBalanced = balanceScores[0];
+      recs.push('追求均衡发展选 <strong>' + mostBalanced.name + '</strong>（维度差异最小，仅 ' + mostBalanced.range.toFixed(1) + ' 分）');
+      recs.push('追求综合最强选 <strong>' + top.cityName + ' ' + top.name + '</strong>（综合 ' + top.composite.toFixed(0) + ' 分）');
+      // Find specialist district (highest single-dimension score)
+      var specialistScore = 0;
+      var specialistName = '';
+      var specialistMetric = '';
+      districts.forEach(function (d) {
+        metricKeys.forEach(function (k, i) {
+          if ((d.scores[k] || 0) > specialistScore) {
+            specialistScore = d.scores[k] || 0;
+            specialistName = d.cityName + ' ' + d.name;
+            specialistMetric = metricFullLabels[i];
+          }
+        });
+      });
+      if (specialistScore > 0) {
+        recs.push('看重<strong>' + specialistMetric + '</strong>选 <strong>' + specialistName + '</strong>（单项 ' + specialistScore.toFixed(0) + ' 分最高）');
+      }
+      recs.forEach(function (r, i) { html += '<div class="mt-1">' + ['①', '②', '③'][i] + ' ' + r + '</div>'; });
+      html += '</div>';
+
+      el.innerHTML = html;
+    }
+
     function renderAll() {
       renderRadar();
       renderLegend();
       renderTable();
       renderGapBars();
+      renderSummary();
     }
 
     renderSlots();

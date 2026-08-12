@@ -80,6 +80,7 @@ import { getDistrictWaterFacility, waterFacilitySource, waterFacilityYear, CITY_
 import { getDistrictTechIncubator, techIncubatorSource, techIncubatorYear, CITY_INCUBATOR_TOTALS } from '../../../data/techIncubator';
 import { getDistrictTalent, talentSource, talentYear, CITY_TALENT_TOTALS } from '../../../data/talentPolicy';
 import { getDigitalEconomy, DIGITAL_ECONOMY_SOURCE } from '../../../data/digitalEconomy';
+import { getDistrictSmartCity, smartCitySource, smartCityYear, CITY_SMART_TOTALS } from '../../../data/smartCity';
 
 export function getStaticPaths() {
   const paths = [];
@@ -344,6 +345,8 @@ const cityIncubator = CITY_INCUBATOR_TOTALS[city.key];
 const talent = getDistrictTalent(city.key, district.adcode);
 const cityTalent = CITY_TALENT_TOTALS[city.key];
 const digitalEcon = getDigitalEconomy(district.adcode);
+const smartCity = getDistrictSmartCity(city.key, district.adcode);
+const citySmartTotal = CITY_SMART_TOTALS[city.key];
 
 const radarSeries = [
   { name: district.name, color: '#0d9488', values: METRICS.map((m) => district.metrics[m.key].score) },
@@ -4271,6 +4274,70 @@ const jsonLd = {
         {digitalEcon.avgSalary && (
           <p class="mt-3 text-xs text-ink-soft">
             💻 数字经济行业平均年薪 <strong>{digitalEcon.avgSalary.toLocaleString()}</strong> 元
+          </p>
+        )}
+      </div>
+    )}
+
+    {smartCity && (
+      <div class="mt-6 card p-6">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="text-lg font-bold">🏙️ 智慧城市建设</h3>
+          <span class="text-xs text-ink-soft">{smartCityYear(city.key)} · {smartCitySource(city.key)}</span>
+        </div>
+        <p class="mt-1 text-xs text-ink-soft">
+          {district.name}智能交通、城市大脑、智慧政务与智慧社区建设情况。展示用补充数据，不参与上方评分。
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+            <div class="text-xs text-blue-700">智能交通覆盖率</div>
+            <div class="mt-1 text-xl font-bold text-blue-900">{smartCity.smartTrafficCoverage}%</div>
+            <div class="text-[10px] text-blue-600">主要干道</div>
+          </div>
+          <div class="rounded-lg border border-cyan-100 bg-cyan-50 px-4 py-3">
+            <div class="text-xs text-cyan-700">智能路口</div>
+            <div class="mt-1 text-xl font-bold text-cyan-900">{smartCity.smartIntersections}</div>
+            <div class="text-[10px] text-cyan-600">个</div>
+          </div>
+          <div class="rounded-lg border border-teal-100 bg-teal-50 px-4 py-3">
+            <div class="text-xs text-teal-700">公交实时到站</div>
+            <div class="mt-1 text-xl font-bold text-teal-900">{smartCity.busRealtimeCoverage}%</div>
+            <div class="text-[10px] text-teal-600">线路覆盖</div>
+          </div>
+          <div class="rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-3">
+            <div class="text-xs text-indigo-700">智慧停车</div>
+            <div class="mt-1 text-xl font-bold text-indigo-900">{smartCity.smartParkingLots}</div>
+            <div class="text-[10px] text-indigo-600">个场库接入</div>
+          </div>
+          <div class="rounded-lg border border-purple-100 bg-purple-50 px-4 py-3">
+            <div class="text-xs text-purple-700">城市大脑场景</div>
+            <div class="mt-1 text-xl font-bold text-purple-900">{smartCity.urbanBrainScenarios}</div>
+            <div class="text-[10px] text-purple-600">个治理场景</div>
+          </div>
+          <div class="rounded-lg border border-violet-100 bg-violet-50 px-4 py-3">
+            <div class="text-xs text-violet-700">城市运行平台</div>
+            <div class="mt-1 text-xl font-bold text-violet-900">{smartCity.urbanBrainPlatforms}</div>
+            <div class="text-[10px] text-violet-600">个子平台</div>
+          </div>
+          <div class="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+            <div class="text-xs text-emerald-700">智慧社区</div>
+            <div class="mt-1 text-xl font-bold text-emerald-900">{smartCity.smartCommunities}</div>
+            <div class="text-[10px] text-emerald-600">个社区</div>
+          </div>
+          <div class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+            <div class="text-xs text-amber-700">物联网设备</div>
+            <div class="mt-1 text-xl font-bold text-amber-900">{smartCity.iotDevices}</div>
+            <div class="text-[10px] text-amber-600">万个感知设备</div>
+          </div>
+          <div class="rounded-lg border border-rose-100 bg-rose-50 px-4 py-3">
+            <div class="text-xs text-rose-700">AI辅助治理</div>
+            <div class="mt-1 text-xl font-bold text-rose-900">{smartCity.aiGovCases}</div>
+            <div class="text-[10px] text-rose-600">万年处理量</div>
+          </div>
+        </div>
+        {citySmartTotal && (
+          <p class="mt-3 text-xs text-ink-soft">
+            🏙️ {city.name}市级参考：智能交通覆盖率 <strong>{citySmartTotal.avgTrafficCoverage}%</strong>，智能路口 <strong>{citySmartTotal.totalSmartIntersections.toLocaleString()}</strong> 个，城市大脑治理场景 <strong>{citySmartTotal.totalUrbanBrainScenarios.toLocaleString()}</strong> 个，智慧社区 <strong>{citySmartTotal.totalSmartCommunities}</strong> 个，物联网设备 <strong>{citySmartTotal.totalIotDevices}</strong> 万个，「{citySmartTotal.smartGovPlatform}」注册 <strong>{citySmartTotal.smartGovUsers.toLocaleString()}</strong> 万用户
           </p>
         )}
       </div>

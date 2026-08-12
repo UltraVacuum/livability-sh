@@ -70,6 +70,7 @@ import { CITY_CULTURAL_CONS_TOTALS } from '../../data/culturalConsumption';
 import { CITY_TRADE_TOTALS } from '../../data/foreignTrade';
 import { CITY_WATER_FAC_TOTALS } from '../../data/waterFacility';
 import { CITY_INCUBATOR_TOTALS } from '../../data/techIncubator';
+import { CITY_SMART_TOTALS } from '../../data/smartCity';
 import { CITY_TALENT_TOTALS } from '../../data/talentPolicy';
 import { SITE } from '../../consts';
 
@@ -149,6 +150,7 @@ const cityCulturalConsTotal = CITY_CULTURAL_CONS_TOTALS[city.key];
 const cityTradeTotal = CITY_TRADE_TOTALS[city.key];
 const cityWaterFacTotal = CITY_WATER_FAC_TOTALS[city.key];
 const cityIncubatorTotal = CITY_INCUBATOR_TOTALS[city.key];
+const citySmartTotal = CITY_SMART_TOTALS[city.key];
 const cityTalentTotal = CITY_TALENT_TOTALS[city.key];
 
 const jsonLd = {
@@ -1044,6 +1046,21 @@ const jsonLd = {
         ，年人才补贴 <strong>{cityTalentTotal.annualTalentSubsidy}</strong> 亿元
         ，居转户 <strong>{cityTalentTotal.annualHousingConversion.toLocaleString()}</strong> 人
         <span class="text-xs text-indigo-600">（市级数据，来源：<a href={cityTalentTotal.sourceUrl} class="underline">{cityTalentTotal.source}</a>）</span>
+      </div>
+    )}
+
+    {citySmartTotal && (
+      <div class="mt-2 rounded-lg border border-violet-200 bg-violet-50 px-4 py-3 text-sm text-violet-800">
+        🏙️ {city.name}{citySmartTotal.year}年智慧城市：
+        智能交通覆盖率 <strong>{citySmartTotal.avgTrafficCoverage}%</strong>
+        ，智能路口 <strong>{citySmartTotal.totalSmartIntersections.toLocaleString()}</strong> 个
+        ，城市大脑治理场景 <strong>{citySmartTotal.totalUrbanBrainScenarios.toLocaleString()}</strong> 个
+        ，智慧停车 <strong>{citySmartTotal.totalSmartParking.toLocaleString()}</strong> 个场库
+        ，智慧社区 <strong>{citySmartTotal.totalSmartCommunities}</strong> 个
+        ，物联网感知设备 <strong>{citySmartTotal.totalIotDevices}</strong> 万个
+        ，「{citySmartTotal.smartGovPlatform}」注册 <strong>{citySmartTotal.smartGovUsers.toLocaleString()}</strong> 万用户
+        ，接入服务 <strong>{citySmartTotal.smartGovServices.toLocaleString()}</strong> 项，网办率 <strong>{citySmartTotal.smartGovRate}%</strong>
+        <span class="text-xs text-violet-600">（市级数据，来源：<a href={citySmartTotal.sourceUrl} class="underline">{citySmartTotal.source}</a>）</span>
       </div>
     )}
 

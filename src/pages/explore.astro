@@ -522,6 +522,14 @@ const pageDesc = `选择维度（教育/医疗/经济/人口/交通/生活），
           });
           countEl.textContent = selectedDims.length;
           renderOverlay();
+          // ── URL param persistence for overlay dims ──
+          var url = new URL(window.location);
+          if (selectedDims.length > 0) {
+            url.searchParams.set('dims', selectedDims.join(','));
+          } else {
+            url.searchParams.delete('dims');
+          }
+          window.history.replaceState(null, '', url);
         }
 
         btns.forEach(function (btn) {
@@ -658,7 +666,21 @@ const pageDesc = `选择维度（教育/医疗/经济/人口/交通/生活），
         var tabsRow = document.getElementById('explore-tabs');
         var overlayPanel = document.getElementById('overlay-panel');
 
-        btnSingle.addEventListener('click', function () {
+        function switchToOverlay() {
+          btnOverlay.classList.remove('border-line', 'bg-surface', 'text-ink-soft');
+          btnOverlay.classList.add('border-accent', 'bg-accent-soft', 'text-accent');
+          btnSingle.classList.remove('border-accent', 'bg-accent-soft', 'text-accent');
+          btnSingle.classList.add('border-line', 'bg-surface', 'text-ink-soft');
+          singlePanels.forEach(function (p) { p.classList.add('hidden'); });
+          tabsRow.classList.add('hidden');
+          overlayPanel.classList.remove('hidden');
+          renderOverlay();
+          var url = new URL(window.location);
+          url.searchParams.set('mode', 'overlay');
+          window.history.replaceState(null, '', url);
+        }
+
+        function switchToSingle() {
           btnSingle.classList.remove('border-line', 'bg-surface', 'text-ink-soft');
           btnSingle.classList.add('border-accent', 'bg-accent-soft', 'text-accent');
           btnOverlay.classList.remove('border-accent', 'bg-accent-soft', 'text-accent');
@@ -668,20 +690,30 @@ const pageDesc = `选择维度（教育/医疗/经济/人口/交通/生活），
           if (firstPanel) firstPanel.classList.remove('hidden');
           tabsRow.classList.remove('hidden');
           overlayPanel.classList.add('hidden');
-        });
+          var url = new URL(window.location);
+          url.searchParams.set('mode', 'single');
+          url.searchParams.delete('dims');
+          window.history.replaceState(null, '', url);
+        }
 
-        btnOverlay.addEventListener('click', function () {
-          btnOverlay.classList.remove('border-line', 'bg-surface', 'text-ink-soft');
-          btnOverlay.classList.add('border-accent', 'bg-accent-soft', 'text-accent');
-          btnSingle.classList.remove('border-accent', 'bg-accent-soft', 'text-accent');
-          btnSingle.classList.add('border-line', 'bg-surface', 'text-ink-soft');
-          singlePanels.forEach(function (p) { p.classList.add('hidden'); });
-          tabsRow.classList.add('hidden');
-          overlayPanel.classList.remove('hidden');
+        btnSingle.addEventListener('click', switchToSingle);
+        btnOverlay.addEventListener('click', switchToOverlay);
+
+        // ── Restore overlay mode + dims from URL on load ──
+        var urlParams = new URLSearchParams(window.location.search);
+        var urlMode = urlParams.get('mode');
+        var urlDims = urlParams.get('dims');
+        if (urlMode === 'overlay') {
+          if (urlDims) {
+            selectedDims = urlDims.split(',').filter(function (d) {
+              return overlayDimData.some(function (dd) { return dd.key === d; });
+            }).slice(0, 3);
+          }
+          switchToOverlay();
+          if (selectedDims.length >= 2) updateSelector();
+        } else {
           renderOverlay();
-        });
-
-        renderOverlay();
+        }
       })();
     </script>
 
