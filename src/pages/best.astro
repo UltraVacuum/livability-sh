@@ -1,0 +1,283 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import GradeBadge from '../components/GradeBadge.astro';
+import { CITIES } from '../data/cities';
+import { getDistricts, METRICS, type MetricKey } from '../data/districts';
+import { computeCity, rankWithWeights, type ScoredDistrict, type RankedDistrict } from '../lib/scoring';
+import { DEFAULT_BEST_WEIGHTS } from '../lib/scenarios';
+import { SITE } from '../consts';
+
+// ── Compute cross-city rankings ──
+interface BestEntry {
+  cityKey: string;
+  cityName: string;
+  adcode: string;
+  name: string;
+  composite: number;
+  rank: number;
+  grade: string;
+  metrics: Record<MetricKey, { score: number; rawValue: number; unit: string; rank: number }>;
+  topMetricKey: MetricKey;
+  topMetricLabel: string;
+  topMetricScore: number;
+  highlight: string;
+}
+
+// Build per-city scored data
+const cityData: Record<string, { scored: ScoredDistrict[]; ranked: RankedDistrict[] }> = {};
+for (const c of CITIES) {
+  const scored = computeCity(getDistricts(c.key));
+  const ranked = rankWithWeights(scored);
+  cityData[c.key] = { scored, ranked };
+}
+
+// Collect all entries with per-city ranks (each city scored independently)
+const allEntries: BestEntry[] = [];
+for (const c of CITIES) {
+  const { scored, ranked } = cityData[c.key];
+  for (const r of ranked) {
+    // Find best metric for highlight
+    let bestKey: MetricKey = 'economy';
+    let bestScore = 0;
+    for (const m of METRICS) {
+      if (r.district.metrics[m.key].score > bestScore) {
+        bestScore = r.district.metrics[m.key].score;
+        bestKey = m.key;
+      }
+    }
+    const bestDef = METRICS.find((m) => m.key === bestKey)!;
+
+    // Build metrics map
+    const metricsMap: BestEntry['metrics'] = {} as BestEntry['metrics'];
+    for (const m of METRICS) {
+      metricsMap[m.key] = {
+        score: r.district.metrics[m.key].score,
+        rawValue: r.district.metrics[m.key].rawValue,
+        unit: m.unit,
+        rank: r.district.metrics[m.key].rank,
+      };
+    }
+
+    // One-line highlight
+    const highlights: Record<MetricKey, string> = {
+      education: `教育密度全市第${r.district.metrics.education.rank}名`,
+      healthcare: `医疗密度全市第${r.district.metrics.healthcare.rank}名`,
+      transit: `地铁密度全市第${r.district.metrics.transit.rank}名`,
+      amenity: `生活配套全市第${r.district.metrics.amenity.rank}名`,
+      economy: `人均收入约${(r.district.metrics.economy.rawValue / 1000).toFixed(0)}千元`,
+      population: `人口密度${r.district.metrics.population.rawValue.toLocaleString()}人/km²`,
+    };
+
+    allEntries.push({
+      cityKey: c.key,
+      cityName: c.name,
+      adcode: r.district.adcode,
+      name: r.district.name,
+      composite: r.composite,
+      rank: r.rank,
+      grade: r.grade,
+      metrics: metricsMap,
+      topMetricKey: bestKey,
+      topMetricLabel: bestDef.shortLabel,
+      topMetricScore: bestScore,
+      highlight: highlights[bestKey],
+    });
+  }
+}
+
+// Sort by composite score descending for overall ranking
+const globalRanked = [...allEntries].sort((a, b) => b.composite - a.composite);
+globalRanked.forEach((e, i) => { e.rank = i + 1; });
+
+// Per-city top/bottom
+const top10 = globalRanked.slice(0, 10);
+const bottom10 = globalRanked.slice(-10).reverse();
+
+// Per-city grouped
+const byCity = CITIES.map((c) => ({
+  city: c,
+  entries: globalRanked.filter((e) => e.cityKey === c.key),
+}));
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: '最佳宜居区域排名',
+  url: new URL('/best', Astro.site).href,
+  description: '综合教育、医疗、交通、经济、人口、生活六大维度，对上海和银川所有区县进行宜居度排名。',
+  inLanguage: SITE.locale,
+};
+---
+
+<BaseLayout
+  title="最佳宜居区域排名"
+  description="综合六大维度加权得分，对上海和银川所有区县进行宜居度排名。查看 Top 10 最佳区域、各城市内部排名对比。"
+  path="/best"
+  keywords={['最佳宜居区域', '区县排名', '宜居城市排名', 'Best Places to Live', '上海最佳区域', '银川最佳区域']}
+  jsonLd={jsonLd}
+>
+  <section class="container-page py-10 sm:py-14">
+    {/* Header */}
+    <div class="mx-auto max-w-3xl text-center">
+      <h1 class="text-3xl font-bold tracking-tight sm:text-5xl">
+        🏆 <span class="text-accent">最佳宜居</span>区域排名
+      </h1>
+      <p class="mt-4 text-base text-ink-soft sm:text-lg">
+        综合教育、医疗、交通、经济、人口、生活六大维度，对所有区县进行科学排名。
+        每个城市独立评分（z-score + 正态分布），确保公平。
+      </p>
+    </div>
+
+    {/* Scene-based ranking links */}
+    <div class="mx-auto mt-8 max-w-3xl">
+      <div class="rounded-2xl border border-accent-ring bg-accent-soft p-5">
+        <h2 class="text-sm font-semibold text-accent-strong">🎯 场景化排名</h2>
+        <p class="mt-1 text-xs text-ink-soft">不同人生阶段，关注的维度不同。选择适合你的场景：</p>
+        <div class="mt-3 grid gap-3 sm:grid-cols-3">
+          <a href="/best/families" class="group rounded-xl border border-line bg-surface p-4 transition hover:border-accent hover:shadow-md">
+            <div class="text-2xl">👨‍👩‍👧‍👦</div>
+            <div class="mt-1 font-semibold text-ink group-hover:text-accent">最适合家庭</div>
+            <div class="text-xs text-ink-soft">教育 × 3 + 医疗 × 2.5 + 生活 × 2</div>
+          </a>
+          <a href="/best/young-pros" class="group rounded-xl border border-line bg-surface p-4 transition hover:border-accent hover:shadow-md">
+            <div class="text-2xl">💼</div>
+            <div class="mt-1 font-semibold text-ink group-hover:text-accent">最适合年轻人</div>
+            <div class="text-xs text-ink-soft">经济 × 3 + 交通 × 2.5 + 生活 × 2.5</div>
+          </a>
+          <a href="/best/retirement" class="group rounded-xl border border-line bg-surface p-4 transition hover:border-accent hover:shadow-md">
+            <div class="text-2xl">🌿</div>
+            <div class="mt-1 font-semibold text-ink group-hover:text-accent">最适合养老</div>
+            <div class="text-xs text-ink-soft">医疗 × 3 + 生活 × 2 + 环境 × 1.5</div>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    {/* Top 10 */}
+    <div class="mt-12">
+      <h2 class="text-2xl font-bold">🥇 Top 10 最佳区域</h2>
+      <p class="mt-1 text-sm text-ink-soft">跨城市综合排名（各城市独立评分后按综合得分排序）</p>
+      <div class="mt-6 grid gap-4 sm:grid-cols-2">
+        {top10.map((entry, i) => (
+          <a
+            href={`/${entry.cityKey}/district/${entry.adcode}`}
+            class="card group flex items-center gap-4 p-5 transition hover:border-accent hover:shadow-lg"
+          >
+            <div class={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-xl font-bold ${i < 3 ? 'bg-amber-100 text-amber-700' : 'bg-surface-muted text-ink-soft'}`}>
+              {i + 1}
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2">
+                <span class="text-lg font-bold text-ink group-hover:text-accent">{entry.name}</span>
+                <span class="rounded-full bg-surface-muted px-2 py-0.5 text-xs text-ink-soft">{entry.cityName}</span>
+              </div>
+              <p class="mt-0.5 truncate text-sm text-ink-soft">{entry.highlight}</p>
+              <div class="mt-2 flex flex-wrap gap-1.5">
+                {METRICS.map((m) => (
+                  <span class={`rounded px-1.5 py-0.5 text-[10px] font-medium ${entry.metrics[m.key].score >= 70 ? 'bg-emerald-50 text-emerald-700' : entry.metrics[m.key].score >= 50 ? 'bg-amber-50 text-amber-700' : 'bg-surface-muted text-ink-soft'}`}>
+                    {m.shortLabel} {entry.metrics[m.key].score.toFixed(0)}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <GradeBadge grade={entry.grade as any} size="sm" />
+          </a>
+        ))}
+      </div>
+    </div>
+
+    {/* Per-city breakdown */}
+    {byCity.map(({ city, entries }) => (
+      <div class="mt-12">
+        <h2 class="text-2xl font-bold">
+          📍 {city.name} <span class="text-base font-normal text-ink-soft">（{entries.length}区，独立评分）</span>
+        </h2>
+        <p class="mt-1 text-sm text-ink-soft">{city.blurb}</p>
+        <div class="card mt-4 overflow-x-auto p-0">
+          <table class="w-full text-left text-sm">
+            <thead class="border-b border-line text-xs text-ink-soft">
+              <tr>
+                <th class="px-4 py-3 font-medium">排名</th>
+                <th class="px-4 py-3 font-medium">区域</th>
+                <th class="px-4 py-3 font-medium">评级</th>
+                <th class="px-4 py-3 font-medium">综合分</th>
+                {METRICS.map((m) => (
+                  <th class="px-4 py-3 text-center font-medium">{m.shortLabel}</th>
+                ))}
+                <th class="px-4 py-3 font-medium">亮点</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-line">
+              {entries.map((entry, i) => (
+                <tr class="transition hover:bg-surface-muted">
+                  <td class="px-4 py-3">
+                    <span class={`inline-flex h-7 w-7 items-center justify-center rounded-lg text-sm font-bold ${i === 0 ? 'bg-amber-100 text-amber-700' : i < 3 ? 'bg-emerald-50 text-emerald-700' : 'bg-surface-muted text-ink-soft'}`}>
+                      {i + 1}
+                    </span>
+                  </td>
+                  <td class="px-4 py-3">
+                    <a href={`/${entry.cityKey}/district/${entry.adcode}`} class="font-medium text-ink hover:text-accent">
+                      {entry.name}
+                    </a>
+                  </td>
+                  <td class="px-4 py-3">
+                    <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-sm font-bold text-white" style={`background-color:var(--color-grade-${entry.grade.toLowerCase()})`}>
+                      {entry.grade}
+                    </span>
+                  </td>
+                  <td class="px-4 py-3 font-semibold text-ink">{entry.composite.toFixed(0)}</td>
+                  {METRICS.map((m) => {
+                    const s = entry.metrics[m.key].score;
+                    return (
+                      <td class="px-4 py-3 text-center">
+                        <span class={`text-xs font-medium ${s >= 70 ? 'text-emerald-600' : s >= 50 ? 'text-amber-600' : 'text-ink-soft'}`}>
+                          {s.toFixed(0)}
+                        </span>
+                      </td>
+                    );
+                  })}
+                  <td class="px-4 py-3 text-xs text-ink-soft">{entry.highlight}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    ))}
+
+    {/* Bottom 10 */}
+    <div class="mt-12">
+      <h2 class="text-2xl font-bold">📊 待提升区域</h2>
+      <p class="mt-1 text-sm text-ink-soft">排名靠后的区域也意味着潜在的发展空间和较低的生活成本</p>
+      <div class="mt-6 grid gap-3 sm:grid-cols-2">
+        {bottom10.map((entry, i) => (
+          <a
+            href={`/${entry.cityKey}/district/${entry.adcode}`}
+            class="card group flex items-center gap-3 p-4 transition hover:border-accent"
+          >
+            <GradeBadge grade={entry.grade as any} size="sm" />
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2">
+                <span class="font-medium text-ink group-hover:text-accent">{entry.name}</span>
+                <span class="rounded-full bg-surface-muted px-2 py-0.5 text-xs text-ink-soft">{entry.cityName}</span>
+              </div>
+              <p class="text-xs text-ink-soft">综合 {entry.composite.toFixed(0)} 分 · {entry.highlight}</p>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+
+    {/* Methodology */}
+    <div class="mt-12 rounded-2xl border border-line bg-surface p-6">
+      <h2 class="text-lg font-bold">📏 排名方法</h2>
+      <ul class="mt-3 space-y-2 text-sm text-ink-soft">
+        <li>• 每个城市<strong>独立评分</strong>：在该城市内部计算 z-score，避免大城市与小城市的不公平比较</li>
+        <li>• 六维等权相加（各权重=1），可通过场景化排名查看不同加权策略</li>
+        <li>• 字母评级基于百分位：S（前10%）/ A（前10-30%）/ B（前30-60%）/ C（前60-85%）/ D（后15%）</li>
+        <li>• 评分算法：z-score → 正态CDF映射 → 0-100 分 → 加权合成 → 排名</li>
+      </ul>
+      <a href="/methodology" class="mt-3 inline-block text-sm font-medium text-accent hover:underline">查看完整评分方法 →</a>
+    </div>
+  </section>
+</BaseLayout>

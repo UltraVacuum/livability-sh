@@ -1,0 +1,272 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import GradeBadge from '../../components/GradeBadge.astro';
+import { CITIES } from '../../data/cities';
+import { getDistricts, METRICS, type MetricKey } from '../../data/districts';
+import { computeCity, rankWithWeights, type ScoredDistrict, type RankedDistrict } from '../../lib/scoring';
+import { SCENARIOS, getScenario, type Scenario } from '../../lib/scenarios';
+import { SITE } from '../../consts';
+
+export function getStaticPaths() {
+  return SCENARIOS.map((s) => ({ params: { scenario: s.slug } }));
+}
+
+const scenario = getScenario(Astro.params.scenario!)!;
+const weights = scenario.weights;
+
+// ── Compute scenario rankings ──
+interface ScenarioEntry {
+  cityKey: string;
+  cityName: string;
+  adcode: string;
+  name: string;
+  composite: number;
+  rank: number;
+  grade: string;
+  cityRank: number;
+  cityTotal: number;
+  metrics: Record<MetricKey, { score: number; weightedScore: number; weight: number }>;
+  highlight: string;
+}
+
+// Build per-city ranked data with scenario weights
+const cityResults: Record<string, RankedDistrict[]> = {};
+for (const c of CITIES) {
+  const scored = computeCity(getDistricts(c.key));
+  const ranked = rankWithWeights(scored, weights);
+  cityResults[c.key] = ranked;
+}
+
+// Collect all entries
+const allEntries: ScenarioEntry[] = [];
+for (const c of CITIES) {
+  const ranked = cityResults[c.key];
+  for (const r of ranked) {
+    const metricsMap: ScenarioEntry['metrics'] = {} as ScenarioEntry['metrics'];
+    let bestKey: MetricKey = 'economy';
+    let bestWeighted = 0;
+    for (const m of METRICS) {
+      const w = weights[m.key] ?? 0;
+      const ws = r.district.metrics[m.key].score * w;
+      metricsMap[m.key] = {
+        score: r.district.metrics[m.key].score,
+        weightedScore: ws,
+        weight: w,
+      };
+      if (ws > bestWeighted) {
+        bestWeighted = ws;
+        bestKey = m.key;
+      }
+    }
+    const bestDef = METRICS.find((m) => m.key === bestKey)!;
+    
+    const highlights: Record<MetricKey, string> = {
+      education: `教育资源密度全市第${r.district.metrics.education.rank}名`,
+      healthcare: `医疗资源密度全市第${r.district.metrics.healthcare.rank}名`,
+      transit: `地铁通达度全市第${r.district.metrics.transit.rank}名`,
+      amenity: `生活便利度全市第${r.district.metrics.amenity.rank}名`,
+      economy: `人均收入约${(r.district.metrics.economy.rawValue / 1000).toFixed(0)}千元/年`,
+      population: `人口密度${r.district.metrics.population.rawValue.toLocaleString()}人/km²`,
+    };
+
+    allEntries.push({
+      cityKey: c.key,
+      cityName: c.name,
+      adcode: r.district.adcode,
+      name: r.district.name,
+      composite: r.composite,
+      rank: 0, // will set global rank
+      grade: r.grade,
+      cityRank: r.rank,
+      cityTotal: ranked.length,
+      metrics: metricsMap,
+      highlight: `最强维度：${bestDef.shortLabel}（权重×${weights[bestKey]}，得分${r.district.metrics[bestKey].score.toFixed(0)}）`,
+    });
+  }
+}
+
+// Sort by composite descending for global display
+allEntries.sort((a, b) => b.composite - a.composite);
+allEntries.forEach((e, i) => { e.rank = i + 1; });
+
+// Per-city entries
+const byCity = CITIES.map((c) => ({
+  city: c,
+  entries: allEntries.filter((e) => e.cityKey === c.key),
+}));
+
+// Other scenarios for navigation
+const otherScenarios = SCENARIOS.filter((s) => s.slug !== scenario.slug);
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: `${scenario.title}区域排名`,
+  url: new URL(`/best/${scenario.slug}`, Astro.site).href,
+  description: scenario.description,
+  inLanguage: SITE.locale,
+};
+---
+
+<BaseLayout
+  title={`${scenario.emoji} ${scenario.title}区域排名`}
+  description={`${scenario.description}基于六维度加权评分，为${scenario.title}场景推荐最佳宜居区域。`}
+  path={`/best/${scenario.slug}`}
+  keywords={[scenario.title, '宜居排名', '场景化排名', '区域推荐', scenario.slug]}
+  jsonLd={jsonLd}
+>
+  <section class="container-page py-10 sm:py-14">
+    {/* Header */}
+    <div class="mx-auto max-w-3xl text-center">
+      <div class="text-5xl">{scenario.emoji}</div>
+      <h1 class="mt-4 text-3xl font-bold tracking-tight sm:text-5xl">
+        {scenario.title}<span class="text-accent">区域排名</span>
+      </h1>
+      <p class="mt-4 text-base text-ink-soft sm:text-lg">{scenario.description}</p>
+    </div>
+
+    {/* Other scenario links */}
+    <div class="mx-auto mt-6 flex max-w-3xl justify-center gap-3">
+      <a href="/best" class="rounded-full border border-line bg-surface px-4 py-2 text-sm text-ink-soft transition hover:border-accent hover:text-accent">🏆 综合排名</a>
+      {otherScenarios.map((s) => (
+        <a href={`/best/${s.slug}`} class="rounded-full border border-line bg-surface px-4 py-2 text-sm text-ink-soft transition hover:border-accent hover:text-accent">
+          {s.emoji} {s.title}
+        </a>
+      ))}
+    </div>
+
+    {/* Weight configuration table */}
+    <div class="mx-auto mt-8 max-w-3xl">
+      <div class="card p-6">
+        <h2 class="text-lg font-bold">⚖️ 权重配置说明</h2>
+        <p class="mt-1 text-sm text-ink-soft">本排名基于以下权重对六维度得分进行加权平均，权重越高表示该维度对此场景越重要。</p>
+        <div class="mt-4 space-y-3">
+          {scenario.weightRationale
+            .sort((a, b) => b.weight - a.weight)
+            .map((wr) => {
+              const mdef = METRICS.find((m) => m.key === wr.metric)!;
+              const pct = (wr.weight / Math.max(...scenario.weightRationale.map((x) => x.weight))) * 100;
+              return (
+                <div class="flex items-center gap-4">
+                  <div class="w-20 shrink-0 text-sm font-medium text-ink">{mdef.shortLabel}</div>
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2">
+                      <span class="text-sm font-bold text-accent">×{wr.weight}</span>
+                      <div class="h-2 flex-1 overflow-hidden rounded-full bg-surface-muted">
+                        <div class="h-full rounded-full bg-accent" style={`width:${pct}%`} />
+                      </div>
+                    </div>
+                    <div class="mt-0.5 text-xs text-ink-soft">{wr.reason}</div>
+                  </div>
+                </div>
+              );
+            })}
+        </div>
+      </div>
+    </div>
+
+    {/* Per-city ranking */}
+    {byCity.map(({ city, entries }) => (
+      <div class="mt-12">
+        <h2 class="text-2xl font-bold">
+          📍 {city.name}
+          <span class="text-base font-normal text-ink-soft">（独立评分，{entries.length}区）</span>
+        </h2>
+
+        {/* Podium - Top 3 */}
+        <div class="mt-6 grid gap-4 sm:grid-cols-3">
+          {entries.slice(0, 3).map((entry, i) => (
+            <a
+              href={`/${entry.cityKey}/district/${entry.adcode}`}
+              class={`card group relative overflow-hidden p-5 transition hover:shadow-lg ${i === 0 ? 'border-amber-300 bg-amber-50/30' : ''}`}
+            >
+              {i === 0 && <div class="absolute right-3 top-3 text-2xl">👑</div>}
+              <div class="flex items-start justify-between">
+                <div>
+                  <div class={`text-sm font-bold ${i === 0 ? 'text-amber-600' : 'text-ink-soft'}`}>
+                    {i === 0 ? '第1名' : i === 1 ? '第2名' : '第3名'}
+                  </div>
+                  <a href={`/${entry.cityKey}/district/${entry.adcode}`} class="mt-1 block text-xl font-bold text-ink group-hover:text-accent">
+                    {entry.name}
+                  </a>
+                </div>
+                <GradeBadge grade={entry.grade as any} size="sm" />
+              </div>
+              <div class="mt-3 text-3xl font-bold text-accent">{entry.composite.toFixed(1)}</div>
+              <div class="text-xs text-ink-soft">综合得分</div>
+              <div class="mt-3 border-t border-line pt-3">
+                <div class="flex flex-wrap gap-1">
+                  {METRICS.map((m) => {
+                    const ms = entry.metrics[m.key];
+                    return (
+                      <span class={`rounded px-1.5 py-0.5 text-[10px] ${ms.weight > 1 ? 'font-bold' : 'font-medium'} ${ms.score >= 70 ? 'bg-emerald-50 text-emerald-700' : ms.score >= 50 ? 'bg-amber-50 text-amber-700' : 'bg-surface-muted text-ink-soft'}`}>
+                        {m.shortLabel} {ms.score.toFixed(0)}{ms.weight > 1 ? ` ×${ms.weight}` : ''}
+                      </span>
+                    );
+                  })}
+                </div>
+                <p class="mt-2 text-xs text-ink-soft">{entry.highlight}</p>
+              </div>
+            </a>
+          ))}
+        </div>
+
+        {/* Remaining entries */}
+        {entries.length > 3 && (
+          <div class="card mt-4 overflow-x-auto p-0">
+            <table class="w-full text-left text-sm">
+              <thead class="border-b border-line text-xs text-ink-soft">
+                <tr>
+                  <th class="px-4 py-3 font-medium">城市排名</th>
+                  <th class="px-4 py-3 font-medium">区域</th>
+                  <th class="px-4 py-3 font-medium">评级</th>
+                  <th class="px-4 py-3 font-medium">综合分</th>
+                  {METRICS.map((m) => (
+                    <th class="px-4 py-3 text-center font-medium">
+                      {m.shortLabel}{weights[m.key] > 1 ? ` ×${weights[m.key]}` : ''}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-line">
+                {entries.slice(3).map((entry) => (
+                  <tr class="transition hover:bg-surface-muted">
+                    <td class="px-4 py-3 text-ink-soft">第 {entry.cityRank} 名</td>
+                    <td class="px-4 py-3">
+                      <a href={`/${entry.cityKey}/district/${entry.adcode}`} class="font-medium text-ink hover:text-accent">
+                        {entry.name}
+                      </a>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-sm font-bold text-white" style={`background-color:var(--color-grade-${entry.grade.toLowerCase()})`}>
+                        {entry.grade}
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 font-semibold text-ink">{entry.composite.toFixed(1)}</td>
+                    {METRICS.map((m) => {
+                      const ms = entry.metrics[m.key];
+                      return (
+                        <td class="px-4 py-3 text-center">
+                          <span class={`text-xs font-medium ${ms.weight > 1 ? 'font-bold' : ''} ${ms.score >= 70 ? 'text-emerald-600' : ms.score >= 50 ? 'text-amber-600' : 'text-ink-soft'}`}>
+                            {ms.score.toFixed(0)}
+                          </span>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    ))}
+
+    {/* Back link */}
+    <div class="mt-12 text-center">
+      <a href="/best" class="inline-block rounded-full border border-line bg-surface px-6 py-2 text-sm font-medium text-ink-soft transition hover:border-accent hover:text-accent">
+        ← 返回综合排名
+      </a>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,92 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import FilterTool from '../components/FilterTool.tsx';
+import { CITIES } from '../data/cities';
+import { getDistricts, METRICS, type MetricKey } from '../data/districts';
+import { computeCity, rankWithWeights } from '../lib/scoring';
+import { SITE } from '../consts';
+
+// Pre-compute all district entries for the filter tool
+interface FilterEntry {
+  cityKey: string;
+  cityName: string;
+  adcode: string;
+  name: string;
+  composite: number;
+  rank: number;
+  grade: string;
+  metrics: Record<string, { score: number; rawValue: number; unit: string }>;
+}
+
+const allFilterEntries: FilterEntry[] = [];
+for (const c of CITIES) {
+  const scored = computeCity(getDistricts(c.key));
+  const ranked = rankWithWeights(scored);
+  for (const r of ranked) {
+    const metricsMap: Record<string, { score: number; rawValue: number; unit: string }> = {};
+    for (const m of METRICS) {
+      metricsMap[m.key] = {
+        score: r.district.metrics[m.key].score,
+        rawValue: r.district.metrics[m.key].rawValue,
+        unit: m.unit,
+      };
+    }
+    allFilterEntries.push({
+      cityKey: c.key,
+      cityName: c.name,
+      adcode: r.district.adcode,
+      name: r.district.name,
+      composite: r.composite,
+      rank: r.rank,
+      grade: r.grade,
+      metrics: metricsMap,
+    });
+  }
+}
+
+const metricKeys = METRICS.map((m) => m.key);
+const metricLabels: Record<string, string> = {};
+const metricShortLabels: Record<string, string> = {};
+for (const m of METRICS) {
+  metricLabels[m.key] = m.label;
+  metricShortLabels[m.key] = m.shortLabel;
+}
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: '多维筛选区县 - 宜居度',
+  url: new URL('/filter', Astro.site).href,
+  description: '按评级、维度分数门槛、城市等多维度筛选区县，支持排序和条件分享。',
+  inLanguage: SITE.locale,
+};
+---
+
+<BaseLayout
+  title="多维筛选"
+  description="按评级门槛、维度最低分、城市等条件筛选区县。支持实时排序和条件 URL 分享。"
+  path="/filter"
+  keywords={['区县筛选', '多维筛选', '宜居度筛选', '区域对比', '条件搜索']}
+  jsonLd={jsonLd}
+>
+  <section class="container-page py-10 sm:py-14">
+    <div class="mx-auto max-w-3xl text-center">
+      <h1 class="text-3xl font-bold tracking-tight sm:text-5xl">
+        🔬 <span class="text-accent">多维筛选</span>
+      </h1>
+      <p class="mt-4 text-base text-ink-soft sm:text-lg">
+        按评级门槛、维度最低分、城市等条件精确筛选区域。筛选条件自动同步至 URL，可直接分享。
+      </p>
+    </div>
+
+    <div class="mx-auto mt-8 max-w-5xl">
+      <FilterTool
+        client:load
+        entries={allFilterEntries}
+        metricKeys={metricKeys}
+        metricLabels={metricLabels}
+        metricShortLabels={metricShortLabels}
+      />
+    </div>
+  </section>
+</BaseLayout>
