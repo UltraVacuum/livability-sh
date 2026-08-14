@@ -1,0 +1,289 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { CITIES } from '../data/cities';
+import { getDistricts } from '../data/districts';
+import { getDigitalEconomy } from '../data/digitalEconomy';
+import { CITY_SMART_TOTALS, smartCitySource } from '../data/smartCity';
+import { getCityDigital } from '../data/digitalInfra';
+
+const CITY_COLORS: Record<string, string> = {
+  shanghai: '#0d9488',
+  beijing: '#2563eb',
+  yinchuan: '#7c3aed',
+};
+
+function average(values: number[]): number {
+  if (values.length === 0) return 0;
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function formatCompact(value: number | undefined): string {
+  if (value === undefined) return '—';
+  if (value >= 10000) return `${(value / 10000).toFixed(1)}万`;
+  if (value >= 1000) return value.toLocaleString('zh-CN');
+  return Number.isInteger(value) ? String(value) : value.toFixed(1);
+}
+
+interface CityDigitalProfile {
+  key: string;
+  name: string;
+  color: string;
+  districtCount: number;
+  smartAverage: number;
+  districtDigitalAverage: number;
+  officialDigitalShare: number | undefined;
+  coreIndustryEmployees: number;
+  digitalCompanies: number;
+  fiveGStations: number | undefined;
+  mobileUsers: number | undefined;
+  fiveGPenetration: number | undefined;
+  smartLeader: { name: string; value: number };
+  digitalLeader: { name: string; value: number };
+  smartTotals: (typeof CITY_SMART_TOTALS)[string] | undefined;
+  digitalInfra: ReturnType<typeof getCityDigital>;
+  source: string;
+}
+
+const cityProfiles: CityDigitalProfile[] = CITIES.map((city) => {
+  const districts = getDistricts(city.key);
+  const smartTotals = CITY_SMART_TOTALS[city.key];
+  const digitalInfra = getCityDigital(city.key);
+  const districtRows = districts.map((district) => ({
+    district,
+    digital: getDigitalEconomy(district.adcode),
+  }));
+
+  const smartSorted = [...districts].sort((a, b) => b.values.smart - a.values.smart);
+  const digitalSorted = [...districts].sort((a, b) => b.values.digital - a.values.digital);
+
+  return {
+    key: city.key,
+    name: city.name,
+    color: CITY_COLORS[city.key] ?? '#0d9488',
+    districtCount: districts.length,
+    smartAverage: +average(districts.map((d) => d.values.smart)).toFixed(1),
+    districtDigitalAverage: +average(districts.map((d) => d.values.digital)).toFixed(1),
+    officialDigitalShare: digitalInfra?.digitalGdpRatio,
+    coreIndustryEmployees: districtRows.reduce(
+      (sum, row) => sum + (row.digital?.coreIndustryEmployees ?? 0),
+      0,
+    ),
+    digitalCompanies: districtRows.reduce(
+      (sum, row) => sum + (row.digital?.digitalCompanies ?? 0),
+      0,
+    ),
+    fiveGStations: digitalInfra?.total5GStations,
+    mobileUsers: digitalInfra?.mobileUsers,
+    fiveGPenetration: digitalInfra?.g5Penetration,
+    smartLeader: {
+      name: smartSorted[0]?.name ?? '—',
+      value: smartSorted[0]?.values.smart ?? 0,
+    },
+    digitalLeader: {
+      name: digitalSorted[0]?.name ?? '—',
+      value: digitalSorted[0]?.values.digital ?? 0,
+    },
+    smartTotals,
+    digitalInfra,
+    source: smartCitySource(city.key),
+  };
+});
+
+const metricDefinitions: Array<{
+  key: string;
+  label: string;
+  description: string;
+  unit: string;
+  max: number;
+  format?: (value: number) => string;
+}> = [
+  {
+    key: 'smartAverage',
+    label: '智慧城市区均指数',
+    description: '16/6个区县智慧城市指数的算术平均值（0-100）',
+    unit: '分',
+    max: Math.max(...cityProfiles.map((c) => c.smartAverage)),
+  },
+  {
+    key: 'officialDigitalShare',
+    label: '数字经济核心产业占GDP',
+    description: '市级官方口径；北京为数字经济核心产业，非数字经济全口径',
+    unit: '%',
+    max: Math.max(...cityProfiles.map((c) => c.officialDigitalShare ?? 0)),
+  },
+  {
+    key: 'coreIndustryEmployees',
+    label: '数字经济核心就业',
+    description: '区级数字经济核心产业就业估算汇总',
+    unit: '人',
+    max: Math.max(...cityProfiles.map((c) => c.coreIndustryEmployees)),
+    format: (value) => formatCompact(value),
+  },
+  {
+    key: 'digitalCompanies',
+    label: '数字经济企业',
+    description: '区级数字经济企业估算汇总',
+    unit: '家',
+    max: Math.max(...cityProfiles.map((c) => c.digitalCompanies)),
+    format: (value) => formatCompact(value),
+  },
+  {
+    key: 'fiveGStations',
+    label: '5G基站',
+    description: '市级通信/统计公报总量',
+    unit: '个',
+    max: Math.max(...cityProfiles.map((c) => c.fiveGStations ?? 0)),
+    format: (value) => formatCompact(value),
+  },
+];
+
+function profileValue(profile: CityDigitalProfile, metricKey: string): number | undefined {
+  if (metricKey === 'smartAverage') return profile.smartAverage;
+  if (metricKey === 'officialDigitalShare') return profile.officialDigitalShare;
+  if (metricKey === 'coreIndustryEmployees') return profile.coreIndustryEmployees;
+  if (metricKey === 'digitalCompanies') return profile.digitalCompanies;
+  if (metricKey === 'fiveGStations') return profile.fiveGStations;
+  return undefined;
+}
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Dataset',
+  name: '上海、北京、银川智慧城市与数字经济横向对比',
+  description:
+    '三城智慧城市指数、数字经济核心产业、核心就业、企业数量与5G基建横向对比，数据来自市级统计公报、通信行业公报与区级公开数据估算。',
+  creator: { '@type': 'Organization', name: '宜居度' },
+  keywords: ['智慧城市对比', '数字经济对比', '北京数字经济', '上海数字经济', '银川数字经济', '5G基站'],
+};
+
+const pageTitle = '智慧城市与数字经济横向对比 · 上海/北京/银川';
+const pageDesc =
+  '上海、北京、银川三城智慧城市指数、数字经济核心产业占GDP、核心就业、企业与5G基建横向对比，支持跨城市洞察数字治理与产业活力差异。';
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={pageDesc}
+  path="/digital"
+  keywords={['智慧城市对比', '数字经济对比', '城市数字化', '5G基站对比', '上海智慧城市', '北京数字经济', '银川数字经济']}
+  jsonLd={jsonLd}
+>
+  <section class="container-page py-10 sm:py-14">
+    <a href="/" class="text-sm text-ink-soft hover:text-accent">← 返回首页</a>
+    <div class="mt-4 flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <span class="rounded-full bg-accent-soft px-3 py-1 text-xs font-medium text-accent">3 城横向对比</span>
+        <h1 class="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">智慧城市 × 数字经济</h1>
+        <p class="mt-3 max-w-3xl text-ink-soft">
+          城市页的智慧/数字维度只做城市内区县对比；本页把上海、北京、银川放在同一张表上，比较市级官方口径与区级汇总估算。
+        </p>
+      </div>
+      <div class="rounded-xl border border-line bg-surface px-5 py-4 text-sm text-ink-soft">
+        <div><strong class="text-ink">{cityProfiles.length}</strong> 个城市</div>
+        <div><strong class="text-ink">{cityProfiles.reduce((sum, c) => sum + c.districtCount, 0)}</strong> 个区县</div>
+        <div><strong class="text-ink">2</strong> 个横向维度族</div>
+      </div>
+    </div>
+
+    <div class="mt-8 grid gap-4 lg:grid-cols-3">
+      {cityProfiles.map((profile) => (
+        <article class="card p-5">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-lg font-bold text-ink">{profile.name}</h2>
+              <p class="text-xs text-ink-soft">{profile.districtCount} 个区县 · 区均智慧指数 {profile.smartAverage}</p>
+            </div>
+            <span class="h-3 w-12 rounded-full" style={`background:${profile.color}`} />
+          </div>
+
+          <dl class="mt-4 grid grid-cols-2 gap-3 text-sm">
+            <div class="rounded-lg bg-surface-muted p-3">
+              <dt class="text-xs text-ink-soft">市级数字核心占比</dt>
+              <dd class="mt-1 text-lg font-bold text-ink">{profile.officialDigitalShare ? `${profile.officialDigitalShare}%` : '—'}</dd>
+            </div>
+            <div class="rounded-lg bg-surface-muted p-3">
+              <dt class="text-xs text-ink-soft">区均数字占比</dt>
+              <dd class="mt-1 text-lg font-bold text-ink">{profile.districtDigitalAverage}%</dd>
+            </div>
+            <div class="rounded-lg bg-surface-muted p-3">
+              <dt class="text-xs text-ink-soft">智慧领跑区</dt>
+              <dd class="mt-1 font-semibold text-ink">{profile.smartLeader.name}</dd>
+              <dd class="text-[10px] text-ink-soft">{profile.smartLeader.value} 分</dd>
+            </div>
+            <div class="rounded-lg bg-surface-muted p-3">
+              <dt class="text-xs text-ink-soft">数字领跑区</dt>
+              <dd class="mt-1 font-semibold text-ink">{profile.digitalLeader.name}</dd>
+              <dd class="text-[10px] text-ink-soft">{profile.digitalLeader.value}%</dd>
+            </div>
+          </dl>
+
+          {profile.smartTotals && (
+            <p class="mt-4 text-xs leading-relaxed text-ink-soft">
+              智慧政务：{profile.smartTotals.smartGovPlatform} 接入
+              <strong class="text-ink">{profile.smartTotals.smartGovServices.toLocaleString('zh-CN')}</strong> 项服务，
+              网办率 <strong class="text-ink">{profile.smartTotals.smartGovRate}%</strong>；
+              5G渗透率 {profile.fiveGPenetration ? `${profile.fiveGPenetration}%` : '—'}
+            </p>
+          )}
+        </article>
+      ))}
+    </div>
+
+    <div class="card mt-8 p-6">
+      <h2 class="text-lg font-semibold text-ink">📊 五项核心指标横向条形图</h2>
+      <p class="mt-1 text-sm text-ink-soft">
+        每项指标以三城最大值为 100% 做归一化，用于观察相对差距；不能跨指标直接比较数值大小。
+      </p>
+
+      <div class="mt-6 space-y-7">
+        {metricDefinitions.map((metric) => (
+          <div>
+            <div class="flex flex-wrap items-baseline justify-between gap-2">
+              <h3 class="text-sm font-semibold text-ink">{metric.label}</h3>
+              <p class="text-xs text-ink-soft">{metric.description}</p>
+            </div>
+            <div class="mt-3 space-y-2">
+              {cityProfiles.map((profile) => {
+                const value = profileValue(profile, metric.key);
+                const ratio = value === undefined ? 0 : metric.max === 0 ? 0 : value / metric.max;
+                const label = value === undefined ? '—' : metric.format ? metric.format(value) : value.toLocaleString('zh-CN');
+                return (
+                  <div class="grid grid-cols-[3.5rem_1fr_5rem] items-center gap-3 text-sm">
+                    <span class="text-ink-soft">{profile.name}</span>
+                    <div class="h-3 overflow-hidden rounded-full bg-surface-muted">
+                      <div class="h-full rounded-full transition-all duration-700" style={`width:${ratio * 100}%;background:${profile.color}`} />
+                    </div>
+                    <span class="text-right font-semibold text-ink">{label}<span class="ml-1 text-[10px] font-normal text-ink-soft">{metric.unit}</span></span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div class="mt-8 grid gap-4 lg:grid-cols-3">
+      {cityProfiles.map((profile) => (
+        <div class="card p-5 text-sm">
+          <h3 class="font-semibold text-ink">{profile.name}数据口径</h3>
+          <ul class="mt-3 space-y-2 text-xs leading-relaxed text-ink-soft">
+            <li>智慧城市：{profile.source || '公开运营数据与区级估算'}</li>
+            {profile.digitalInfra && (
+              <li>
+                数字基建：<a href={profile.digitalInfra.sourceUrl} class="text-accent hover:underline">{profile.digitalInfra.source}</a>
+              </li>
+            )}
+            <li>区级数字就业/企业：digitalEconomy.ts，按产业园区、企业与普查公开数据分配估算</li>
+          </ul>
+        </div>
+      ))}
+    </div>
+
+    <div class="mt-10 flex flex-wrap gap-3">
+      <a href="/correlation" class="rounded-xl bg-accent px-5 py-2.5 text-sm font-medium text-white transition hover:opacity-90">🔗 查看8维相关性矩阵</a>
+      <a href="/rankings" class="rounded-xl border border-line bg-surface px-5 py-2.5 text-sm font-medium text-ink-soft transition hover:text-ink">🏆 区县排行榜</a>
+      <a href="/methodology" class="rounded-xl border border-line bg-surface px-5 py-2.5 text-sm font-medium text-ink-soft transition hover:text-ink">评分方法</a>
+    </div>
+  </section>
+</BaseLayout>

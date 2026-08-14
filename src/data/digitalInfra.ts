@@ -43,6 +43,8 @@ export interface DigitalInfra {
 export interface CityDigitalInfra {
   total5GStations?: number;     // 5G基站总数
   fiberHouseholds?: number;     // 千兆光网覆盖家庭数（万户）
+  broadbandUsers?: number;      // 固定互联网宽带接入用户数（万户）
+  gigabitUsers?: number;        // 千兆及以上宽带用户数（万户）
   tenGPonPorts?: number;        // 10G-PON端口数（万个）
   broadbandHighSpeedRatio?: number; // 500Mbps以上占比（%）
   mobileUsers?: number;         // 移动电话用户（万户）
@@ -78,6 +80,18 @@ export const CITY_DIGITAL: Record<string, CityDigitalInfra> = {
     year: 2025,
     source: '宁夏通信管理局《2025年信息通信行业发展统计公报》+ 银川市第五次经济普查',
     sourceUrl: 'https://nx.miit.gov.cn/xwdt/gzdt/art/2026/art_main.html',
+  },
+  beijing: {
+    total5GStations: 153000,
+    broadbandUsers: 1062.8,
+    gigabitUsers: 338.4,
+    mobileUsers: 4028.2,
+    g5Penetration: 64.4,
+    digitalGdpRatio: 29.3,
+    year: 2025,
+    source: '北京市2025年国民经济和社会发展统计公报（通信与数字经济核心产业口径）',
+    sourceUrl:
+      'https://tjj.beijing.gov.cn/tjsj_31433/tjgb_31445/ndgb_31446/202603/t20260326_4566469.html',
   },
 };
 

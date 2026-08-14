@@ -3,6 +3,10 @@
  *
  * 上海: 2025年上海市国民经济和社会发展统计公报
  *   https://tjj.sh.gov.cn/tjgb/20260330/e0772941e8e041eaaad2df850b44ef98.html
+ * 北京: 北京市2025年国民经济和社会发展统计公报
+ *   https://tjj.beijing.gov.cn/tjsj_31433/tjgb_31445/ndgb_31446/202603/t20260326_4566469.html
+ *   高校数量：北京人大《北京的教育体系》（截至2024年底，92所普通高等学校）
+ *   https://www.bjrd.gov.cn/fwhd/bjrdzz/2025n/bjrdzz202511q/bjshq202511/202511/t20251128_4310110.html
  * 银川: 银川市2025年国民经济和社会发展统计公报
  *   https://www.yinchuan.gov.cn/xxgk/bmxxgkml/stjj/xxgkml_2517/tjxx_7670/tjgb_7671/202604/t20260427_5226142.html
  *
@@ -92,6 +96,29 @@ export const CITY_STATS: Record<string, CityStats> = {
     source: '银川市2025年国民经济和社会发展统计公报',
     sourceUrl:
       'https://www.yinchuan.gov.cn/xxgk/bmxxgkml/stjj/xxgkml_2517/tjxx_7670/tjgb_7671/202604/t20260427_5226142.html',
+  },
+  beijing: {
+    metroLines: 30,
+    metroKm: 909,
+    busRoutes: 1252,
+    busVehicles: 2.05,
+    busRouteKm: 28929.8,
+    universities: 92,
+    healthInstitutions: 11994,
+    healthWorkers: 35.7,
+    hospitals: 782,
+    gdp: 52073.4,
+    perCapitaGdp: 239000,
+    urbanDisposableIncome: 96292,
+    ruralDisposableIncome: 42012,
+    perCapitaConsumption: 50667,
+    newHousePriceIndex: 97.6,
+    secondHandPriceIndex: 91.5,
+    sewageTreatmentRate: 98,
+    year: 2025,
+    source: '北京市2025年国民经济和社会发展统计公报 + 北京人大《北京的教育体系》',
+    sourceUrl:
+      'https://tjj.beijing.gov.cn/tjsj_31433/tjgb_31445/ndgb_31446/202603/t20260326_4566469.html',
   },
 };
 

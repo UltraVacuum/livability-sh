@@ -38,7 +38,7 @@ export interface DistrictAgriculture {
 
 // 上海涉农9区 — 农业总产值约285亿元按各区农业规模分配
 // 崇明约40%，浦东约15%，奉贤约12%，金山约10%，松江约8%，青浦约6%，嘉定约5%，宝山约2%，闵行约2%
-const SHANGHAI_AGRICULTURE: Record<string, DistrictAgriculture> = {
+const SHANGHAI_AGRICULTURE: Record<string, DistrictAgriculture | undefined> = {
   '310115': { agriOutput: 42.8, grainOutput: 17.5, leisureFarms: 120, modernAgriParks: 3, beautifulVillages: 50, ruralIncome: 48500 },  // 浦东 578.58万 (孙桥现代农业+南汇)
   '310112': { agriOutput: 5.7, grainOutput: 2.3, leisureFarms: 28, modernAgriParks: 1, beautifulVillages: 12, ruralIncome: 52000 },     // 闵行 272.50万 (浦江郊野公园)
   '310113': { agriOutput: 5.7, grainOutput: 2.0, leisureFarms: 18, modernAgriParks: 1, beautifulVillages: 10, ruralIncome: 51000 },     // 宝山 226.39万
@@ -70,9 +70,10 @@ const YINCHUAN_AGRICULTURE: Record<string, DistrictAgriculture> = {
 };
 
 // 过滤掉 undefined 条目
-const SHANGHAI_AGRI_CLEAN = Object.fromEntries(
-  Object.entries(SHANGHAI_AGRICULTURE).filter(([, v]) => v !== undefined)
-);
+const SHANGHAI_AGRI_CLEAN: Record<string, DistrictAgriculture> = {};
+for (const [adcode, district] of Object.entries(SHANGHAI_AGRICULTURE)) {
+  if (district) SHANGHAI_AGRI_CLEAN[adcode] = district;
+}
 
 const CITY_AGRICULTURE: Record<string, Record<string, DistrictAgriculture>> = {
   shanghai: SHANGHAI_AGRI_CLEAN,

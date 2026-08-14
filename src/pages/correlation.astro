@@ -53,6 +53,9 @@ function pearson(xs: number[], ys: number[]): number {
 
 // ── Build correlation matrix (using scores, not raw values, for comparability) ──
 const metricKeys = METRICS.map((m) => m.key);
+if (metricKeys.length !== 8 || new Set(metricKeys).size !== 8) {
+  throw new Error(`相关性分析要求8个唯一评分维度，当前为${metricKeys.length}个`);
+}
 const matrix: number[][] = [];
 for (let i = 0; i < metricKeys.length; i++) {
   const row: number[] = [];
@@ -62,6 +65,14 @@ for (let i = 0; i < metricKeys.length; i++) {
     row.push(pearson(xs, ys));
   }
   matrix.push(row);
+}
+if (matrix.length !== 8 || matrix.some((row) => row.length !== 8)) {
+  throw new Error('相关性矩阵必须是8×8');
+}
+for (let i = 0; i < metricKeys.length; i++) {
+  if (Math.abs(matrix[i][i] - 1) > 0.000001) {
+    throw new Error(`${METRICS[i].label}矩阵对角线自相关异常`);
+  }
 }
 
 // ── Find TOP 5 positive and TOP 5 negative pairs ──
@@ -91,6 +102,9 @@ for (let i = 0; i < metricKeys.length; i++) {
 pairs.sort((a, b) => b.r - a.r);
 const topPositive = pairs.slice(0, 5);
 const topNegative = [...pairs].reverse().slice(0, 5);
+const strongPairs = pairs
+  .filter((p) => Math.abs(p.r) >= 0.7)
+  .sort((a, b) => Math.abs(b.r) - Math.abs(a.r));
 
 // ── Prepare scatter data for default pair (top positive) ──
 const defaultPair = topPositive[0];
@@ -130,6 +144,10 @@ function corrColor(r: number): string {
 
 const totalDistricts = allDistricts.length;
 const totalDimensions = METRICS.length;
+const expectedPairs = (totalDimensions * (totalDimensions - 1)) / 2;
+if (pairs.length !== expectedPairs) {
+  throw new Error(`8维唯一相关对应为${expectedPairs}个，实际生成${pairs.length}个`);
+}
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -157,6 +175,11 @@ const pageDesc = `${totalDimensions}个宜居维度的皮尔逊相关系数矩�
     <p class="mt-3 max-w-2xl text-ink-soft">
       基于 {totalDistricts} 个区县的标准化评分，计算 {totalDimensions} 个宜居维度间的皮尔逊相关系数（r）。探索维度间的隐藏关联。
     </p>
+    <div class="mt-4 flex flex-wrap gap-2 text-xs">
+      <span class="rounded-full bg-accent-soft px-3 py-1 font-medium text-accent">✅ 8×8 矩阵构建校验通过</span>
+      <span class="rounded-full border border-line bg-surface px-3 py-1 text-ink-soft">唯一维度对 {pairs.length} 组</span>
+      <span class="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-amber-800">|r| ≥ 0.7 强相关 {strongPairs.length} 组</span>
+    </div>
 
     {/* ── 相关性矩阵热力图 ── */}
     <div class="card mt-8 p-6">
@@ -182,14 +205,15 @@ const pageDesc = `${totalDimensions}个宜居维度的皮尔逊相关系数矩�
                   const bg = corrColor(r);
                   const isDiag = i === j;
                   const isUpper = j > i;
+                  const isStrongPair = isUpper && Math.abs(r) >= 0.7;
                   return (
                     <td class="p-1 text-center" style="min-width:70px">
                       <div
-                        class="flex h-14 items-center justify-center rounded-md text-xs font-bold transition hover:scale-110 hover:shadow-md cursor-default"
+                        class={`flex h-14 items-center justify-center rounded-md text-xs font-bold transition hover:scale-110 hover:shadow-md cursor-default ${isStrongPair ? 'ring-2 ring-amber-500 ring-offset-1' : ''}`}
                         style={`background:${isDiag ? '#94a3b8' : isUpper ? bg : '#f8fafc'}; color:${isDiag ? '#fff' : Math.abs(r) > 0.5 ? '#fff' : '#475569'}; opacity:${isDiag ? 0.5 : isUpper ? 1 : 0.3}`}
-                        title={isDiag ? `${rowMetric.label}（自相关 = 1）` : isUpper ? `${rowMetric.label} × ${colMetric.label}\nr = ${r.toFixed(3)}` : ''}
+                        title={isDiag ? `${rowMetric.label}（自相关 = 1）` : isUpper ? `${rowMetric.label} × ${colMetric.label}\nr = ${r.toFixed(3)}${isStrongPair ? '（|r| ≥ 0.7 强相关）' : ''}` : ''}
                       >
-                        {isDiag ? '1.00' : isUpper ? r.toFixed(2) : ''}
+                        {isDiag ? '1.00' : isUpper ? `${r.toFixed(2)}${isStrongPair ? '★' : ''}` : ''}
                       </div>
                     </td>
                   );
@@ -223,7 +247,40 @@ const pageDesc = `${totalDimensions}个宜居维度的皮尔逊相关系数矩�
           <span class="inline-block h-4 w-8 rounded" style="background:#15803d"></span>
           <span>强正相关 ≥0.7</span>
         </div>
+        <div class="flex items-center gap-1">
+          <span class="inline-block h-4 w-8 rounded ring-2 ring-amber-500 ring-offset-1"></span>
+          <span>★ 强相关对高亮（|r| ≥ 0.7）</span>
+        </div>
       </div>
+    </div>
+
+    {/* ── 强相关对清单 ── */}
+    <div class="card mt-6 p-6">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h2 class="text-lg font-semibold text-ink">⭐ 强相关对清单（|r| ≥ 0.7）</h2>
+          <p class="mt-1 text-sm text-ink-soft">按绝对相关强度降序排列；星标与矩阵高亮一一对应。</p>
+        </div>
+        <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800">{strongPairs.length} 组</span>
+      </div>
+      {strongPairs.length === 0 ? (
+        <p class="mt-4 text-sm text-ink-soft">当前8维评分中没有达到 |r| ≥ 0.7 的唯一维度对。</p>
+      ) : (
+        <ol class="mt-4 space-y-3">
+          {strongPairs.map((p, i) => (
+            <li class="grid grid-cols-[2rem_1fr_5.5rem] items-center gap-3">
+              <span class="text-center text-sm font-bold text-ink-soft">{i + 1}</span>
+              <div>
+                <div class="text-sm font-medium text-ink">{p.aLabel} ↔ {p.bLabel}</div>
+                <div class="mt-1 h-2 overflow-hidden rounded-full bg-surface-muted">
+                  <div class="h-full rounded-full" style={`width:${Math.abs(p.r) * 100}%;background:${corrColor(p.r)}`} />
+                </div>
+              </div>
+              <span class={`text-right text-sm font-bold ${p.r >= 0 ? 'text-grade-a' : 'text-grade-d'}`}>r = {p.r.toFixed(3)}</span>
+            </li>
+          ))}
+        </ol>
+      )}
     </div>
 
     {/* ── 散点图 ── */}
@@ -252,6 +309,17 @@ const pageDesc = `${totalDimensions}个宜居维度的皮尔逊相关系数矩�
         <button type="button" id="swap-axes" class="rounded-lg border border-line bg-surface px-3 py-1.5 text-sm text-ink-soft hover:text-accent hover:border-accent transition">
           🔄 交换
         </button>
+      </div>
+
+      {/* ── 城市筛选 ── */}
+      <div class="mt-4 flex flex-wrap items-center gap-2">
+        <span class="text-xs font-medium text-ink-soft">城市：</span>
+        <button type="button" data-city="all" class="city-filter-btn rounded-full border border-accent bg-accent-soft px-3 py-1 text-xs font-medium text-accent">全部</button>
+        {CITIES.map((city) => (
+          <button type="button" data-city={city.key} class="city-filter-btn rounded-full border border-line bg-surface px-3 py-1 text-xs font-medium text-ink-soft transition hover:border-accent hover:text-accent">
+            {city.name}
+          </button>
+        ))}
       </div>
 
       {/* ── 统计摘要 ── */}
@@ -444,7 +512,9 @@ const pageDesc = `${totalDimensions}个宜居维度的皮尔逊相关系数矩�
       }
 
       function cityColor(cityKey) {
-        return cityKey === 'shanghai' ? '#0d9488' : '#7c3aed';
+        if (cityKey === 'shanghai') return '#0d9488';
+        if (cityKey === 'beijing') return '#2563eb';
+        return '#7c3aed';
       }
 
       function renderScatter() {
@@ -588,9 +658,9 @@ const pageDesc = `${totalDimensions}个宜居维度的皮尔逊相关系数矩�
         svg.appendChild(yTitle);
 
         // ── Legend ──
-        const cities = [...new Set(visibleData.map(d => d.cityKey))];;
+        const cities = [...new Set(visibleData.map(d => d.cityKey))];
         cities.forEach((ck, i) => {
-          const cName = ck === 'shanghai' ? '上海' : '银川';
+          const cName = ck === 'shanghai' ? '上海' : ck === 'beijing' ? '北京' : '银川';
           const lx = margin.left + plotW - 80;
           const ly = margin.top + 15 + i * 18;
           const dot = document.createElementNS(ns, 'circle');

@@ -94,7 +94,7 @@ export const CITY_EMPLOYMENT_TOTALS: Record<string, {
   newJobs: number; // 万人
   reemployed: number; // 万人
   hardEmployment: number; // 人
-  surveyUnemploymentRate: number; // 调查失业率 %
+  surveyUnemploymentRate?: number; // 调查失业率 %
   vocationalTraining?: number; // 万人次
   entrepreneurshipHelp?: number; // 户
   communityServiceStations?: number; // 个
