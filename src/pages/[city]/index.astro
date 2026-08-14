@@ -175,7 +175,7 @@ const jsonLd = {
 
 <BaseLayout
   title={`${city.name}区县宜居度对比`}
-  description={`${city.name}${districts.length} 个区县六维宜居度对比：经济、人口、教育、医疗、交通、生活。人口与配套为真实公开数据，可自定义权重实时重排。`}
+  description={`${city.name}${districts.length} 个区县八维宜居度对比：经济、人口、教育、医疗、交通、生活、智慧城市、数字经济。人口与配套为公开数据，可自定义权重实时重排。`}
   path={`/${city.key}/`}
   keywords={[
     `${city.name}宜居度`,
@@ -192,13 +192,13 @@ const jsonLd = {
   <section class="container-page py-10 sm:py-14">
     <div class="mx-auto max-w-3xl text-center">
       <span class="rounded-full bg-accent-soft px-3 py-1 text-xs font-medium text-accent">
-        🏙️ {city.name} · {districts.length} 区县 · 六维评分
+        🏙️ {city.name} · {districts.length} 区县 · 八维评分
       </span>
       <h1 class="mt-4 text-3xl font-bold tracking-tight sm:text-5xl">
         {city.name} {districts.length} 区，<span class="text-accent">哪个最适合你</span>？
       </h1>
       <p class="mt-4 text-base text-ink-soft sm:text-lg">
-        经济、人口、教育、医疗、交通、生活 六维横向对比。拖动权重，地图与排行榜实时重排。
+        经济、人口、教育、医疗、交通、生活、智慧、数字 八维横向对比。拖动权重，地图与排行榜实时重排。
       </p>
     </div>
 

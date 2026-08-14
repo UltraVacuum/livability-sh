@@ -67,6 +67,8 @@ for (const c of CITIES) {
       amenity: `生活便利度全市第${r.district.metrics.amenity.rank}名`,
       economy: `人均收入约${(r.district.metrics.economy.rawValue / 1000).toFixed(0)}千元/年`,
       population: `人口密度${r.district.metrics.population.rawValue.toLocaleString()}人/km²`,
+      smart: `智慧城市指数${r.district.metrics.smart.rawValue.toFixed(0)}（全市第${r.district.metrics.smart.rank}名）`,
+      digital: `数字经济占GDP ${r.district.metrics.digital.rawValue.toFixed(1)}%`,
     };
 
     allEntries.push({
@@ -110,7 +112,7 @@ const jsonLd = {
 
 <BaseLayout
   title={`${scenario.emoji} ${scenario.title}区域排名`}
-  description={`${scenario.description}基于六维度加权评分，为${scenario.title}场景推荐最佳宜居区域。`}
+  description={`${scenario.description}基于八维度加权评分，为${scenario.title}场景推荐最佳宜居区域。`}
   path={`/best/${scenario.slug}`}
   keywords={[scenario.title, '宜居排名', '场景化排名', '区域推荐', scenario.slug]}
   jsonLd={jsonLd}
@@ -139,7 +141,7 @@ const jsonLd = {
     <div class="mx-auto mt-8 max-w-3xl">
       <div class="card p-6">
         <h2 class="text-lg font-bold">⚖️ 权重配置说明</h2>
-        <p class="mt-1 text-sm text-ink-soft">本排名基于以下权重对六维度得分进行加权平均，权重越高表示该维度对此场景越重要。</p>
+        <p class="mt-1 text-sm text-ink-soft">本排名基于以下权重对八维度得分进行加权平均，权重越高表示该维度对此场景越重要。</p>
         <div class="mt-4 space-y-3">
           {scenario.weightRationale
             .sort((a, b) => b.weight - a.weight)

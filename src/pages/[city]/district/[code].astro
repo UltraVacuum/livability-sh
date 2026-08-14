@@ -384,7 +384,7 @@ const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Place',
   name: `${city.name}${district.name}宜居度`,
-  description: `${district.name} 的六维宜居度评分（综合 ${mine.composite.toFixed(0)} 分，${mine.grade} 级）。`,
+  description: `${district.name} 的八维宜居度评分（综合 ${mine.composite.toFixed(0)} 分，${mine.grade} 级）。`,
   url: new URL(`/${city.key}/district/${code}`, Astro.site).href,
   containedInPlace: { '@type': 'AdministrativeArea', name: city.name },
 };
@@ -392,7 +392,7 @@ const jsonLd = {
 
 <BaseLayout
   title={`${city.name}${district.name}宜居度评分`}
-  description={`${district.name} 六维宜居度：综合 ${mine.composite.toFixed(0)} 分（${mine.grade} 级，${city.name}第 ${mine.rank} 名）。教育、医疗、交通、生活配套密度与人口数据，均为公开数据，来源可追溯。`}
+  description={`${district.name} 八维宜居度：综合 ${mine.composite.toFixed(0)} 分（${mine.grade} 级，${city.name}第 ${mine.rank} 名）。教育、医疗、交通、生活配套密度与人口数据，均为公开数据，来源可追溯。`}
   path={`/${city.key}/district/${code}`}
   keywords={[
     `${city.name}${district.name}宜居度`,
@@ -551,7 +551,7 @@ const jsonLd = {
       </div>
     </div>
 
-    <h2 class="mt-10 text-xl font-bold">六维明细</h2>
+    <h2 class="mt-10 text-xl font-bold">八维明细</h2>
     <div class="card mt-4 overflow-x-auto p-0">
       <table class="w-full text-left text-sm">
         <thead class="border-b border-line text-xs text-ink-soft">

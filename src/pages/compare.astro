@@ -43,7 +43,7 @@ const metricLabels = METRICS.map(m => m.shortLabel);
 const metricFullLabels = METRICS.map(m => m.label);
 
 const pageTitle = '区县横向对比 · 多区叠加雷达图';
-const pageDesc = '选择 2-4 个区县进行教育、医疗、经济、交通、生活、人口六维雷达图叠加对比，数值表格并列展示，一目了然看清差异。基于公开数据的城市宜居度分析。';
+const pageDesc = '选择 2-4 个区县进行教育、医疗、经济、交通、生活、人口、智慧、数字八维雷达图叠加对比，数值表格并列展示，一目了然看清差异。基于公开数据的城市宜居度分析。';
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -78,8 +78,8 @@ const jsonLd = {
     <a href="/" class="text-sm text-ink-soft hover:text-accent">← 返回首页</a>
     <h1 class="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">区县横向对比</h1>
     <p class="mt-3 max-w-2xl text-ink-soft">
-      选择 2-4 个区县，通过六维雷达图叠加对比教育、医疗、经济、交通、生活、人口——
-      支持跨城市对比（如上海黄浦 vs 银川兴庆）。
+      选择 2-4 个区县，通过八维雷达图叠加对比教育、医疗、经济、交通、生活、人口、智慧、数字——
+      支持跨城市对比（如上海黄浦 vs 北京海淀 vs 银川兴庆）。
     </p>
 
     <div id="compare-root" class="mt-8">
@@ -116,8 +116,8 @@ const jsonLd = {
       <div id="compare-result" class="mt-6 grid gap-6 lg:grid-cols-[400px_1fr]">
         {/* SVG Radar Chart (overlaid) */}
         <div class="card flex flex-col items-center p-5">
-          <h3 class="mb-3 text-sm font-semibold text-ink-soft">六维雷达图叠加对比</h3>
-          <svg id="radar-svg" width="360" height="360" viewBox="0 0 360 360" role="img" aria-label="六维雷达图叠加对比">
+          <h3 class="mb-3 text-sm font-semibold text-ink-soft">八维雷达图叠加对比</h3>
+          <svg id="radar-svg" width="360" height="360" viewBox="0 0 360 360" role="img" aria-label="八维雷达图叠加对比">
           </svg>
           <div id="radar-legend" class="mt-3 flex flex-wrap justify-center gap-3 text-xs"></div>
         </div>
@@ -146,7 +146,7 @@ const jsonLd = {
       {/* Auto-generated diff summary */}
       <div id="diff-summary" class="card mt-6 p-5">
         <h3 class="text-sm font-semibold text-ink">📝 自动差异解读</h3>
-        <p class="mt-1 text-xs text-ink-soft">基于所选区县的六维评分数据自动生成对比摘要</p>
+        <p class="mt-1 text-xs text-ink-soft">基于所选区县的八维评分数据自动生成对比摘要</p>
         <div id="summary-content" class="mt-4 space-y-3 text-sm text-ink-soft"></div>
       </div>
     </div>

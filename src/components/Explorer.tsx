@@ -180,7 +180,7 @@ export default function Explorer({ districts, citySlug }: Props) {
             ))}
           </div>
           <p className="mt-3 text-xs text-ink-soft">
-            拖动滑块调整六维权重，地图颜色与右侧排行榜实时重排 —— 找出「对你最宜居的区」。
+            拖动滑块调整八维权重，地图颜色与右侧排行榜实时重排 —— 找出「对你最宜居的区」。
           </p>
         </div>
       </div>

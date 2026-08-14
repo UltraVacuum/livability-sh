@@ -20,14 +20,17 @@ const collectedNote = CITIES.map((c) => `${c.name} ${POI_COLLECTED_AT[c.key] ?? 
 
     <div class="card mt-8 border-l-4 border-accent p-5">
       <p class="text-sm leading-relaxed">
-        ℹ️ <strong>数据来源声明：</strong>六维均为<strong>真实数据</strong> ——
-        <strong>教育 / 医疗 / 交通 / 生活</strong>（<a href="https://lbs.amap.com/" class="text-accent hover:underline">高德 POI</a> 按行政区聚合密度，采集于 {collectedNote}）；
-        <strong>人口</strong>（上海：统计年鉴 2024 表2.2 官方人口密度；银川：宁夏年鉴 2022 ÷ 面积，市级已更新至2025年294.26万人）；
-        <strong>经济</strong>（人均可支配收入，2024年值）：上海=<strong>全体居民</strong>口径（2023区级基数×市级+4.2%增速，校准至全市均值88,366元）；银川=<strong>城镇居民</strong>口径（2023区级基数×市级+4.7%增速，校准至市级≈49,154元，已由2025公报51,469元回验）。
-        各城市内部口径一致、独立评分。仅嘉定 1 区原公报未公布且未入榜单，按郊区梯度估算（明细标注「估算」）。
+        ℹ️ <strong>数据来源声明：</strong>八维均为<strong>公开数据</strong> ——
+        <strong>教育 / 医疗 / 交通 / 生活</strong>（上海/银川：<a href="https://lbs.amap.com/" class="text-accent hover:underline">高德 POI</a> 按行政区聚合密度，采集于 {collectedNote}；北京：区级公开总量×梯度估算）；
+        <strong>人口</strong>（上海：统计年鉴 2024 表2.2 官方人口密度；银川：宁夏年鉴 2022 ÷ 面积，市级已更新至2025年294.26万人；北京：统计年鉴 2025 各区年末常住人口 ÷ 面积）；
+        <strong>经济</strong>（人均可支配收入，2024年值）：上海=<strong>全体居民</strong>口径（2023区级基数×市级+4.2%增速，校准至全市均值88,366元）；银川=<strong>城镇居民</strong>口径（2023区级基数×市级+4.7%增速，校准至市级≈49,154元，已由2025公报51,469元回验）；北京=全市85,415元基准按城区/平原新城/生态涵养区梯度估算。
+        <strong>智慧城市</strong>（智能交通覆盖率、公交实时到站、智慧社区/物联网密度，区级公开数据分配估算）；
+        <strong>数字经济</strong>（核心产业占区域GDP比重，各区统计局公报+经济普查分配估算）。
+        各城市内部口径一致、独立评分。区级估算明细均标注「估算」。
         <br/><strong>官方来源：</strong>
         <a href="https://tjj.sh.gov.cn/tjgb/20250324/a7fe18c6d5c24d66bfca89c5bb4cdcfb.html" class="text-accent hover:underline">2024年上海市统计公报</a>、
-        <a href="https://www.yinchuan.gov.cn/xxgk/bmxxgkml/stjj/xxgkml_2517/tjxx_7670/tjgb_7671/202604/t20260427_5226142.html" class="text-accent hover:underline">2025年银川市统计公报</a>。
+        <a href="https://www.yinchuan.gov.cn/xxgk/bmxxgkml/stjj/xxgkml_2517/tjxx_7670/tjgb_7671/202604/t20260427_5226142.html" class="text-accent hover:underline">2025年银川市统计公报</a>、
+        北京市统计局2024年公报。
       </p>
     </div>
 
@@ -77,9 +80,13 @@ composite = Σ(weight × score) / Σ(weight)</code></pre>
       <div class="card p-4 text-center"><div class="text-2xl font-bold text-red-600">D</div><div class="text-xs text-ink-soft">后 15%</div></div>
     </div>
 
-    <h2 class="mt-10 text-xl font-bold">三、自定义权重</h2>
+    <h2 class="mt-10 text-xl font-bold">三、评分维度与默认权重（八维）</h2>
     <p class="mt-3 text-sm leading-relaxed text-ink-soft">
-      默认六维<strong>均权</strong>（最中立）。你可以拖动首页滑块调整权重 ——
+      2026-08 起，核心评分体系从六维升级为<strong>八维</strong>：在原经济/人口/教育/医疗/交通/生活六维基础上，
+      新增<strong>智慧城市</strong>（指数 0–100：0.35×智能交通覆盖率 + 0.25×公交实时到站覆盖率 + 0.20×智慧社区密度指数 + 0.20×物联网设备密度指数）
+      与<strong>数字经济</strong>（核心产业占区域GDP比重 %）两个补充维度。
+      默认权重：核心六维各 <strong>1.0</strong>，智慧/数字补充维度各 <strong>0.5</strong>
+      —— 参与综合评分但不压过教育/医疗等核心宜居指标。你可以拖动首页滑块调整权重 ——
       排行榜与地图会<strong>实时重排</strong>。这把「权威排名」转化为「个性化推荐」：
       不存在唯一正确的宜居度，只有「对你」最宜居。
     </p>
@@ -158,6 +165,8 @@ composite = Σ(weight × score) / Σ(weight)</code></pre>
 
     <h2 class="mt-10 text-xl font-bold">五、局限与改进</h2>
     <ul class="card mt-4 space-y-2 p-6 text-sm text-ink-soft">
+      <li>• 北京教育/医疗/交通/生活四维为公开总量×梯度估算（非逐 POI 采集），口径对齐上海/银川，用于城市内横向对比。</li>
+      <li>• 智慧城市/数字经济区级数据为公开报告分配估算，仅供排序参考。</li>
       <li>• 经济数据为2024年估算值（区级2023基数×市级增速），待各区2024公报发布后更新为实际值。</li>
       <li>• 银川区级人口为2022年末数据（2025公报仅发布市级总量294.26万人，未分区）。</li>
       <li>• 环境数据仅有市级（上海PM2.5=28、银川PM2.5=30.4），区级环境数据暂无公开来源。</li>

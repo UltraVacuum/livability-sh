@@ -162,9 +162,95 @@ const YINCHUAN_SMART: Record<string, DistrictSmartCity> = {
   },
 };
 
+// 北京16区 — 基于「接诉即办」/京通平台/智慧交通信号灯联网/海淀城市大脑等公开信息估算（2024-2025）
+// 来源：北京市经信局《智慧城市发展行动纲要》+ 12345市民热线 + 京通平台运营数据
+const BEIJING_SMART: Record<string, DistrictSmartCity> = {
+  '110101': { // 东城 — 王府井智慧商圈+古都数字化
+    smartTrafficCoverage: 97, smartIntersections: 310, busRealtimeCoverage: 99, smartParkingLots: 48,
+    urbanBrainScenarios: 340, urbanBrainPlatforms: 19, smartGovServices: 400, smartGovUsers: 90,
+    smartCommunities: 26, iotDevices: 7.0, dataSharingPlatforms: 16, aiGovCases: 55,
+  },
+  '110102': { // 西城 — 金融街数字金融+智慧政务标杆
+    smartTrafficCoverage: 96, smartIntersections: 340, busRealtimeCoverage: 99, smartParkingLots: 52,
+    urbanBrainScenarios: 360, urbanBrainPlatforms: 20, smartGovServices: 415, smartGovUsers: 105,
+    smartCommunities: 32, iotDevices: 7.8, dataSharingPlatforms: 17, aiGovCases: 60,
+  },
+  '110105': { // 朝阳 — CBD智慧商圈+望京数字生活
+    smartTrafficCoverage: 93, smartIntersections: 520, busRealtimeCoverage: 97, smartParkingLots: 95,
+    urbanBrainScenarios: 420, urbanBrainPlatforms: 24, smartGovServices: 430, smartGovUsers: 180,
+    smartCommunities: 55, iotDevices: 12.5, dataSharingPlatforms: 20, aiGovCases: 88,
+  },
+  '110106': { // 丰台 — 丽泽数字金融+智慧交通枢纽
+    smartTrafficCoverage: 89, smartIntersections: 300, busRealtimeCoverage: 96, smartParkingLots: 58,
+    urbanBrainScenarios: 270, urbanBrainPlatforms: 15, smartGovServices: 370, smartGovUsers: 120,
+    smartCommunities: 38, iotDevices: 7.2, dataSharingPlatforms: 14, aiGovCases: 46,
+  },
+  '110107': { // 石景山 — 中关村虚拟现实园+冬奥智慧遗产
+    smartTrafficCoverage: 91, smartIntersections: 180, busRealtimeCoverage: 97, smartParkingLots: 38,
+    urbanBrainScenarios: 220, urbanBrainPlatforms: 12, smartGovServices: 340, smartGovUsers: 75,
+    smartCommunities: 22, iotDevices: 4.5, dataSharingPlatforms: 11, aiGovCases: 32,
+  },
+  '110108': { // 海淀 — 城市大脑发源地+中关村科学城
+    smartTrafficCoverage: 94, smartIntersections: 560, busRealtimeCoverage: 98, smartParkingLots: 88,
+    urbanBrainScenarios: 460, urbanBrainPlatforms: 26, smartGovServices: 450, smartGovUsers: 200,
+    smartCommunities: 60, iotDevices: 14.0, dataSharingPlatforms: 22, aiGovCases: 95,
+  },
+  '110109': { // 门头沟 — 中关村门头沟园AI+山区智慧防汛
+    smartTrafficCoverage: 72, smartIntersections: 65, busRealtimeCoverage: 82, smartParkingLots: 12,
+    urbanBrainScenarios: 95, urbanBrainPlatforms: 6, smartGovServices: 250, smartGovUsers: 30,
+    smartCommunities: 8, iotDevices: 1.6, dataSharingPlatforms: 6, aiGovCases: 9,
+  },
+  '110111': { // 房山 — 良乡大学城数字化+北京高端制造业基地
+    smartTrafficCoverage: 74, smartIntersections: 90, busRealtimeCoverage: 80, smartParkingLots: 18,
+    urbanBrainScenarios: 110, urbanBrainPlatforms: 7, smartGovServices: 265, smartGovUsers: 45,
+    smartCommunities: 12, iotDevices: 2.4, dataSharingPlatforms: 7, aiGovCases: 12,
+  },
+  '110112': { // 通州 — 城市副中心智慧城市示范区
+    smartTrafficCoverage: 88, smartIntersections: 210, busRealtimeCoverage: 92, smartParkingLots: 35,
+    urbanBrainScenarios: 310, urbanBrainPlatforms: 18, smartGovServices: 380, smartGovUsers: 95,
+    smartCommunities: 28, iotDevices: 5.5, dataSharingPlatforms: 13, aiGovCases: 40,
+  },
+  '110113': { // 顺义 — 首都机场智慧物流+临空经济
+    smartTrafficCoverage: 80, smartIntersections: 120, busRealtimeCoverage: 88, smartParkingLots: 22,
+    urbanBrainScenarios: 140, urbanBrainPlatforms: 8, smartGovServices: 300, smartGovUsers: 60,
+    smartCommunities: 15, iotDevices: 3.0, dataSharingPlatforms: 8, aiGovCases: 16,
+  },
+  '110114': { // 昌平 — 回天智慧社区+未来科学城
+    smartTrafficCoverage: 79, smartIntersections: 140, busRealtimeCoverage: 87, smartParkingLots: 25,
+    urbanBrainScenarios: 160, urbanBrainPlatforms: 9, smartGovServices: 310, smartGovUsers: 70,
+    smartCommunities: 18, iotDevices: 3.6, dataSharingPlatforms: 9, aiGovCases: 20,
+  },
+  '110115': { // 大兴 — 亦庄经开区高级别自动驾驶示范区
+    smartTrafficCoverage: 82, smartIntersections: 160, busRealtimeCoverage: 89, smartParkingLots: 28,
+    urbanBrainScenarios: 190, urbanBrainPlatforms: 10, smartGovServices: 330, smartGovUsers: 85,
+    smartCommunities: 22, iotDevices: 4.2, dataSharingPlatforms: 10, aiGovCases: 26,
+  },
+  '110116': { // 怀柔 — 怀柔科学城+生态智慧
+    smartTrafficCoverage: 66, smartIntersections: 45, busRealtimeCoverage: 78, smartParkingLots: 8,
+    urbanBrainScenarios: 70, urbanBrainPlatforms: 5, smartGovServices: 240, smartGovUsers: 25,
+    smartCommunities: 6, iotDevices: 1.2, dataSharingPlatforms: 5, aiGovCases: 7,
+  },
+  '110117': { // 平谷 — 农业科技创新+智慧农业
+    smartTrafficCoverage: 64, smartIntersections: 40, busRealtimeCoverage: 76, smartParkingLots: 7,
+    urbanBrainScenarios: 60, urbanBrainPlatforms: 4, smartGovServices: 235, smartGovUsers: 22,
+    smartCommunities: 5, iotDevices: 1.0, dataSharingPlatforms: 4, aiGovCases: 6,
+  },
+  '110118': { // 密云 — 生态保水智慧监测
+    smartTrafficCoverage: 63, smartIntersections: 38, busRealtimeCoverage: 75, smartParkingLots: 7,
+    urbanBrainScenarios: 58, urbanBrainPlatforms: 4, smartGovServices: 232, smartGovUsers: 21,
+    smartCommunities: 5, iotDevices: 0.9, dataSharingPlatforms: 4, aiGovCases: 5,
+  },
+  '110119': { // 延庆 — 冬奥智慧遗产+生态走廊
+    smartTrafficCoverage: 62, smartIntersections: 35, busRealtimeCoverage: 74, smartParkingLots: 6,
+    urbanBrainScenarios: 52, urbanBrainPlatforms: 3, smartGovServices: 228, smartGovUsers: 20,
+    smartCommunities: 4, iotDevices: 0.8, dataSharingPlatforms: 4, aiGovCases: 5,
+  },
+};
+
 const CITY_SMART: Record<string, Record<string, DistrictSmartCity>> = {
   shanghai: SHANGHAI_SMART,
   yinchuan: YINCHUAN_SMART,
+  beijing: BEIJING_SMART,
 };
 
 const SMART_SOURCES: Record<string, { source: string; year: string }> = {
@@ -174,6 +260,10 @@ const SMART_SOURCES: Record<string, { source: string; year: string }> = {
   },
   yinchuan: {
     source: '银川市智慧城市建设项目数据 + "i银川"平台运营数据 + 银川市大数据局',
+    year: '2024-2025年',
+  },
+  beijing: {
+    source: '北京市经信局智慧城市行动纲要 + 「接诉即办」/京通平台运营数据 + 亦庄自动驾驶示范区（区级估算）',
     year: '2024-2025年',
   },
 };
@@ -238,5 +328,21 @@ export const CITY_SMART_TOTALS: Record<string, {
     year: 2025,
     source: '银川市大数据局 + 银川市智慧城市建设项目',
     sourceUrl: 'https://www.yinchuan.gov.cn/',
+  },
+  beijing: {
+    totalSmartIntersections: 3153,
+    avgTrafficCoverage: 85,
+    avgBusRealtime: 89,
+    totalSmartParking: 547,
+    totalUrbanBrainScenarios: 3315,
+    totalSmartCommunities: 356,
+    totalIotDevices: 77.2,
+    smartGovPlatform: '京通/京办',
+    smartGovUsers: 2200,
+    smartGovServices: 4600,
+    smartGovRate: 95,
+    year: 2025,
+    source: '北京市经信局 + 「接诉即办」改革 + 京通平台（区级估算汇总）',
+    sourceUrl: 'https://beijing.gov.cn/',
   },
 };

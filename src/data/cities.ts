@@ -16,6 +16,13 @@ export const CITIES: City[] = [
     blurb: '16 区 · 超大都市，中心高密、郊区广阔。2024年GDP 5.39万亿，全市居民人均收入88,366元（城镇93,095元）。',
   },
   {
+    key: 'beijing',
+    name: '北京',
+    adcode: '110100',
+    boundaryAdcode: '110000', // 直辖市：DataV 用省级 adcode
+    blurb: '16 区 · 首都功能核心区+城市副中心+生态涵养区。2024年GDP 4.98万亿，居民人均收入85,415元，数字经济占GDP约45%。',
+  },
+  {
     key: 'yinchuan',
     name: '银川',
     adcode: '640100',

@@ -93,7 +93,7 @@ const jsonLd = {
 };
 
 const pageTitle = '维度深探 · 跨城市区县宜居度深度分析';
-const pageDesc = `选择维度（教育/医疗/经济/人口/交通/生活），查看${totalCities}个城市${totalDistricts}个区县的排名分布、CSS柱状图、统计摘要（均值/中位数/标准差/极值），支持多维度叠加对比，一键切换维度深入分析。`;
+const pageDesc = `选择维度（教育/医疗/经济/人口/交通/生活/智慧/数字），查看${totalCities}个城市${totalDistricts}个区县的排名分布、CSS柱状图、统计摘要（均值/中位数/标准差/极值），支持多维度叠加对比，一键切换维度深入分析。`;
 ---
 
 <BaseLayout
@@ -454,7 +454,7 @@ const pageDesc = `选择维度（教育/医疗/经济/人口/交通/生活），
     {/* ── 多维度叠加对比面板 ── */}
     <div id="overlay-panel" class="mt-8 hidden">
       <div class="card p-5">
-        <h3 class="text-sm font-semibold text-ink">选择 2-3 个维度进行叠加对比</h3>
+        <h3 class="text-sm font-semibold text-ink">选择 2-3 个维度进行叠加对比（可保存为图片分享）</h3>
         <p class="mt-1 text-xs text-ink-soft">选择维度后，各区县在所选维度上的得分将以不同颜色柱状图叠加展示</p>
         <div class="mt-4 flex flex-wrap gap-2" id="overlay-dim-selector">
           {allDimensions.map((dim) => (
@@ -479,6 +479,13 @@ const pageDesc = `选择维度（教育/医疗/经济/人口/交通/生活），
           <svg id="overlay-radar" width="360" height="360" viewBox="0 0 360 360" role="img" aria-label="多维度叠加雷达图">
           </svg>
           <div id="overlay-legend" class="mt-3 flex flex-wrap justify-center gap-3 text-xs"></div>
+          <button
+            type="button"
+            id="save-radar-btn"
+            class="mt-4 rounded-lg border border-accent bg-accent-soft px-4 py-2 text-xs font-medium text-accent transition hover:bg-accent hover:text-white"
+          >
+            💾 保存为图片（PNG）
+          </button>
         </div>
         <div id="overlay-content" class="space-y-4"></div>
       </div>
@@ -714,6 +721,58 @@ const pageDesc = `选择维度（教育/医疗/经济/人口/交通/生活），
         } else {
           renderOverlay();
         }
+      })();
+    </script>
+
+    {/* ── 保存雷达图为 PNG（SVG → Canvas 导出） ── */}
+    <script is:inline>
+      (function () {
+        var btn = document.getElementById('save-radar-btn');
+        if (!btn) return;
+        btn.addEventListener('click', function () {
+          var svg = document.getElementById('overlay-radar');
+          var legend = document.getElementById('overlay-legend');
+          // 未选够维度时雷达图为空（网格环 4 个 polygon + 数据多边形 ≥2）
+          if (!svg || svg.querySelectorAll('polygon').length < 6) {
+            alert('请先在叠加模式中选择至少 2 个维度，再保存图片');
+            return;
+          }
+          var svgStr = new XMLSerializer().serializeToString(svg);
+          var scale = 2; // 2x 分辨率，导出更清晰
+          var W = 360, H = 360, PAD_TOP = 64, PAD_BOTTOM = 56;
+          var canvasW = W * scale, canvasH = (H + PAD_TOP + PAD_BOTTOM) * scale;
+          var img = new Image();
+          img.onload = function () {
+            var canvas = document.createElement('canvas');
+            canvas.width = canvasW;
+            canvas.height = canvasH;
+            var ctx = canvas.getContext('2d');
+            // 白底 + 标题 + 水印
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvasW, canvasH);
+            ctx.fillStyle = '#0f172a';
+            ctx.font = 'bold ' + 20 * scale + 'px system-ui, -apple-system, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('城市宜居度 · 多维度叠加对比', canvasW / 2, 34 * scale);
+            ctx.fillStyle = '#64748b';
+            ctx.font = 12 * scale + 'px system-ui, -apple-system, sans-serif';
+            ctx.fillText('数据来源：yijudu.com（基于公开统计与 POI 数据）', canvasW / 2, 56 * scale);
+            ctx.drawImage(img, 0, PAD_TOP * scale, W * scale, H * scale);
+            // 图例（从页面 legend 复制文本+色点）
+            var legendY = (PAD_TOP + H + 24) * scale;
+            var items = legend ? legend.querySelectorAll('span') : [];
+            var totalText = Array.prototype.map.call(items, function (s) { return s.textContent.trim(); }).join('   ');
+            ctx.fillStyle = '#334155';
+            ctx.font = 12 * scale + 'px system-ui, -apple-system, sans-serif';
+            ctx.fillText(totalText || '维度叠加雷达图', canvasW / 2, legendY);
+            var a = document.createElement('a');
+            a.download = 'yijudu-overlay-radar.png';
+            a.href = canvas.toDataURL('image/png');
+            a.click();
+          };
+          img.onerror = function () { alert('图片导出失败，请重试'); };
+          img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgStr);
+        });
       })();
     </script>
 

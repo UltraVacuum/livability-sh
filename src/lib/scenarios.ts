@@ -1,6 +1,6 @@
 /**
  * Scenario weight presets for scene-based rankings.
- * Each scenario defines custom weights for the 6 metrics, plus a description
+ * Each scenario defines custom weights for the 8 metrics, plus a description
  * explaining the weighting rationale.
  */
 import type { MetricKey } from '../data/districts';
@@ -28,6 +28,8 @@ export const SCENARIOS: Scenario[] = [
       economy: 1.5,
       transit: 1,
       population: 1,
+      smart: 0.5,
+      digital: 0.5,
     },
     weightRationale: [
       { metric: 'education', weight: 3, reason: 'K12 教育资源是家庭选址的首要考量' },
@@ -36,6 +38,8 @@ export const SCENARIOS: Scenario[] = [
       { metric: 'economy', weight: 1.5, reason: '家庭可支配收入决定生活品质' },
       { metric: 'transit', weight: 1, reason: '通勤便利但非家庭首选' },
       { metric: 'population', weight: 1, reason: '适度人口密度保证社区活力' },
+      { metric: 'smart', weight: 0.5, reason: '智慧政务/智慧社区为加分项，非核心' },
+      { metric: 'digital', weight: 0.5, reason: '数字经济活力对家庭选址影响有限' },
     ],
   },
   {
@@ -51,6 +55,8 @@ export const SCENARIOS: Scenario[] = [
       population: 2,
       education: 0.5,
       healthcare: 1,
+      smart: 1,
+      digital: 1.5,
     },
     weightRationale: [
       { metric: 'economy', weight: 3, reason: '收入水平和就业机会是年轻人核心关注' },
@@ -59,6 +65,8 @@ export const SCENARIOS: Scenario[] = [
       { metric: 'population', weight: 2, reason: '人口密度反映区域活力与机遇' },
       { metric: 'healthcare', weight: 1, reason: '年轻人医疗需求相对较低' },
       { metric: 'education', weight: 0.5, reason: '非学龄人口教育需求弱' },
+      { metric: 'digital', weight: 1.5, reason: '数字经济就业机会（互联网/软件）与年轻人高度相关' },
+      { metric: 'smart', weight: 1, reason: '智慧城市体验（一网通办/智慧出行）提升生活效率' },
     ],
   },
   {
@@ -74,6 +82,8 @@ export const SCENARIOS: Scenario[] = [
       population: 0.5,
       transit: 1.5,
       education: 0.5,
+      smart: 0.5,
+      digital: 0.25,
     },
     weightRationale: [
       { metric: 'healthcare', weight: 3, reason: '医疗资源是养老选址的第一优先级' },
@@ -82,11 +92,13 @@ export const SCENARIOS: Scenario[] = [
       { metric: 'transit', weight: 1.5, reason: '公共交通便利方便就医和出行' },
       { metric: 'population', weight: 0.5, reason: '偏好低密度、安静环境' },
       { metric: 'education', weight: 0.5, reason: '非学龄人口教育需求极低' },
+      { metric: 'smart', weight: 0.5, reason: '智慧政务线上办理对长者是便利加分项' },
+      { metric: 'digital', weight: 0.25, reason: '数字经济就业与养老场景几乎无关' },
     ],
   },
 ];
 
-/** Default equal weights for /best comprehensive ranking. */
+/** Default equal weights for /best comprehensive ranking (补充维度减半). */
 export const DEFAULT_BEST_WEIGHTS: Record<MetricKey, number> = {
   economy: 1,
   population: 1,
@@ -94,6 +106,8 @@ export const DEFAULT_BEST_WEIGHTS: Record<MetricKey, number> = {
   healthcare: 1,
   transit: 1,
   amenity: 1,
+  smart: 0.5,
+  digital: 0.5,
 };
 
 export function getScenario(slug: string): Scenario | undefined {

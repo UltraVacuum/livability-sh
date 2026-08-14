@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { CITIES } from '../data/cities';
-import { getDistricts, METRICS, type MetricKey } from '../data/districts';
+import { getDistricts, METRICS, DEFAULT_WEIGHTS, type MetricKey } from '../data/districts';
 import { computeCity } from '../lib/scoring';
 
 // Build cross-city ranking data for all metrics
@@ -80,6 +80,38 @@ for (const city of CITIES) {
 // Sort by composite score descending
 allDistricts.sort((a, b) => b.composite - a.composite);
 
+// ── 评分构成（新八维加权体系，各维度贡献度）──
+const WEIGHTS = DEFAULT_WEIGHTS;
+const totalWeight = METRICS.reduce((s, m) => s + WEIGHTS[m.key], 0);
+const METRIC_COLORS: Record<string, string> = {
+  economy: '#0f766e',
+  population: '#0284c7',
+  education: '#7c3aed',
+  healthcare: '#db2777',
+  transit: '#ea580c',
+  amenity: '#16a34a',
+  smart: '#0891b2',
+  digital: '#ca8a04',
+};
+// 加权综合分最高的 10 个区县（跨城市，各城市内独立评分后对比综合分）
+const contributionRows = allDistricts.slice(0, 10).map((d) => {
+  const weightedSum = METRICS.reduce(
+    (s, m) => s + WEIGHTS[m.key] * d.scores[m.key],
+    0,
+  );
+  const contributions = METRICS.map((m) => ({
+    key: m.key,
+    label: m.shortLabel,
+    weight: WEIGHTS[m.key],
+    score: d.scores[m.key],
+    // 贡献度 = 维度权重×得分 占 加权总分 的比例（%，保留 1 位）
+    share: +((WEIGHTS[m.key] * d.scores[m.key] / weightedSum) * 100).toFixed(1),
+    color: METRIC_COLORS[m.key] ?? '#64748b',
+  }));
+  contributions.sort((a, b) => b.share - a.share);
+  return { ...d, weightedComposite: +(weightedSum / totalWeight).toFixed(1), contributions };
+});
+
 // Heatmap color: 0-100 score → background color
 function heatColor(score: number): string {
   if (score >= 80) return '#15803d'; // green-700
@@ -104,7 +136,7 @@ const jsonLd = {
 };
 
 const pageTitle = '区县宜居度排行榜 · 教育/医疗/经济多维排名';
-const pageDesc = '上海与银川全部区县按教育、医疗、经济等维度横向排名，CSS 可视化条形图直观展示各區实力，支持维度切换。基于公开数据的城市宜居度分析。';
+const pageDesc = '上海、北京、银川全部区县按教育、医疗、经济等八个维度横向排名，CSS 可视化条形图与评分贡献度构成一目了然。基于公开数据的城市宜居度分析。';
 ---
 
 <BaseLayout
@@ -113,6 +145,7 @@ const pageDesc = '上海与银川全部区县按教育、医疗、经济等维�
   path="/rankings"
   keywords={[
     '上海区排名',
+    '北京区排名',
     '区教育质量排名',
     '区医疗资源排名',
     '人均GDP排名',
@@ -121,6 +154,7 @@ const pageDesc = '上海与银川全部区县按教育、医疗、经济等维�
     '哪个区教育好',
     '哪个区医疗好',
     '上海宜居度',
+    '北京宜居度',
     '银川宜居度',
   ]}
   jsonLd={jsonLd}
@@ -129,8 +163,8 @@ const pageDesc = '上海与银川全部区县按教育、医疗、经济等维�
     <a href="/" class="text-sm text-ink-soft hover:text-accent">← 返回首页</a>
     <h1 class="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">区县宜居度排行榜</h1>
     <p class="mt-3 max-w-2xl text-ink-soft">
-      上海 {CITIES.find(c => c.key === 'shanghai')?.name ?? '' }16区 + 银川6区县，按六个维度横向排名。
-      切换维度查看不同视角下的区域实力排序。数据来源：高德POI密度 + 统计年鉴。
+      上海 16 区 + 北京 16 区 + 银川 6 区县，按八个维度横向排名。
+      切换维度查看不同视角下的区域实力排序。数据来源：高德 POI 密度 + 统计年鉴 + 智慧城市/数字经济公开数据。
     </p>
 
     {/* ── 评分维度覆盖率 ── */}
@@ -138,22 +172,74 @@ const pageDesc = '上海与银川全部区县按教育、医疗、经济等维�
       <div class="card p-4 text-center">
         <div class="text-xs text-ink-soft">核心评分维度</div>
         <div class="mt-1 text-2xl font-bold text-accent">{METRICS.length}</div>
-        <div class="text-[10px] text-ink-soft">教育/医疗/经济/人口/交通/生活</div>
+        <div class="text-[10px] text-ink-soft">教育/医疗/经济/人口/交通/生活/智慧/数字</div>
       </div>
       <div class="card p-4 text-center">
         <div class="text-xs text-ink-soft">辅助数据维度</div>
         <div class="mt-1 text-2xl font-bold text-ink">70+</div>
-        <div class="text-[10px] text-ink-soft">含科技孵化器/人才引进/数字经济等</div>
+        <div class="text-[10px] text-ink-soft">含科技孵化器/人才引进等展示型维度</div>
       </div>
       <div class="card p-4 text-center">
         <div class="text-xs text-ink-soft">覆盖区县</div>
         <div class="mt-1 text-2xl font-bold text-ink">{allDistricts.length}</div>
-        <div class="text-[10px] text-ink-soft">上海 16区 + 银川 6区县</div>
+        <div class="text-[10px] text-ink-soft">上海 16 区 + 北京 16 区 + 银川 6 区县</div>
       </div>
       <div class="card p-4 text-center">
         <div class="text-xs text-ink-soft">数据来源</div>
         <div class="mt-1 text-2xl font-bold text-ink">100%</div>
-        <div class="text-[10px] text-ink-soft">基于公开统计数据</div>
+        <div class="text-[10px] text-ink-soft">基于公开统计数据（部分区级为估算分配）</div>
+      </div>
+    </div>
+
+    {/* ── 综合评分构成（维度贡献度） ── */}
+    <div class="card mt-8 p-0">
+      <div class="border-b border-line bg-surface-muted px-5 py-3">
+        <h2 class="text-base font-bold text-ink">🧮 综合评分构成 · 维度贡献度</h2>
+        <p class="mt-0.5 text-xs text-ink-soft">
+          综合分 TOP 10 区县（跨城市）的加权构成：每个色段 = 维度权重 × 得分 占加权总分的比例。
+          核心六维权重 1.0，智慧/数字补充维度 0.5。
+        </p>
+      </div>
+      <div class="divide-y divide-line">
+        {contributionRows.map((row, i) => (
+          <div class="px-5 py-3">
+            <div class="flex items-center justify-between text-sm">
+              <div class="flex items-center gap-2">
+                <span class={`w-6 text-center font-bold ${i < 3 ? 'text-accent' : 'text-ink-soft'}`}>{i + 1}</span>
+                <a href={`/${row.cityKey}/district/${row.adcode}`} class="font-medium text-ink hover:text-accent">{row.districtName}</a>
+                <span class="rounded-full bg-surface-muted px-2 py-0.5 text-[10px] text-ink-soft">{row.cityName}</span>
+              </div>
+              <span class="font-bold text-ink">{row.weightedComposite.toFixed(1)}</span>
+            </div>
+            {/* stacked contribution bar */}
+            <div class="mt-2 flex h-5 w-full overflow-hidden rounded-lg">
+              {row.contributions.map((c) => (
+                <div
+                  style={`width:${c.share}%; background:${c.color}`}
+                  title={`${c.label}（权重×${c.weight}）：得分 ${c.score.toFixed(0)}，贡献 ${c.share}%`}
+                />
+              ))}
+            </div>
+            <div class="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-ink-soft">
+              {row.contributions.slice(0, 4).map((c) => (
+                <span class="flex items-center gap-1">
+                  <span class="inline-block h-2 w-2 rounded-sm" style={`background:${c.color}`} />
+                  {c.label} {c.share}%
+                </span>
+              ))}
+              <span class="text-ink-soft/70">其余 {row.contributions.length - 4} 维合计 {(row.contributions.slice(4).reduce((s, c) => s + c.share, 0)).toFixed(1)}%</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div class="flex flex-wrap gap-x-3 gap-y-1 border-t border-line px-5 py-2.5 text-[10px] text-ink-soft">
+        <span class="font-medium">图例（权重）：</span>
+        {METRICS.map((m) => (
+          <span class="flex items-center gap-1">
+            <span class="inline-block h-2.5 w-2.5 rounded-sm" style={`background:${METRIC_COLORS[m.key] ?? '#64748b'}`} />
+            {m.shortLabel}×{WEIGHTS[m.key]}
+          </span>
+        ))}
       </div>
     </div>
 
@@ -256,7 +342,7 @@ const pageDesc = '上海与银川全部区县按教育、医疗、经济等维�
             <div class="divide-y divide-line">
               {top10.map((row) => {
                 const barWidth = (row.score / maxScore) * 100;
-                const isTop3 = row.rank <= 3;
+                const isTop3 = row.rank < 4;
                 const medal = row.rank === 1 ? '🥇' : row.rank === 2 ? '🥈' : row.rank === 3 ? '🥉' : '';
                 return (
                   <div class="flex items-center gap-3 px-4 py-3 transition hover:bg-surface-muted">

@@ -6,6 +6,9 @@
  */
 import POI from './poi.json';
 import { CENSUS, SH_OFFICIAL_2024 } from './census';
+import { BEIJING_DISTRICTS, beijingIncomeSource } from './beijing';
+import { getDistrictSmartCity, type DistrictSmartCity } from './smartCity';
+import { getDigitalEconomy } from './digitalEconomy';
 
 export type MetricKey =
   | 'economy'
@@ -13,7 +16,9 @@ export type MetricKey =
   | 'education'
   | 'healthcare'
   | 'transit'
-  | 'amenity';
+  | 'amenity'
+  | 'smart'
+  | 'digital';
 
 export interface MetricDef {
   key: MetricKey;
@@ -87,6 +92,26 @@ export const METRICS: MetricDef[] = [
     source: '高德 POI',
     real: true,
   },
+  {
+    key: 'smart',
+    label: '智慧城市',
+    shortLabel: '智慧',
+    unit: '指数(0-100)',
+    direction: 1,
+    description: '智慧城市指数 = 0.35×智能交通覆盖率 + 0.25×公交实时到站覆盖率 + 0.20×智慧社区密度指数（个/km²×100，上限100）+ 0.20×物联网设备密度指数（万台/km²×400，上限100）。',
+    source: '各市智慧交通/城市大脑/智慧政务公开数据（区级分配估算，详见 smartCity.ts）',
+    real: true,
+  },
+  {
+    key: 'digital',
+    label: '数字经济',
+    shortLabel: '数字',
+    unit: '占GDP %',
+    direction: 1,
+    description: '数字经济核心产业占区域GDP比重（%），反映区域数字经济活力、就业机会与产业升级程度。',
+    source: '各市统计局公报 + 第五次经济普查（区级分配估算，详见 digitalEconomy.ts）',
+    real: true,
+  },
 ];
 
 export interface RawDistrict {
@@ -142,21 +167,60 @@ const ECONOMY: Record<string, EconEntry> = {
 };
 
 export function economySource(adcode: string): string {
-  return ECONOMY[adcode]?.source ?? '估算';
+  return ECONOMY[adcode]?.source ?? beijingIncomeSource(adcode) ?? '估算';
+}
+
+/**
+ * 智慧城市指数（0–100）— 从 smartCity.ts 区级数据合成单一指标：
+ *   0.35 × 智能交通覆盖率(%) + 0.25 × 公交实时到站覆盖率(%)
+ * + 0.20 × min(100, 智慧社区密度 × 100)  （个/km²）
+ * + 0.20 × min(100, 物联网设备密度 × 400) （万台/km²）
+ * 密度项与 POI 维度同口径（中心城区高、远郊低），覆盖率项反映治理水平。
+ */
+export function smartCityIndex(s: DistrictSmartCity | undefined, areaKm2: number): number {
+  if (!s || !areaKm2) return 0;
+  const traffic = s.smartTrafficCoverage ?? 0;
+  const bus = s.busRealtimeCoverage ?? 0;
+  const communityIdx = Math.min(100, ((s.smartCommunities ?? 0) / areaKm2) * 100);
+  const iotIdx = Math.min(100, ((s.iotDevices ?? 0) / areaKm2) * 400);
+  return +(0.35 * traffic + 0.25 * bus + 0.2 * communityIdx + 0.2 * iotIdx).toFixed(1);
+}
+
+/** 数字经济维度原始值：数字经济核心产业占区域GDP比重（%）。 */
+export function digitalShare(adcode: string): number {
+  return getDigitalEconomy(adcode)?.digitalGdpShare ?? 0;
 }
 
 interface PoiDistrict {
   adcode: string;
   name: string;
   area_km2: number;
-  counts: Record<Exclude<MetricKey, 'economy' | 'population'>, number>;
-  density: Record<Exclude<MetricKey, 'economy' | 'population'>, number>;
+  counts: Record<PoiMetric, number>;
+  density: Record<PoiMetric, number>;
 }
 
-type PoiMetric = Exclude<MetricKey, 'economy' | 'population'>;
+/** POI 采集型维度（密度 = 计数 ÷ 面积）。smart/digital 来自独立数据文件，不在 POI 内。 */
+type PoiMetric = 'education' | 'healthcare' | 'transit' | 'amenity';
 
 /** Build a city's districts: real POI density (official area) + real population density + income. */
 export function getDistricts(cityKey: string): RawDistrict[] {
+  // 北京：区级公报/年鉴估算数据（非 POI 采集，见 beijing.ts）
+  if (cityKey === 'beijing') {
+    return BEIJING_DISTRICTS.map((d) => ({
+      adcode: d.adcode,
+      name: d.name,
+      values: {
+        economy: d.income,
+        population: d.density,
+        education: +(d.counts.education / d.areaKm2).toFixed(2),
+        healthcare: +(d.counts.healthcare / d.areaKm2).toFixed(2),
+        transit: +(d.counts.transit / d.areaKm2).toFixed(2),
+        amenity: +(d.counts.amenity / d.areaKm2).toFixed(2),
+        smart: smartCityIndex(getDistrictSmartCity(cityKey, d.adcode), d.areaKm2),
+        digital: digitalShare(d.adcode),
+      },
+    }));
+  }
   const poi = (POI as Record<string, { districts: PoiDistrict[]; collectedAt: string }>)[cityKey];
   const census = CENSUS[cityKey];
   if (!poi) return [];
@@ -178,11 +242,17 @@ export function getDistricts(cityKey: string): RawDistrict[] {
         healthcare: dens('healthcare'),
         transit: dens('transit'),
         amenity: dens('amenity'),
+        smart: smartCityIndex(getDistrictSmartCity(cityKey, d.adcode), area),
+        digital: digitalShare(d.adcode),
       },
     };
   });
 }
 
+/**
+ * 默认权重：6 个核心维度等权（1.0），智慧城市/数字经济为补充维度（0.5）
+ * —— 参与综合评分但不压过教育/医疗等核心宜居指标。
+ */
 export const DEFAULT_WEIGHTS: Record<MetricKey, number> = {
   economy: 1,
   population: 1,
@@ -190,9 +260,14 @@ export const DEFAULT_WEIGHTS: Record<MetricKey, number> = {
   healthcare: 1,
   transit: 1,
   amenity: 1,
+  smart: 0.5,
+  digital: 0.5,
 };
 
-/** When each city's POI was collected (for display). */
-export const POI_COLLECTED_AT: Record<string, string> = Object.fromEntries(
-  Object.entries(POI).map(([k, v]) => [k, (v as { collectedAt: string }).collectedAt]),
-);
+/** When each city's POI was collected (for display). Beijing uses公报估算（见 beijing.ts）. */
+export const POI_COLLECTED_AT: Record<string, string> = {
+  beijing: '2024年统计口径（区级估算，非POI采集）',
+  ...Object.fromEntries(
+    Object.entries(POI).map(([k, v]) => [k, (v as { collectedAt: string }).collectedAt]),
+  ),
+};

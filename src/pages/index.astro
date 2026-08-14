@@ -121,6 +121,7 @@ const jsonLd = {
     '哪个区最适合居住',
     '公开数据',
     '上海宜居度',
+    '北京宜居度',
     '银川宜居度',
   ]}
 >
@@ -130,7 +131,7 @@ const jsonLd = {
         城市<span class="text-accent">宜居度</span>对比
       </h1>
       <p class="mt-4 text-base text-ink-soft sm:text-lg">
-        选择城市 → 看各区县六维评分（经济、人口、教育、医疗、交通、生活），拖动权重实时重排，找到最适合你的区。
+        选择城市 → 看各区县八维评分（经济、人口、教育、医疗、交通、生活、智慧、数字），拖动权重实时重排，找到最适合你的区。
         人口与配套为真实公开数据，算法可解释。
       </p>
     </div>
@@ -178,7 +179,7 @@ const jsonLd = {
     <div class="mt-8 grid gap-4 lg:grid-cols-2">
       {cityAverages.map((ca) => (
         <div class="card p-6">
-          <h3 class="font-bold text-ink">{ca.city.name} · 六维平均分</h3>
+          <h3 class="font-bold text-ink">{ca.city.name} · 八维平均分</h3>
           <p class="mt-0.5 text-xs text-ink-soft">{ca.districtCount} 个区县的维度均值</p>
           {/* CSS horizontal bar comparison */}
           <div class="mt-4 space-y-2">
@@ -230,7 +231,7 @@ const jsonLd = {
     <div class="mt-10 grid gap-4 sm:grid-cols-3">
       <div class="card p-5">
         <div class="text-2xl">📊</div>
-        <h3 class="mt-2 font-semibold">六维评分</h3>
+        <h3 class="mt-2 font-semibold">八维评分</h3>
         <p class="mt-1 text-sm text-ink-soft">z-score 归一 + 加权综合，城市内百分位分级。</p>
       </div>
       <div class="card p-5">
