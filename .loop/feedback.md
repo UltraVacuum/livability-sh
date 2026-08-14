@@ -1,3 +1,18 @@
+### 2026-08-15 审查（#31）
+- 裁决: PASS
+- 发现: 北京市级 banner 补齐（GDP/收入/轨交/医疗/高校等 2025 公报口径），新增 /digital 三城智慧/数字横向对比页（38 区县、五项指标条形图、逐城口径），correlation 增加 8×8/28 对/对角线构建校验并高亮 |r| ≥ 0.7 强相关对（17 组），同时修复北京图例与城市筛选按钮缺口。实质 commit d41e6f4，9 files、446 insertions。
+- OCR 评审: 429 降级 — ① console.log=0；② : any=0；③ npm run build 第二次 PASS（82 pages）；④ 人工复查 digital.astro/correlation.astro 且 dist 北京、数字、相关性页无 NaN/undefined
+- 建议: ① /digital 增加“每万人5G基站/数字就业/企业”人均归一化视图，避免绝对总量天然偏向大城市；② correlation 强相关清单支持随城市筛选联动重算，并展示城市内/全样本差异；③ 拆分 cityStats 中误用的 greenRate 字段为 parks/sewageTreatmentRate 独立口径，补齐三城统一展示
+- 基因命中: GENE-yijudu-suggestion-loop（#30 三条建议全部落实）+ GENE-push-ssh（按超时降级规则备用）
+- 自检: git diff d41e6f4~1 d41e6f4 --stat = 9 files, 446 insertions(+), 11 deletions(-) + npx tsc --noEmit = PASS + npm run build = PASS (82 pages)
+
+### 2026-08-14 审查（晚间轮 #30）
+- 裁决: PASS
+- 发现: 评分体系六维→八维（智慧城市指数+数字经济占GDP比纳入评分，核心六维1.0/补充维度0.5，场景权重同步扩展），rankings 新增「综合评分构成·维度贡献度」面板（TOP10加权贡献度堆叠条形图），新增北京16区全量数据并接入全部页面（81页，+30），explore 叠加模式新增保存PNG功能。604行新增，21文件，3城市38区县，上轮三条建议全部落实。
+- OCR 评审: 0C/0H/0L（但18/20文件因子任务429速率限制失败，完成部分0 findings——外部API问题非代码问题，连续第3轮）。补偿自检：astro check 错误数与基线持平（15→15，修复引入的1个类型错误+预存astro(1002)），渲染页面抽查无NaN/undefined
+- 建议: 下轮可考虑：①北京数据补充市级 banner 维度（cityStats 等展示型数据目前北京页为空）；②智慧/数字维度的城市间横向对比页（当前仅城市内对比）；③correlation 页验证 8 维矩阵效果并考虑高亮强相关对
+- 自检: git diff 4bc59bc~1 --stat = 21 files, 604 insertions(+) + npm run build = PASS (81 pages)
+
 ### 2026-08-12 审查
 - 裁决: PASS
 - 发现: explore 新增多维度叠加模式（2-3维雷达图+对比表+叠加柱状图），compare 新增 5 个预设对比方案（教育强区/经济最强/最宜居/双城/交通便利），rankings 新增维度覆盖率统计面板，新增数字经济就业维度（上海16区+银川6区县）。527行新增，6文件，46页构建PASS。
