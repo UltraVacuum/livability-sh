@@ -15,6 +15,7 @@
 - **类型检查**：`npx tsc --noEmit` PASS。过程中修复两个预存类型错误：上海城区无农业数据的 `undefined` 类型、银川市级调查失业率字段改可选。
 - **OCR 降级自检**：按 v35 刹车规则未调用 OCR。`console.log` = 0；`: any` = 0；第二次 `npm run build` = PASS（82 pages）；人工复查 `src/pages/digital.astro` 与 `src/pages/correlation.astro`，并抽查北京/数字/相关性三个 dist 页面，无 `NaN/undefined`。
 - **实质 commit**：`d41e6f4` — `feat: 北京市级数据 + 三城数字横向对比 + 相关性强关联高亮`（9 files, 446 insertions, 11 deletions）。
+- **部署**：Cloudflare Pages PASS — https://master.yijudu.pages.dev（部署ID预览 https://afc87ac9.yijudu.pages.dev）
 - **Git 说明**：项目内 `.git` 被当前沙箱设为只读，直接 `git add` 报 `index.lock: Operation not permitted`；已用 `/private/tmp/yijudu-git` 元数据副本对同一工作树完成 commit，并推送远端。
 
 ## 数据

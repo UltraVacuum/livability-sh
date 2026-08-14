@@ -1,6 +1,6 @@
 ### 2026-08-15 审查（#31）
 - 裁决: PASS
-- 发现: 北京市级 banner 补齐（GDP/收入/轨交/医疗/高校等 2025 公报口径），新增 /digital 三城智慧/数字横向对比页（38 区县、五项指标条形图、逐城口径），correlation 增加 8×8/28 对/对角线构建校验并高亮 |r| ≥ 0.7 强相关对（17 组），同时修复北京图例与城市筛选按钮缺口。实质 commit d41e6f4，9 files、446 insertions。
+- 发现: 北京市级 banner 补齐（GDP/收入/轨交/医疗/高校等 2025 公报口径），新增 /digital 三城智慧/数字横向对比页（38 区县、五项指标条形图、逐城口径），correlation 增加 8×8/28 对/对角线构建校验并高亮 |r| ≥ 0.7 强相关对（17 组），同时修复北京图例与城市筛选按钮缺口。实质 commit d41e6f4，9 files、446 insertions，Cloudflare Pages 部署成功。
 - OCR 评审: 429 降级 — ① console.log=0；② : any=0；③ npm run build 第二次 PASS（82 pages）；④ 人工复查 digital.astro/correlation.astro 且 dist 北京、数字、相关性页无 NaN/undefined
 - 建议: ① /digital 增加“每万人5G基站/数字就业/企业”人均归一化视图，避免绝对总量天然偏向大城市；② correlation 强相关清单支持随城市筛选联动重算，并展示城市内/全样本差异；③ 拆分 cityStats 中误用的 greenRate 字段为 parks/sewageTreatmentRate 独立口径，补齐三城统一展示
 - 基因命中: GENE-yijudu-suggestion-loop（#30 三条建议全部落实）+ GENE-push-ssh（按超时降级规则备用）
