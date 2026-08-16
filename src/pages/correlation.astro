@@ -106,16 +106,50 @@ const strongPairs = pairs
   .filter((p) => Math.abs(p.r) >= 0.7)
   .sort((a, b) => Math.abs(b.r) - Math.abs(a.r));
 
+// ── 强相关对随城市筛选联动重算：按城市子集重算皮尔逊矩阵 ──
+function computeStrongPairs(districts: DistrictData[]): CorrPair[] {
+  const keys = METRICS.map((m) => m.key);
+  const mtx: number[][] = [];
+  for (let i = 0; i < keys.length; i++) {
+    const row: number[] = [];
+    for (let j = 0; j < keys.length; j++) {
+      row.push(
+        pearson(
+          districts.map((d) => d.scores[keys[i]]),
+          districts.map((d) => d.scores[keys[j]]),
+        ),
+      );
+    }
+    mtx.push(row);
+  }
+  const ps: CorrPair[] = [];
+  for (let i = 0; i < keys.length; i++) {
+    for (let j = i + 1; j < keys.length; j++) {
+      const defA = METRICS.find((m) => m.key === keys[i])!;
+      const defB = METRICS.find((m) => m.key === keys[j])!;
+      ps.push({
+        a: keys[i],
+        b: keys[j],
+        aLabel: defA.label,
+        bLabel: defB.label,
+        r: mtx[i][j],
+        r2: mtx[i][j] ** 2,
+      });
+    }
+  }
+  return ps
+    .filter((p) => Math.abs(p.r) >= 0.7)
+    .sort((a, b) => Math.abs(b.r) - Math.abs(a.r));
+}
+const strongPairsByCity: Record<string, CorrPair[]> = { all: strongPairs };
+for (const city of CITIES) {
+  strongPairsByCity[city.key] = computeStrongPairs(
+    allDistricts.filter((d) => d.cityKey === city.key),
+  );
+}
+
 // ── Prepare scatter data for default pair (top positive) ──
 const defaultPair = topPositive[0];
-const scatterData = allDistricts.map((d) => ({
-  name: d.name,
-  city: d.cityName,
-  cityKey: d.cityKey,
-  adcode: d.adcode,
-  x: d.scores[defaultPair.a],
-  y: d.scores[defaultPair.b],
-}));
 
 // ── Prepare all-pairs scatter data as a lookup ──
 const allScatterData: Record<string, Array<{ name: string; city: string; cityKey: string; adcode: string; x: number; y: number }>> = {};
@@ -261,26 +295,28 @@ const pageDesc = `${totalDimensions}个宜居维度的皮尔逊相关系数矩�
           <h2 class="text-lg font-semibold text-ink">⭐ 强相关对清单（|r| ≥ 0.7）</h2>
           <p class="mt-1 text-sm text-ink-soft">按绝对相关强度降序排列；星标与矩阵高亮一一对应。</p>
         </div>
-        <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800">{strongPairs.length} 组</span>
+        <span id="strong-pairs-count" class="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800">{strongPairs.length} 组</span>
       </div>
-      {strongPairs.length === 0 ? (
-        <p class="mt-4 text-sm text-ink-soft">当前8维评分中没有达到 |r| ≥ 0.7 的唯一维度对。</p>
-      ) : (
-        <ol class="mt-4 space-y-3">
-          {strongPairs.map((p, i) => (
-            <li class="grid grid-cols-[2rem_1fr_5.5rem] items-center gap-3">
-              <span class="text-center text-sm font-bold text-ink-soft">{i + 1}</span>
-              <div>
-                <div class="text-sm font-medium text-ink">{p.aLabel} ↔ {p.bLabel}</div>
-                <div class="mt-1 h-2 overflow-hidden rounded-full bg-surface-muted">
-                  <div class="h-full rounded-full" style={`width:${Math.abs(p.r) * 100}%;background:${corrColor(p.r)}`} />
+      <div id="strong-pairs-container">
+        {strongPairs.length === 0 ? (
+          <p class="mt-4 text-sm text-ink-soft">当前8维评分中没有达到 |r| ≥ 0.7 的唯一维度对。</p>
+        ) : (
+          <ol class="mt-4 space-y-3">
+            {strongPairs.map((p, i) => (
+              <li class="grid grid-cols-[2rem_1fr_5.5rem] items-center gap-3">
+                <span class="text-center text-sm font-bold text-ink-soft">{i + 1}</span>
+                <div>
+                  <div class="text-sm font-medium text-ink">{p.aLabel} ↔ {p.bLabel}</div>
+                  <div class="mt-1 h-2 overflow-hidden rounded-full bg-surface-muted">
+                    <div class="h-full rounded-full" style={`width:${Math.abs(p.r) * 100}%;background:${corrColor(p.r)}`} />
+                  </div>
                 </div>
-              </div>
-              <span class={`text-right text-sm font-bold ${p.r >= 0 ? 'text-grade-a' : 'text-grade-d'}`}>r = {p.r.toFixed(3)}</span>
-            </li>
-          ))}
-        </ol>
-      )}
+                <span class={`text-right text-sm font-bold ${p.r >= 0 ? 'text-grade-a' : 'text-grade-d'}`}>r = {p.r.toFixed(3)}</span>
+              </li>
+            ))}
+          </ol>
+        )}
+      </div>
     </div>
 
     {/* ── 散点图 ── */}
@@ -449,7 +485,7 @@ const pageDesc = `${totalDimensions}个宜居维度的皮尔逊相关系数矩�
   </section>
 
   {/* ── 散点图数据 + 交互逻辑 ── */}
-  <script is:inline define:vars={{ allScatterData, metricKeys, METRICS: METRICS.map(m => ({ key: m.key, label: m.label, shortLabel: m.shortLabel })) }}>
+  <script is:inline define:vars={{ allScatterData, metricKeys, strongPairsByCity, METRICS: METRICS.map(m => ({ key: m.key, label: m.label, shortLabel: m.shortLabel })) }}>
     (function () {
       const svg = document.getElementById('scatter-plot');
       if (!svg) return;
@@ -464,6 +500,34 @@ const pageDesc = `${totalDimensions}个宜居维度的皮尔逊相关系数矩�
       const cityFilterBtns = document.querySelectorAll('.city-filter-btn');
       let activeCity = 'all';
 
+      function renderStrongPairs() {
+        const list = strongPairsByCity[activeCity] || [];
+        const countEl = document.getElementById('strong-pairs-count');
+        const container = document.getElementById('strong-pairs-container');
+        if (countEl) countEl.textContent = list.length + ' 组';
+        if (!container) return;
+        if (list.length === 0) {
+          const label = activeCity === 'all' ? '全部城市' : activeCity;
+          container.innerHTML = '<p class="mt-4 text-sm text-ink-soft">当前筛选（' + label + '）的8维评分中没有达到 |r| ≥ 0.7 的唯一维度对。</p>';
+          return;
+        }
+        const items = list.map(function (p, i) {
+          const barColor = p.r >= 0 ? '#15803d' : '#b91c1c';
+          const textClass = p.r >= 0 ? 'text-grade-a' : 'text-grade-d';
+          return '<li class="grid grid-cols-[2rem_1fr_5.5rem] items-center gap-3">' +
+            '<span class="text-center text-sm font-bold text-ink-soft">' + (i + 1) + '</span>' +
+            '<div>' +
+              '<div class="text-sm font-medium text-ink">' + p.aLabel + ' ↔ ' + p.bLabel + '</div>' +
+              '<div class="mt-1 h-2 overflow-hidden rounded-full bg-surface-muted">' +
+                '<div class="h-full rounded-full" style="width:' + (Math.abs(p.r) * 100) + '%;background:' + barColor + '"></div>' +
+              '</div>' +
+            '</div>' +
+            '<span class="text-right text-sm font-bold ' + textClass + '">r = ' + p.r.toFixed(3) + '</span>' +
+          '</li>';
+        }).join('');
+        container.innerHTML = '<ol class="mt-4 space-y-3">' + items + '</ol>';
+      }
+
       cityFilterBtns.forEach(function (btn) {
         btn.addEventListener('click', function () {
           activeCity = this.getAttribute('data-city');
@@ -474,6 +538,7 @@ const pageDesc = `${totalDimensions}个宜居维度的皮尔逊相关系数矩�
           this.classList.remove('border-line', 'bg-surface', 'text-ink-soft');
           this.classList.add('border-accent', 'bg-accent-soft', 'text-accent');
           renderScatter();
+          renderStrongPairs();
         });
       });
 
@@ -623,7 +688,7 @@ const pageDesc = `${totalDimensions}个宜居维度的皮尔逊相关系数矩�
           circle.style.cursor = 'pointer';
           circle.style.transition = 'r 0.15s';
 
-          circle.addEventListener('mouseenter', function (e) {
+          circle.addEventListener('mouseenter', function () {
             this.setAttribute('r', '8');
             tooltip.classList.remove('hidden');
             tooltipContent.innerHTML = `<strong>${d.name}</strong> · ${d.city}<br>X: ${d.x.toFixed(1)} · Y: ${d.y.toFixed(1)}`;
@@ -687,6 +752,7 @@ const pageDesc = `${totalDimensions}个宜居维度的皮尔逊相关系数矩�
 
       // Initial render
       renderScatter();
+      renderStrongPairs();
     })();
   </script>
 </BaseLayout>
