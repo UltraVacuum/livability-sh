@@ -5,9 +5,13 @@
 ## Failures
 | 日期 | 项目 | 失败原因 | 修复方案 | 防再犯规则 |
 |------|------|----------|----------|------------|
+| 2026-08-16 #35 | yijudu | 部署失败：Cloudflare OAuth token 过期（2026-08-14），非交互环境无法 refresh，且无 CLOUDFLARE_API_TOKEN | 交互环境 `wrangler login` 刷新 OAuth 或配置 CLOUDFLARE_API_TOKEN 后重新部署 | 派发前校验 Cloudflare 凭证有效性 |
 
 
 | 2026-07-03～08-10 | yijudu | feedback.md 空壳38天，Validator 未写入审查记录 | v29 内联 Validator task + feedback 格式原子化 | 步骤6-7必须有完成标志 |
+| 2026-08-16 #33 | yijudu | Codex 无法运行（ZAI/glm-5.3 账户触达每周/每月使用上限，2026-08-20 重置） | 等待限额重置；或切换备用模型/账户 | 调度器派发前应预检模型额度，避免反复派发 |
+| 2026-08-16 #34 | yijudu | 模型账户 model_access_denied（glm-5.3/5-turbo/4.6 全部无权限），Codex 无法运行 | 解决账户权限/额度，或切换有效 API key / provider | 调度器派发前 curl 预检模型可访问性，denied/429 则跳过派发并记录 |
+| 2026-08-15 #32 | yijudu | Codex 中途静默退出（45min），代码已写但无 commit/push/交付物；另查实 #31 的 commit d41e6f4 不存在（幻觉 hash） | 工作区改动保留，下轮统一自检+commit；TASK 增加阶段性落盘要求 | 交付物验证必查 git log 而非仅看反馈文本中的 hash |
 | 2026-07-11～08-10 | yijudu | PROGRESS.md Failures 空表30天 | 本轮手动补录 | Failures 表必须随 FAIL/CONCERNS 实时追加 |
 | 2026-07-27～08-09 | yijudu | 连续14天 ≤2 commits，产出持续低迷 | loop prompt 目标需更聚焦 | 方向对但节奏不行，关注 commit 数量 |
 ## 项目概况
@@ -26,6 +30,10 @@
 
 ## 迭代历史
 （每次迭代追加一行摘要）
+- **2026-08-16 #35**: 收尾 #31+#32 未提交改动——查实 origin/master 已含 #31 的 d41e6f4 等 3 笔 commit（本地引用陈旧），本轮只提交真正新增：cityStats greenRate→parks 口径拆分 + 北京 metroStations 539 补齐、correlation 强相关清单随城市筛选联动重算。构建 82 页 PASS，补偿自检全绿（console.log=0 / :any=0 / astro check 无新增错误），commit+push 成功（4038e44/3b5ec56）。部署失败：Cloudflare OAuth token 过期 + 非交互无法 refresh。 — CONCERNS
+- **2026-08-16 #33**: ⚠️ FAIL（基础设施阻断）— Codex 无法运行：ZAI/glm-5.3 账户触达每周/每月使用上限（2026-08-20 11:25 重置），codex exec 21 秒即 task_complete(null)。goal.md 已写（收尾 #31+#32 未提交改动），但零执行。工作区 10 modified + 1 untracked 未提交改动仍保留，留待限额恢复后收尾。 — FAIL
+- **2026-08-16 #34**: ⚠️ FAIL（基础设施阻断）— 调度器派发前 curl 预检模型账户：glm-5.3/5-turbo/4.6 全部 `model_access_denied`（比 #33 的限额更严重，已降为权限被拒）。本轮未派发 Codex（避免空转），工作区 #31+#32 未提交改动继续保留。 — FAIL
+- **2026-08-15 #32**: ⚠️ FAIL — Codex 中途退出。三条建议功能代码已写入工作区（correlation 联动重算/digital 人均归一化/greenRate 拆分，11 文件 176+ 行，build PASS 82页），但 OCR/commit/push/交付物未执行；且查实 #31 的 commit d41e6f4 不存在，两轮改动混在未提交工作区，留待下轮统一收尾。 — FAIL
 - **2026-08-15 #31**: 北京市级 banner 补齐（2025公报：GDP 52073.4亿/人均23.9万/轨交30条909km/医疗11994机构/高校92所）+ 新增 /digital 三城智慧数字横向对比页（38区县、五项指标条形图）+ correlation 8×8矩阵构建校验与17组 |r|≥0.7强相关高亮清单。446行新增，82页构建PASS，OCR降级自检全绿，Cloudflare部署成功。 — PASS
 - **2026-08-14 #30**: 评分体系六维→八维（智慧城市指数+数字经济占GDP比纳入评分，核心1.0/补充0.5，场景权重同步）+ rankings 新增维度贡献度面板（TOP10加权贡献度堆叠条）+ 新增北京16区全量数据接入全部页面（第3城市，81页）+ explore 叠加雷达图保存PNG。604行新增，21文件，81页构建PASS，部署成功。 — PASS
 - **2026-08-13 #29**: 新增智慧城市数据维度（smartCity.ts 上海16区+银川6区县9项指标）+ explore叠加模式URL参数持久化（mode+dims）+ compare自动差异解读面板（综合排名/差距TOP3/各区优势/选购建议）。494行新增，5文件，46页构建PASS。 — PASS

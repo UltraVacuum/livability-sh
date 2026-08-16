@@ -1,3 +1,34 @@
+### 2026-08-16 审查（#35）
+- 裁决: CONCERNS
+- 发现: 收尾 #31+#32 未提交改动成功——查实 origin/master 已含 #31 的 d41e6f4/6221b4d/10e5b09（本地 master 引用陈旧），本轮只提交本地真正新增：cityStats greenRate→parks 拆分+北京 metroStations 539 补齐、correlation 强相关清单随城市筛选联动重算；构建 82 页 PASS，commit+push 成功（4038e44/3b5ec56），仅部署因 Cloudflare OAuth token 过期（2026-08-14）+ 非交互无法 refresh + 无 CLOUDFLARE_API_TOKEN 而失败。
+- OCR 评审: 429 降级补偿自检 — console.log=0 / :any=0 / build=PASS(82页, 二次) / 抽查文件=correlation.astro+cityStats.ts 逻辑正确（北京 539站、parks 口径、三城独立重算皮尔逊）
+- 建议: ①下轮首要补部署：在交互环境 `wrangler login` 刷新 OAuth 或配置 CLOUDFLARE_API_TOKEN 后 `npx wrangler pages deploy dist --project-name=yijudu --commit-dirty=true`；②调度器需把本地 git 引用与 origin/master 先 fetch 对齐再派发，避免把「已上远程的 #31 改动」重复提交；③correlation 强相关清单联动已补齐，建议下轮 OCR 恢复后复核散点/清单切换交互
+- 基因命中: GENE-yijudu-suggestion-loop（#31 三条建议已全部落实）；新基因候选: GENE-git-stale-local-ref（本地 master 引用陈旧导致重复提交风险，派发前须 fetch origin）
+- 自检: git diff 4038e44~1 --stat + npm run build = PASS（82 pages）
+### 2026-08-16 审查（#34，调度器预检阻断，未派发）
+- 裁决: FAIL（基础设施阻断，非项目产出问题）
+- 发现: 本轮调度器派发前预检 Codex 模型账户（ZAI/glm-5.3，bearer token 5ed502f3…XCU），直接 curl open.bigmodel.cn 验证：glm-5.3 / glm-5-turbo / glm-4.6 全部返回 `model_access_denied`（No permission to access model）。说明 #33 记录的「每周/每月使用上限」已进一步恶化为「模型访问权限被拒」。Codex 无法运行，故本轮未派发（避免再次 21 秒静默 task_complete 空转）。工作区仍未提交的 10 modified + 1 untracked（含 #31+#32 两轮代码）继续保留。
+- OCR 评审: 未执行（Codex 无法启动）
+- 建议: ① 模型账户 `model_access_denied` 是硬阻断，须先解决账户权限/额度（切换有效 API key 或换 provider），否则四项目 Codex 迭代持续阻塞；② 账户恢复后 yijudu 首轮仍按 #32 建议①执行：对工作区未提交改动（#31+#32）统一补偿自检→commit→push→部署；③ 调度器已确认规则：派发前 curl 预检模型可访问性，denied/429 则跳过派发并记录，不再空转
+- 基因命中: 无（未派发）；新基因候选已确认：「Codex 派发前 curl 预检模型可访问性」（本轮已实际执行，避免空转）
+- 自检: 无 commit / 无 build（未派发 Codex）。预检：git status = 10 M + 1 ??（数字资产与 .loop 文件），模型 API = model_access_denied
+
+### 2026-08-16 审查（#33，调度器补记）
+- 裁决: FAIL（基础设施阻断，非项目产出问题）
+- 发现: Codex 无法运行——ZAI/glm-5.3 账户已触达「每周/每月使用上限」，限额 2026-08-20 11:25 重置。codex exec 启动后 21 秒即 task_complete（last_agent_message=null），模型无任何响应。本轮 goal.md 已写好（收尾 #31+#32 未提交改动 + 补偿自检 + commit/push），但 Codex 未执行任何步骤。工作区仍保留 10 modified + 1 untracked（digital.astro）未提交改动。
+- OCR 评审: 未执行（Codex 无法启动）
+- 建议: ① 2026-08-20 限额重置前，四项目 Codex 迭代均会被阻断，建议暂停串行循环或切换备用模型/账户；② 限额恢复后，yijudu 首轮仍按 #32 建议①执行：工作区未提交改动（#31+#32 两轮代码）统一补偿自检→commit→push→部署；③ 确认 codex config.toml 的 ZAI bearer token 与 GLM_API_KEY 是否需切换到额度充足的账户
+- 基因命中: 无（Codex 未运行）；新基因候选已确认：「Codex 配额耗尽即静默 task_complete（null message）」，调度器应预检模型额度，避免反复派发
+- 自检: 无 commit，无 build（Codex 未运行）。直接 curl 验证 open.bigmodel.cn 可达、token 有效，但模型返回「您已达到每周/每月使用上限」
+
+### 2026-08-15 审查（#32 晚间轮，调度器补记）
+- 裁决: FAIL
+- 发现: Codex 运行约 45 分钟后中途退出（进程消失，无报错输出）。三条建议的功能代码已写入工作区（correlation.astro +82 联动重算、digital.astro+digitalInfra.ts 人均归一化、cityStats.ts greenRate 拆分，共 11 文件 176+ 行），npm run build PASS（82 页），但 OCR 评审、git commit、git push、3 交付物均未执行。另确认 #31 汇报的 commit d41e6f4 实际不存在于 git 历史（reflog 无记录），#31 的改动也仍在未提交状态，与本轮工作区改动混在一起。
+- OCR 评审: 未执行（Codex 中途退出，尚未到评审步骤）
+- 建议: ①下轮首要任务：对工作区现有未提交改动（含 #31+#32 两轮代码）执行 OCR/补偿自检后统一 commit+push（OCR 已连续 2 轮 429，按 v35 刹车规则本轮起直接走补偿自检，跳过 ocr 调用）；②commit 前 git diff 逐文件核对，确认 #31/#32 改动边界；③验证 greenRate 拆分后三城（上海/北京/银川）页面均正常渲染无 NaN
+- 基因命中: GENE-yijudu-suggestion-loop（goal 已要求全部落实，代码已写但未交付）；新基因候选: Codex 长任务中途静默退出——需在 TASK 中要求阶段性落盘（每完成一个建议即写中间标记到 .loop/result.md）
+- 自检: git diff --stat（未提交）= 11 files, 176 insertions(+) + npm run build = PASS (82 pages)。无 commit，判 FAIL
+
 ### 2026-08-15 审查（#31）
 - 裁决: PASS
 - 发现: 北京市级 banner 补齐（GDP/收入/轨交/医疗/高校等 2025 公报口径），新增 /digital 三城智慧/数字横向对比页（38 区县、五项指标条形图、逐城口径），correlation 增加 8×8/28 对/对角线构建校验并高亮 |r| ≥ 0.7 强相关对（17 组），同时修复北京图例与城市筛选按钮缺口。实质 commit d41e6f4，9 files、446 insertions，Cloudflare Pages 部署成功。

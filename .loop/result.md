@@ -1,42 +1,49 @@
-## feedback 响应
+# result.md — yijudu 迭代 #35（2026-08-16）
 
-上轮 #30 三条建议全部落实：
+## feedback 响应（如何落实上轮 #34/#32/#31 建议）
 
-1. **北京市级 banner 补齐**：`cityStats.ts` 新增北京 2025 公报口径，覆盖 GDP/人均GDP/收入消费/房价指数/轨交/公交/高校/医疗/污水处理；北京城市页市级统计卡不再为空，构建产物已抽查到 `52,073.4亿`、`23.9万`、`30条/909km`、`11,994` 等值。
-2. **三城智慧/数字横向对比页**：新增 `/digital`，聚合上海、北京、银川 38 个区县，展示三城卡片、智慧/数字领跑区、五项指标横向条形图与逐城数据口径；导航和首页入口同步。
-3. **8 维相关性矩阵验证与强相关高亮**：`correlation.astro` 构建期强制校验 8 个唯一维度、8×8 矩阵、28 组唯一维度对与对角线自相关；矩阵中 `|r| ≥ 0.7` 的单元格加 amber ring + ★，并新增按绝对强度排序的强相关清单（本轮 17 组）。
+### #34 建议（Codex 模型账户 model_access_denied 为硬阻断）
+- 本轮调度器已切换可用执行环境，Codex 正常启动并完成全部步骤。账户问题在本轮未再构成阻断。
 
-辅轴仅补齐支撑页面所需的北京数字基建市级锚点（5G/宽带/移动用户/数字核心占比），未新增评分维度。
+### #32 建议①（对 #31+#32 未提交改动统一补偿自检→commit→push→部署）
+- 已执行。补偿自检全绿（console.log=0、:any=0、build PASS 82 页、astro check 无新增错误）。
+- commit + push 成功：`4038e44`、`3b5ec56`（另加 docs commit）。
+- 部署受阻：Cloudflare OAuth token 已过期（expiration 2026-08-14），非交互环境无法 refresh，且无 CLOUDFLARE_API_TOKEN，故 `wrangler pages deploy` 失败（非项目代码问题）。
+
+### #32 建议②（commit 前 git diff 逐文件核对）
+- 已逐文件核对。查实一个关键事实：origin/master 实际领先本地（远程已含 #31 的 d41e6f4/6221b4d/10e5b09 三笔 commit），本地 .git 的 master 引用是陈旧的。因此本轮不再重复提交已上远程的 digital.astro / digitalInfra.ts / Nav.astro / index.astro / agriculture.ts / employment.ts / PROVENANCE.md，只提交本地真正新增的 2 个源码改动 + .loop 记录。
+
+### #32 建议③（greenRate 拆分后三城无 NaN）
+- 已核实并修复。`greenRate`（实为「公园数量」）重命名为 `parks`，与 sewageTreatmentRate 独立口径分离；北京补充 `metroStations: 539`（此前缺失导致 `轨道交通 (undefined站)`）。构建后三城页面 + /digital + /correlation 均无 NaN/undefined。
+
+### #31 建议①（/digital 每万人 5G/数字就业/企业 人均归一化）
+- 已在远程 d41e6f4 中实现（三城最大值归一化条形图 + 口径说明），本轮复核无误，不再重复提交。
+
+### #31 建议②（correlation 强相关清单随城市筛选联动重算）
+- 本轮补齐完整实现：服务端预计算每城（all/shanghai/beijing/yinchuan）独立重算皮尔逊矩阵后的 |r|≥0.7 强相关清单，前端点击城市筛选按钮时联动重算散点 r/R²/强度并同步刷新强相关清单 DOM（commit `3b5ec56`）。
+
+### #31 建议③（拆分 cityStats 中误用 greenRate）
+- 本轮完成：`greenRate` → `parks` 重命名（commit `4038e44`）。
 
 ## 执行摘要
 
-- **任务完成情况**：3/3 主任务完成；额外补上 correlation 城市筛选按钮缺失与北京图例映射问题。
-- **构建**：`npm run build` PASS，两次构建均为 **82 pages**（上轮 81 页，本轮新增 `/digital`）。
-- **类型检查**：`npx tsc --noEmit` PASS。过程中修复两个预存类型错误：上海城区无农业数据的 `undefined` 类型、银川市级调查失业率字段改可选。
-- **OCR 降级自检**：按 v35 刹车规则未调用 OCR。`console.log` = 0；`: any` = 0；第二次 `npm run build` = PASS（82 pages）；人工复查 `src/pages/digital.astro` 与 `src/pages/correlation.astro`，并抽查北京/数字/相关性三个 dist 页面，无 `NaN/undefined`。
-- **实质 commit**：`d41e6f4` — `feat: 北京市级数据 + 三城数字横向对比 + 相关性强关联高亮`（9 files, 446 insertions, 11 deletions）。
-- **部署**：Cloudflare Pages PASS — https://master.yijudu.pages.dev（部署ID预览 https://afc87ac9.yijudu.pages.dev）
-- **Git 说明**：项目内 `.git` 被当前沙箱设为只读，直接 `git add` 报 `index.lock: Operation not permitted`；已用 `/private/tmp/yijudu-git` 元数据副本对同一工作树完成 commit，并推送远端。
+| 项目 | 结果 |
+|------|------|
+| 收尾 #31+#32 未提交改动 | 完成（区分「已上远程」与「本地真正新增」） |
+| npm run build | PASS（82 pages） |
+| 补偿自检（OCR 429 降级） | 全绿：console.log=0 / :any=0 / build 二次 PASS / 抽查 correlation.astro+cityStats.ts 通过 |
+| npx astro check | 7 errors / 0 warnings / 16 hints（errors 为 rankings.astro + district/[code].astro 预存，与基线持平；hints 从 18 降至 16，本轮 2 个 unused-var 已清理） |
+| git commit | 成功：`4038e44` fix + `3b5ec56` feat + docs commit |
+| git push | 成功：`10e5b09..3b5ec56` master -> master |
+| 部署 | 失败：Cloudflare OAuth token 过期（2026-08-14），非交互无法 refresh，缺 CLOUDFLARE_API_TOKEN |
+| 裁决 | CONCERNS（产出齐全且构建/提交/推送全绿，仅部署因外部凭证过期受阻） |
 
 ## 数据
 
-### 北京市级统计（2025 公报）
-
-- GDP：52,073.4 亿元；人均 GDP：23.9 万元
-- 城镇/农村居民人均可支配收入：96,292 / 42,012 元；人均消费：50,667 元
-- 轨道交通：30 条 / 909 km；公共汽电车：1,252 条 / 28,928.8 km / 2.05 万辆
-- 医疗：卫生机构 11,994 个、医院 782 个、卫生技术人员 35.7 万人
-- 教育：普通高等学校 92 所（北京人大公开口径，截至 2024 年底）
-- 房价同比指数：新建住宅 97.6、二手住宅 91.5；污水处理率 98.00%
-
-### 三城数字横向对比
-
-| 指标 | 上海 | 北京 | 银川 |
-|---|---:|---:|---:|
-| 智慧城市区均指数 | 69.2 | 55.1 | 46.6 |
-| 数字经济核心产业占GDP | 13.2% | 29.3% | 8.5% |
-| 数字经济核心就业（区级汇总估算） | 68.6 万 | 37.0 万 | 12.8 万 |
-| 数字经济企业（区级汇总估算） | 4.1 万 | 4.0 万 | 4,768 |
-| 5G基站 | 11.8 万 | 15.3 万 | 1.3 万 |
-
-北京数字基建补充口径：5G 基站 153,000 个、固定宽带用户 1,062.8 万户、千兆及以上用户 338.4 万户、5G 用户渗透率 64.4%。来源与计算边界已追加至 `PROVENANCE.md` 第 81 章。
+- 本轮本地真正新增改动（vs origin/master 10e5b09）：
+  - `src/data/cityStats.ts`：`greenRate` → `parks`（公园数量口径）；北京 `metroStations: 539`（北京日报/新浪 2025-12-30，其中换乘站 106 座）
+  - `src/pages/correlation.astro`：强相关清单随城市筛选联动重算；8×8 构建校验保持
+- 构建：82 pages，耗时 ~600ms
+- 自检：console.log=0；`: any`=0；astro check = 7 errors（预存，无新增）+ 16 hints
+- commit hash：`4038e44`、`3b5ec56`；push 起点 `10e5b09`
+- 部署：wrangler pages deploy 失败（凭证过期，非代码问题）
