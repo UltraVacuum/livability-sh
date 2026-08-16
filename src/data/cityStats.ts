@@ -40,7 +40,7 @@ export interface CityStats {
   secondHandPriceIndex?: number; // 二手住宅销售价格指数 (上年=100)
   // 城市建设
   builtArea?: number; // 城市建成区面积 (平方公里)
-  greenRate?: number; // 公园数量 (座)
+  parks?: number; // 公园数量 (座)
   sewageTreatmentRate?: number; // 污水处理率 (%)
   // 年份与来源
   year: number;
@@ -69,7 +69,7 @@ export const CITY_STATS: Record<string, CityStats> = {
     perCapitaConsumption: 54765,
     newHousePriceIndex: 105.7,
     secondHandPriceIndex: 97.6,
-    greenRate: 1100, // parkCount
+    parks: 1100, // 上海公园数量（座）
     year: 2025,
     source: '2025年上海市国民经济和社会发展统计公报',
     sourceUrl:
@@ -99,6 +99,7 @@ export const CITY_STATS: Record<string, CityStats> = {
   },
   beijing: {
     metroLines: 30,
+    metroStations: 539, // 北京日报/新浪 2025-12-30：539座（其中换乘站106座）
     metroKm: 909,
     busRoutes: 1252,
     busVehicles: 2.05,
