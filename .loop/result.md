@@ -47,3 +47,12 @@
 - 自检：console.log=0；`: any`=0；astro check = 7 errors（预存，无新增）+ 16 hints
 - commit hash：`4038e44`、`3b5ec56`；push 起点 `10e5b09`
 - 部署：wrangler pages deploy 失败（凭证过期，非代码问题）
+
+### #36 中间进度 1
+- [DONE] /city/compare 预设方案扩展：新增均衡/家庭/年轻人/养老 4 组权重预设、预设 Top3 快捷加入、当前选择最优与加权贡献解读、URL 分享与复制反馈。
+
+### #36 中间进度 2
+- [DONE] /filter 分享交互增强：城市选项改为数据驱动（补齐北京）、显式复制分享链接与复制状态、URL 参数解析加固、排序类型覆盖全部 8 维。
+
+### #36 中间进度 3
+- [DONE] 补偿自检：console.log=0 / :any=0 / npm run build PASS(82页) / CompareTool+FilterTool人工核对；correlation 城市筛选同时重算散点与强相关清单，dist 未检出 NaN/undefined。Compare 新增逻辑拆分为 preset panel/results/table，主组件 181 行。

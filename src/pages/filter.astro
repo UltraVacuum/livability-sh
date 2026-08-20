@@ -2,7 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import FilterTool from '../components/FilterTool.tsx';
 import { CITIES } from '../data/cities';
-import { getDistricts, METRICS, type MetricKey } from '../data/districts';
+import { getDistricts, METRICS } from '../data/districts';
 import { computeCity, rankWithWeights } from '../lib/scoring';
 import { SITE } from '../consts';
 
@@ -83,6 +83,7 @@ const jsonLd = {
       <FilterTool
         client:load
         entries={allFilterEntries}
+        cities={CITIES.map((city) => ({ key: city.key, name: city.name }))}
         metricKeys={metricKeys}
         metricLabels={metricLabels}
         metricShortLabels={metricShortLabels}
