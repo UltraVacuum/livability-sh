@@ -30,6 +30,7 @@
 
 ## 迭代历史
 （每次迭代追加一行摘要）
+- **2026-08-21 #36**: compare 新增均衡/家庭/年轻人/养老 4 组权重预设与 URL 分享（自动 Top3、预设综合分重算、最优区解读），filter 新增显式复制分享链接、数据驱动三城筛选与参数解析加固；82 页构建 PASS，补偿自检全绿，commit+push 成功（05c0085），部署因 Cloudflare OAuth 过期未执行。 — PASS
 - **2026-08-16 #35**: 收尾 #31+#32 未提交改动——查实 origin/master 已含 #31 的 d41e6f4 等 3 笔 commit（本地引用陈旧），本轮只提交真正新增：cityStats greenRate→parks 口径拆分 + 北京 metroStations 539 补齐、correlation 强相关清单随城市筛选联动重算。构建 82 页 PASS，补偿自检全绿（console.log=0 / :any=0 / astro check 无新增错误），commit+push 成功（4038e44/3b5ec56）。部署失败：Cloudflare OAuth token 过期 + 非交互无法 refresh。 — CONCERNS
 - **2026-08-16 #33**: ⚠️ FAIL（基础设施阻断）— Codex 无法运行：ZAI/glm-5.3 账户触达每周/每月使用上限（2026-08-20 11:25 重置），codex exec 21 秒即 task_complete(null)。goal.md 已写（收尾 #31+#32 未提交改动），但零执行。工作区 10 modified + 1 untracked 未提交改动仍保留，留待限额恢复后收尾。 — FAIL
 - **2026-08-16 #34**: ⚠️ FAIL（基础设施阻断）— 调度器派发前 curl 预检模型账户：glm-5.3/5-turbo/4.6 全部 `model_access_denied`（比 #33 的限额更严重，已降为权限被拒）。本轮未派发 Codex（避免空转），工作区 #31+#32 未提交改动继续保留。 — FAIL
