@@ -1,6 +1,5 @@
 import { METRICS } from '../data/districts';
 import {
-  COMPARE_PRESETS,
   priorityMetricsFor,
   type ComparePreset,
   type PresetSlug,
@@ -10,12 +9,19 @@ export type CompareCopyState = 'idle' | 'copied' | 'error';
 
 interface Props {
   activePreset: ComparePreset;
+  presets: ComparePreset[];
   copyState: CompareCopyState;
   onSelect: (slug: PresetSlug) => void;
   onCopy: () => void;
 }
 
-export default function ComparePresetPanel({ activePreset, copyState, onSelect, onCopy }: Props) {
+export default function ComparePresetPanel({
+  activePreset,
+  presets,
+  copyState,
+  onSelect,
+  onCopy,
+}: Props) {
   const priorityMetrics = priorityMetricsFor(activePreset.weights, METRICS);
 
   return (
@@ -37,7 +43,7 @@ export default function ComparePresetPanel({ activePreset, copyState, onSelect, 
       </div>
 
       <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4" role="group" aria-label="对比预设">
-        {COMPARE_PRESETS.map((preset) => {
+        {presets.map((preset) => {
           const active = preset.slug === activePreset.slug;
           return (
             <button

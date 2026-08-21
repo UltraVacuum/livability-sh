@@ -1,10 +1,13 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import DigitalScenarioTool from '../components/DigitalScenarioTool';
 import { CITIES } from '../data/cities';
 import { getDistricts } from '../data/districts';
 import { getDigitalEconomy } from '../data/digitalEconomy';
 import { CITY_SMART_TOTALS, smartCitySource } from '../data/smartCity';
 import { getCityDigital } from '../data/digitalInfra';
+import { CENSUS, SH_OFFICIAL_2024 } from '../data/census';
+import { BEIJING_DISTRICTS } from '../data/beijing';
 
 const CITY_COLORS: Record<string, string> = {
   shanghai: '#0d9488',
@@ -17,18 +20,12 @@ function average(values: number[]): number {
   return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
-function formatCompact(value: number | undefined): string {
-  if (value === undefined) return '—';
-  if (value >= 10000) return `${(value / 10000).toFixed(1)}万`;
-  if (value >= 1000) return value.toLocaleString('zh-CN');
-  return Number.isInteger(value) ? String(value) : value.toFixed(1);
-}
-
 interface CityDigitalProfile {
   key: string;
   name: string;
   color: string;
   districtCount: number;
+  populationWan: number;
   smartAverage: number;
   districtDigitalAverage: number;
   officialDigitalShare: number | undefined;
@@ -55,12 +52,19 @@ const cityProfiles: CityDigitalProfile[] = CITIES.map((city) => {
 
   const smartSorted = [...districts].sort((a, b) => b.values.smart - a.values.smart);
   const digitalSorted = [...districts].sort((a, b) => b.values.digital - a.values.digital);
+  const populationWan =
+    city.key === 'shanghai'
+      ? Object.values(SH_OFFICIAL_2024).reduce((sum, district) => sum + district.pop_wan, 0)
+      : city.key === 'beijing'
+        ? BEIJING_DISTRICTS.reduce((sum, district) => sum + district.popWan, 0)
+        : Object.values(CENSUS[city.key]?.pop ?? {}).reduce((sum, population) => sum + population, 0) / 10000;
 
   return {
     key: city.key,
     name: city.name,
     color: CITY_COLORS[city.key] ?? '#0d9488',
     districtCount: districts.length,
+    populationWan: +populationWan.toFixed(2),
     smartAverage: +average(districts.map((d) => d.values.smart)).toFixed(1),
     districtDigitalAverage: +average(districts.map((d) => d.values.digital)).toFixed(1),
     officialDigitalShare: digitalInfra?.digitalGdpRatio,
@@ -92,59 +96,87 @@ const cityProfiles: CityDigitalProfile[] = CITIES.map((city) => {
 const metricDefinitions: Array<{
   key: string;
   label: string;
-  description: string;
+  totalDescription: string;
+  perCapitaDescription: string;
   unit: string;
-  max: number;
-  format?: (value: number) => string;
+  perCapitaUnit: string;
+  populationScaled: boolean;
 }> = [
   {
     key: 'smartAverage',
     label: '智慧城市区均指数',
-    description: '16/6个区县智慧城市指数的算术平均值（0-100）',
+    totalDescription: '区县智慧城市指数的算术平均值（0-100）',
+    perCapitaDescription: '指数已经是强度指标，三种口径下保持不变',
     unit: '分',
-    max: Math.max(...cityProfiles.map((c) => c.smartAverage)),
+    perCapitaUnit: '分',
+    populationScaled: false,
   },
   {
     key: 'officialDigitalShare',
     label: '数字经济核心产业占GDP',
-    description: '市级官方口径；北京为数字经济核心产业，非数字经济全口径',
+    totalDescription: '市级官方口径；北京为数字经济核心产业，非数字经济全口径',
+    perCapitaDescription: '占比是强度指标，不按人口均摊；仍需注意各市统计口径差异',
     unit: '%',
-    max: Math.max(...cityProfiles.map((c) => c.officialDigitalShare ?? 0)),
+    perCapitaUnit: '%',
+    populationScaled: false,
   },
   {
     key: 'coreIndustryEmployees',
     label: '数字经济核心就业',
-    description: '区级数字经济核心产业就业估算汇总',
+    totalDescription: '区级数字经济核心产业就业估算汇总',
+    perCapitaDescription: '核心就业 ÷ 常住人口，表示每万人拥有的数字经济核心就业',
     unit: '人',
-    max: Math.max(...cityProfiles.map((c) => c.coreIndustryEmployees)),
-    format: (value) => formatCompact(value),
+    perCapitaUnit: '人/万人',
+    populationScaled: true,
   },
   {
     key: 'digitalCompanies',
     label: '数字经济企业',
-    description: '区级数字经济企业估算汇总',
+    totalDescription: '区级数字经济企业估算汇总',
+    perCapitaDescription: '企业数 ÷ 常住人口，表示每万人拥有的数字经济企业',
     unit: '家',
-    max: Math.max(...cityProfiles.map((c) => c.digitalCompanies)),
-    format: (value) => formatCompact(value),
+    perCapitaUnit: '家/万人',
+    populationScaled: true,
   },
   {
     key: 'fiveGStations',
     label: '5G基站',
-    description: '市级通信/统计公报总量',
+    totalDescription: '市级通信/统计公报总量',
+    perCapitaDescription: '基站数 ÷ 常住人口，表示每万人拥有的5G基站',
     unit: '个',
-    max: Math.max(...cityProfiles.map((c) => c.fiveGStations ?? 0)),
-    format: (value) => formatCompact(value),
+    perCapitaUnit: '个/万人',
+    populationScaled: true,
   },
 ];
 
-function profileValue(profile: CityDigitalProfile, metricKey: string): number | undefined {
-  if (metricKey === 'smartAverage') return profile.smartAverage;
-  if (metricKey === 'officialDigitalShare') return profile.officialDigitalShare;
-  if (metricKey === 'coreIndustryEmployees') return profile.coreIndustryEmployees;
-  if (metricKey === 'digitalCompanies') return profile.digitalCompanies;
-  if (metricKey === 'fiveGStations') return profile.fiveGStations;
-  return undefined;
-}
+const scenarioMetrics = metricDefinitions.map((metric) => ({
+  key: metric.key as
+    | 'smartAverage'
+    | 'officialDigitalShare'
+    | 'coreIndustryEmployees'
+    | 'digitalCompanies'
+    | 'fiveGStations',
+  label: metric.label,
+  totalDescription: metric.totalDescription,
+  perCapitaDescription: metric.perCapitaDescription,
+  totalUnit: metric.unit,
+  perCapitaUnit: metric.perCapitaUnit,
+  populationScaled: metric.populationScaled,
+}));
+
+const scenarioCities = cityProfiles.map((profile) => ({
+  key: profile.key,
+  name: profile.name,
+  color: profile.color,
+  populationWan: profile.populationWan,
+  values: {
+    smartAverage: profile.smartAverage,
+    officialDigitalShare: profile.officialDigitalShare,
+    coreIndustryEmployees: profile.coreIndustryEmployees,
+    digitalCompanies: profile.digitalCompanies,
+    fiveGStations: profile.fiveGStations,
+  },
+}));
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -191,7 +223,9 @@ const pageDesc =
           <div class="flex items-center justify-between">
             <div>
               <h2 class="text-lg font-bold text-ink">{profile.name}</h2>
-              <p class="text-xs text-ink-soft">{profile.districtCount} 个区县 · 区均智慧指数 {profile.smartAverage}</p>
+              <p class="text-xs text-ink-soft">
+                {profile.districtCount} 个区县 · 常住人口 {profile.populationWan.toFixed(2)} 万 · 区均智慧指数 {profile.smartAverage}
+              </p>
             </div>
             <span class="h-3 w-12 rounded-full" style={`background:${profile.color}`} />
           </div>
@@ -229,38 +263,8 @@ const pageDesc =
       ))}
     </div>
 
-    <div class="card mt-8 p-6">
-      <h2 class="text-lg font-semibold text-ink">📊 五项核心指标横向条形图</h2>
-      <p class="mt-1 text-sm text-ink-soft">
-        每项指标以三城最大值为 100% 做归一化，用于观察相对差距；不能跨指标直接比较数值大小。
-      </p>
-
-      <div class="mt-6 space-y-7">
-        {metricDefinitions.map((metric) => (
-          <div>
-            <div class="flex flex-wrap items-baseline justify-between gap-2">
-              <h3 class="text-sm font-semibold text-ink">{metric.label}</h3>
-              <p class="text-xs text-ink-soft">{metric.description}</p>
-            </div>
-            <div class="mt-3 space-y-2">
-              {cityProfiles.map((profile) => {
-                const value = profileValue(profile, metric.key);
-                const ratio = value === undefined ? 0 : metric.max === 0 ? 0 : value / metric.max;
-                const label = value === undefined ? '—' : metric.format ? metric.format(value) : value.toLocaleString('zh-CN');
-                return (
-                  <div class="grid grid-cols-[3.5rem_1fr_5rem] items-center gap-3 text-sm">
-                    <span class="text-ink-soft">{profile.name}</span>
-                    <div class="h-3 overflow-hidden rounded-full bg-surface-muted">
-                      <div class="h-full rounded-full transition-all duration-700" style={`width:${ratio * 100}%;background:${profile.color}`} />
-                    </div>
-                    <span class="text-right font-semibold text-ink">{label}<span class="ml-1 text-[10px] font-normal text-ink-soft">{metric.unit}</span></span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        ))}
-      </div>
+    <div class="mt-8">
+      <DigitalScenarioTool client:load metrics={scenarioMetrics} cities={scenarioCities} />
     </div>
 
     <div class="mt-8 grid gap-4 lg:grid-cols-3">

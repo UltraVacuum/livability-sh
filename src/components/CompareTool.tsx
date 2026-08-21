@@ -3,32 +3,41 @@ import RadarChart from './RadarChart';
 import ComparePresetPanel, { type CompareCopyState } from './ComparePresetPanel';
 import ComparePresetResults from './ComparePresetResults';
 import CompareTable from './CompareTable';
-import { METRICS, DEFAULT_WEIGHTS } from '../data/districts';
+import { METRICS } from '../data/districts';
 import type { ScoredDistrict } from '../lib/scoring';
 import {
-  COMPARE_PRESETS,
-  getComparePreset,
   topDistrictIds,
+  type ComparePreset,
   type PresetSlug,
 } from '../lib/comparePresets';
 
-interface Props {
+export interface CompareToolProps {
   districts: ScoredDistrict[];
   citySlug: string;
+  presets: ComparePreset[];
 }
 
 const COLORS = ['#0d9488', '#dc2626', '#2563eb'];
 
-export default function CompareTool({ districts, citySlug }: Props) {
-  const balancedTop3 = useMemo(() => topDistrictIds(districts, DEFAULT_WEIGHTS), [districts]);
+export default function CompareTool({ districts, citySlug, presets }: CompareToolProps) {
+  const balancedPreset =
+    presets.find((preset) => preset.slug === 'balanced') ?? presets[0];
+  const balancedTop3 = useMemo(
+    () => topDistrictIds(districts, balancedPreset.weights),
+    [districts, balancedPreset],
+  );
   const [presetSlug, setPresetSlug] = useState<PresetSlug>('balanced');
   const [selected, setSelected] = useState<string[]>(balancedTop3);
   const [copyState, setCopyState] = useState<CompareCopyState>('idle');
-  const activePreset = getComparePreset(presetSlug);
+  const activePreset = presets.find((preset) => preset.slug === presetSlug) ?? balancedPreset;
+
+  function presetBySlug(slug: string): ComparePreset {
+    return presets.find((preset) => preset.slug === slug) ?? balancedPreset;
+  }
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const nextPreset = getComparePreset(params.get('preset') ?? 'balanced');
+    const nextPreset = presetBySlug(params.get('preset') ?? 'balanced');
     const requestedDistricts = (params.get('districts') ?? '')
       .split(',')
       .filter((adcode) => districts.some((district) => district.adcode === adcode))
@@ -40,7 +49,7 @@ export default function CompareTool({ districts, citySlug }: Props) {
     } else if (nextPreset.slug !== 'balanced') {
       setSelected(topDistrictIds(districts, nextPreset.weights));
     }
-  }, [districts]);
+  }, [districts, presets, balancedPreset]);
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -80,7 +89,7 @@ export default function CompareTool({ districts, citySlug }: Props) {
   }
 
   function applyPreset(slug: PresetSlug) {
-    const preset = COMPARE_PRESETS.find((item) => item.slug === slug);
+    const preset = presets.find((item) => item.slug === slug);
     if (!preset) return;
     setPresetSlug(slug);
     setSelected(topDistrictIds(districts, preset.weights));
@@ -99,6 +108,7 @@ export default function CompareTool({ districts, citySlug }: Props) {
     <div className="space-y-6">
       <ComparePresetPanel
         activePreset={activePreset}
+        presets={presets}
         copyState={copyState}
         onSelect={applyPreset}
         onCopy={copyShareLink}

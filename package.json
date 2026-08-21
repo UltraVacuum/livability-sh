@@ -9,6 +9,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
+    "smoke": "node scripts/smoke.mjs",
     "collect": "node scripts/collect-poi.mjs",
     "collect:fresh": "node scripts/collect-poi.mjs --fresh",
     "refine": "node scripts/refine-poi.mjs",

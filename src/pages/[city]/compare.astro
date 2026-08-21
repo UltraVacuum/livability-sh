@@ -4,6 +4,7 @@ import CompareTool from '../../components/CompareTool.tsx';
 import { computeCity } from '../../lib/scoring';
 import { getDistricts } from '../../data/districts';
 import { CITIES, getCity } from '../../data/cities';
+import { COMPARE_PRESETS } from '../../lib/comparePresets';
 
 export function getStaticPaths() {
   return CITIES.map((c) => ({ params: { city: c.key } }));
@@ -24,7 +25,7 @@ const districts = computeCity(getDistricts(city.key));
       先选生活场景预设，再微调 2–3 个区：综合分会随预设权重重算，八维原始指标与雷达图并排呈现，地址栏可直接分享当前组合。
     </p>
     <div class="mt-8">
-      <CompareTool client:load districts={districts} citySlug={city.key} />
+      <CompareTool client:load districts={districts} citySlug={city.key} presets={COMPARE_PRESETS} />
     </div>
   </section>
 </BaseLayout>
