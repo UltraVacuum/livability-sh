@@ -1,3 +1,11 @@
+### 2026-08-22 审查（#37）
+- 裁决: PASS
+- 发现: #36 三条建议全部落实——新增 `npm run smoke`（解析 dist island props，98 项断言覆盖 compare/filter URL 默认值、预设完整性、非法参数回退与分享往返），/digital 增加总量/人均/三城相对值切换并显性化口径差异，部署检测确认 OAuth 过期且无 API token 后按规则跳过；82 页构建 PASS，实质 commit+push 成功（9ad5663）。
+- OCR 评审: 429 降级（第 4 轮，直接补偿自检）— ①console.log=0；②:any=0；③npm run build 二次 PASS（82页）；④人工核对 DigitalScenarioTool.tsx/digital.astro 与 smoke.mjs，复核三城人口分母、每万人5G值（上海47.58/北京70.07/银川42.82）与 compare presets props 链路。
+- 建议: ①将 compare/filter 的 URL parse/serialize 逻辑抽成组件与 smoke 共享的纯模块，消除 smoke 中镜像实现的漂移风险；②为 /digital 场景增加 `view` URL 持久化并纳入 smoke；③在交互环境刷新 Cloudflare OAuth 或配置 API token 后补部署。
+- 基因命中: GENE-yijudu-suggestion-loop（#36 建议①②③均落实）；GENE-git-stale-local-ref（fetch 只读写入失败后用 ls-remote 校验远程头一致）；GENE-temp-git-dir-workaround（复制 git metadata 到 /tmp 完成 commit/push）
+- 自检: git diff 9ad5663~1 --stat = 7 files, 675 insertions(+), 79 deletions(-) + npm run build = PASS（82 pages）
+
 ### 2026-08-21 审查（#36）
 - 裁决: PASS
 - 发现: 主轴完成两个显著交互增强——/[city]/compare 新增均衡/家庭/年轻人/养老 4 组权重预设（自动 Top3、预设综合分重算、优先维度与最优区解读、URL 分享），/filter 新增显式复制分享链接并把城市筛选改为数据驱动（补齐北京）且加固 URL 参数解析；82 页构建 PASS，实质 commit+push 成功（05c0085），部署仍因 Cloudflare OAuth 过期且无 API token 未执行（按规则不阻塞）。

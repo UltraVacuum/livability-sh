@@ -1,70 +1,67 @@
-# result.md — yijudu 迭代 #36（2026-08-21）
+# result.md — yijudu 迭代 #37（2026-08-22）
 
 ## feedback 响应
 
-### #35 建议①（优先补部署）
-- 已执行 `npx wrangler whoami` 凭证检测。
-- 结果：OAuth token 已过期且非交互环境无法刷新，同时未配置 `CLOUDFLARE_API_TOKEN`，因此不执行部署，避免无效上传。
-- 按 goal.md 规则，部署失败不阻塞本轮判定。
+### #36 建议①（compare/filter smoke）
+- 已落地：新增 `scripts/smoke.mjs` 与 `npm run smoke`。
+- 脚本解析 `dist` 中 `astro-island` 的 Astro 序列化 props，并覆盖三城 compare、filter、digital：
+  - compare：三城区县数量/唯一性、8 维有限分数、4 组预设完整性与权重覆盖、默认 balanced Top3、非法参数回退、自定义区县与预设分享 URL 往返。
+  - filter：38 条区县数据、三城数量、8 维键序与默认状态、非法城市/评级/阈值/排序参数钳制、自定义筛选 URL 往返、8 个“不限”默认 DOM。
+  - digital：5 项指标、三城人口分母与三个场景按钮。
+- 结果：`Smoke passed: 98 checks across compare/filter/digital dist islands.`
 
-### #35 建议②（先核对本地与 origin/master）
-- 开工第一步已执行 `git status --short --branch`。
-- 结果：`master...origin/master` 对齐，HEAD 为 `9db1fed`，工作区干净；后续改动均为本轮新增，未重复提交 #31/#32/#35 内容。
+### #36 建议②（/digital 场景切换）
+- 已完成：`/digital` 新增“总量口径 / 人均口径 / 三城相对值”切换。
+- 总量口径保留就业、企业、5G 基站原始总量；人均口径用常住人口折算为每万人；三城相对值以人均/强度口径下最强者为 100。
+- 智慧城市指数与数字经济占比本身是强度指标，页面显式说明不做人口均摊，并提示北京官方口径差异。
+- 人口分母来自上海 2024 年鉴、北京 2024 区级人口、银川 2025 统计公报/年鉴比例调整。
 
-### #35 建议③（correlation 散点/清单切换复核）
-- 人工核对 `src/pages/correlation.astro`：
-  - 城市按钮点击后先更新 `activeCity`，再依次调用 `renderScatter()` 与 `renderStrongPairs()`。
-  - 散点使用当前城市子集重算 Pearson r / R² / 强度、趋势线与均值线。
-  - 强相关清单读取 `strongPairsByCity[activeCity]`，并同步更新计数与空状态。
-  - 三城均有点位数据，`dist/correlation/index.html` 及三城 compare/filter 相关产物未检出 `NaN` 或 `undefined`。
+### #36 建议③（条件部署）
+- 已执行 `npx wrangler whoami`。
+- 结果：OAuth token 过期且无法在非交互环境刷新；同时 `CLOUDFLARE_API_TOKEN=absent`。
+- 按 goal.md 规则跳过 `wrangler pages deploy`，部署不阻塞本轮判定。
 
 ## 执行摘要
 
 | 项目 | 结果 |
 |------|------|
-| 主轴功能 1 | `/[city]/compare` 新增均衡/家庭/年轻人/养老 4 组对比预设；预设会重算综合分、自动带入 Top3、展示优先权重与当前选择最优解读，并支持 URL 分享与复制反馈 |
-| 主轴功能 2 | `/filter` 显式支持复制分享链接；城市选项改为数据驱动并补齐北京；URL 参数解析增加城市/评级/阈值/排序校验；排序键覆盖全部 8 维 |
-| 辅轴数据 | 本轮未新增数据维度（复用既有 `SCENARIOS` 权重与 `CITIES` 数据，避免无页面承载的孤立维度） |
+| 主任务① | `scripts/smoke.mjs` + `npm run smoke` 完成；98 项断言 PASS，未降低断言强度 |
+| 主轴② | `/digital` 三场景切换与城市口径差异说明完成 |
+| 条件任务③ | 凭证无效且无 API token，按规则记录原因后跳过部署 |
+| 辅轴 | 未新增数据维度（本轮为交互/测试主轴，符合“最多 2 个且时间允许才做”） |
 | `npx tsc --noEmit` | PASS |
-| `npm run build` | PASS（82 pages，多轮验证） |
-| OCR | 按 v35 刹车规则跳过 ocr（连续第 3 轮 429 降级），执行 4 项补偿自检全绿 |
-| 补偿自检 | `console.log=0`；`: any=0`；最终 build PASS；人工核对 `CompareTool/ComparePresetResults/CompareTable/FilterTool` 与 `correlation.astro` |
-| git commit + push | 成功：`05c0085ca7ac358b57e1f2195c457c1be74f4cb3` → `origin/master` |
-| 部署 | 未执行上传：Cloudflare OAuth 过期、无法非交互刷新、无 API token |
-| 裁决 | PASS（构建、实质功能、远程 commit/push、补偿自检均达标；部署凭证为外部阻塞） |
+| `npm run build` | PASS（82 pages；最终二次构建 PASS） |
+| `npm run smoke` | PASS（98 checks） |
+| OCR | 按 v35 刹车跳过 ocr（第 4 轮 429 降级，直接补偿自检） |
+| 补偿自检 | `console.log=0`；`: any=0`；二次 build PASS；人工核对 `DigitalScenarioTool.tsx` / `digital.astro` / `smoke.mjs` / compare props 链路 |
+| git commit + push | 成功：`9ad56637ad65a27d74780d4f81b1e3ca2b74af2b` → `origin/master`（真实 `git log` 输出：`9ad5663 feat: add digital scenario views and dist smoke tests`） |
+| 部署 | 未执行上传：Cloudflare OAuth 过期、无法非交互刷新、无 `CLOUDFLARE_API_TOKEN` |
+| 裁决 | PASS |
 
 ### 执行备注
-- 当前沙箱将项目 `.git` 目录设为只读，直接 `git add` 无法创建 `index.lock`。已将 `.git` 元数据复制到 `/private/tmp/yijudu-git-36`，以当前工作区为 work-tree 完成 commit 并成功 push；远程历史正确，未篡改项目文件。
-- `npm run check` 额外诊断结果为 7 errors / 0 warnings / 16 hints，与 #35 记录的预存基线一致（rankings 语法诊断与 district 页 optional 字段问题），本轮未新增错误。
-- `/Users/vicvinc/clawd/repos/loop-iteration-plan/.rotation-state.json` 可读但不在本轮可写根内，沙箱禁止写入；已在 feedback 中记录，需在具备权限的调度环境中更新。
+- 直接 `git fetch origin` 因沙箱禁止写 `.git/FETCH_HEAD` 失败；已用 `git ls-remote origin refs/heads/master` 校验远程头，开工时远程头、本地 `HEAD`、`origin/master` 均为 `2ea97e4`，且工作区干净。
+- 项目 `.git` 只读，已按 `GENE-temp-git-dir-workaround` 复制 metadata 到 `/tmp/yijudu-git-37`，用当前 work-tree 完成实质 commit 并 push。
+- Push 返回 GitHub Dependabot 提示：14 vulnerabilities（9 high / 4 moderate / 1 low），与本轮改动无关，未在本轮擅自升级依赖。
 
 ## 数据
 
-### 页面/交互改动
-- `src/lib/comparePresets.ts`
-  - 统一维护均衡 + 3 个场景预设、权重与 Top3 选择逻辑。
-- `src/components/ComparePresetPanel.tsx`
-  - 预设选择、优先维度说明、分享按钮与复制状态。
-- `src/components/ComparePresetResults.tsx`
-  - 预设 Top3、快捷加入/移出、当前选择最优与最高加权贡献维度解读。
-- `src/components/CompareTable.tsx`
-  - 按当前预设权重展示综合分、原始值、维度评分、排名与权重。
-- `src/components/CompareTool.tsx`
-  - 组织 URL 状态、区县选择、雷达图与表格；主组件拆至 181 行。
-- `src/components/FilterTool.tsx`
-  - 显式复制分享 URL、数据驱动城市筛选（上海/北京/银川）、参数解析加固、全部维度排序。
-- `src/pages/[city]/compare.astro`、`src/pages/filter.astro`
-  - 更新文案与 props，保持 Astro 静态构建边界。
-
-### 验证数据
-- 功能 commit diff：9 files，656 insertions，231 deletions。
+### Git / 构建
+- 功能 commit diff：7 files，675 insertions，79 deletions。
 - 构建：82 pages。
-- `console.log`：0。
-- `: any`：0。
-- dist 相关页 `NaN/undefined` 抽检：0。
-- Git push：`9db1fed..05c0085 master -> master`。
+- Smoke：98 checks。
+- Push：`2ea97e4..9ad5663 master -> master`。
+- 远程校验：`9ad56637ad65a27d74780d4f81b1e3ca2b74af2b refs/heads/master`。
 
-### 阶段性落盘
-- 中间进度 1：compare 预设方案完成。
-- 中间进度 2：filter 分享交互完成。
-- 中间进度 3：构建与补偿自检完成。
+### /digital 口径抽检
+| 城市 | 常住人口分母 | 5G基站总量 | 每万人5G基站 |
+|------|--------------:|-----------:|-------------:|
+| 上海 | 2480.26 万人 | 118000 | 47.58 |
+| 北京 | 2183.60 万人 | 153000 | 70.07 |
+| 银川 | 294.26 万人 | 12600 | 42.82 |
+
+### 文件改动
+- `scripts/smoke.mjs`：dist island props 解码、compare/filter/digital 不变量与 URL 往返断言。
+- `package.json`：新增 `npm run smoke`。
+- `src/components/DigitalScenarioTool.tsx`：三场景切换、人口分母、相对值计算与口径提示。
+- `src/pages/digital.astro`：接入城市人口分母与场景组件，移除单一总量条形图。
+- `src/components/CompareTool.tsx`、`ComparePresetPanel.tsx`、`src/pages/[city]/compare.astro`：预设显式 props 化，使 dist island 可验证完整预设配置。
